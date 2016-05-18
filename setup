@@ -72,7 +72,11 @@ setup-dirs-simple() {
         rm -rf ~/local/build
         key="`ssh-add -l | awk '{print $3}' | grep quick-start`"
         if [ "$key" == "" ]; then
-            read -p "where is quick-start key? [ignore] " key
+            if [ -f "../quick-start" ]; then
+                key=../quick-start
+            else
+                read -p "where is quick-start key? [ignore] " key
+            fi
         fi
         if [ "$key" == "" ]; then
             git clone git@taylorlmoney.com:build ~/local/build
