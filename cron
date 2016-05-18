@@ -1,0 +1,7 @@
+1 * * * * ~/local/scripts/backup installs icloud wave > /dev/null 2>&1
+10 */2 * * * ~/local/scripts/backup google > /dev/null 2>&1
+*/10 * * * * ~/local/scripts/backup important > /dev/null 2>&1
+
+* * * * * ~/local/scripts/status ctag ~/local
+* * * * * ~/local/scripts/status fetch > /dev/null 2>&1
+*/5 * * * * ~/local/scripts/status next-event

@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+scriptdir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
+PATH=../build:$PATH
+
+go() {
+    if [ ~/local/scripts == "$scriptdir" ]; then
+        echo "it appears you are trying to reinstall"
+        read -p "play it safe?[Y] " q
+        if [ "$q" == "" ]; then
+            safe="--safe"
+        fi
+    fi
+
+    bash $scriptdir/osx $safe
+
+    if [ "$safe" != "" ]; then
+        echo "playing it safe, not moving any files"
+    else
+        [ -d $scriptdir/../build ] && setup-dirs || setup-dirs-simple
+    fi
+
+    setup-dot
+    read -p "allow backups?[Y/n]" q
+    if [ "$q" != "" ]; then touch ~/.nobackup; fi
+    read -p "allow sync?[Y/n]" q
+    if [ "$q" != "" ]; then touch ~/.nosync; fi
+
+    if [ "$safe" != "" ]; then
+        echo "playing it safe and not installing"
+    else
+        setup-install
+        build cron install ~/.cron
+        build mac dud mail
+        setup-git
+    fi
+
+    setup-account
+}
+
+setup-dot() {
+    build dot --no-backup -f $scriptdir
+    touch ~/.my_home
+    source ~/.bashrc
+    if [ -d ~/local/archives ]; then
+        read -p "restore ssh?[Y/n]" q
+        if [ "$q" == "" ]; then build ssh restore ~/local/archives; fi
+    fi
+    build mail link-mailcap
+}
+
+setup-dirs() {
+    echo "Copy self to this Computer"
+    echo "This will remove directories in your home directory"
+    read -p "Run? [yes] " r
+    if [ "$r" == "" ]; then
+        cd $scriptdir/../../
+        for f in *; do
+            if [ -d "$f" ]; then
+                sudo rm -rf ~/$f
+                sudo mv $f ~/$f
+            fi
+        done
+    fi
+}
+
+setup-dirs-simple() {
+    echo "Copy self to this Computer"
+    echo "This will edit ~/local"
+    read -p "Run? [yes] " r
+    if [ "$r" == "" ]; then
+        mkdir -p ~/local
+        rm -rf ~/local/build
+        git clone git@taylorlmoney.com:build ~/local/build
+        rm -rf ~/local/scripts
+        mv "$scriptdir" ~/local/scripts
+    fi
+}
+
+setup-install() {
+    build install restore $scriptdir/install
+    mu index
+    echo "The following extras must be installed on their own"
+    echo 'gdrsync (setup); peppermint'
+    read -p "Run Setups? [yes] " r
+    if [ "$r" == "" ]; then
+        gdrsync.py ~/desktop test -n
+        open $scriptdir/taylormint.terminal
+    fi
+    echo "install xCode as well"
+}
+
+setup-account() {
+    read -p "Add Account? " q
+    while [ "$q" == "" ]; do
+        $scriptdir/secret/account.template
+        read -p "Add Account? " q
+    done
+}
+
+setup-git() {
+    default_email=git@taylorlmoney.com
+    read -p "git email[$default_email]: " email
+    if [ "$email" == "" ]; then email="$default_email"; fi
+    build template fill --email "$email" $scriptdir/secret/git.bash.template > $scriptdir/secret/git.bash
+    source $scriptdir/secret/git.bash
+}
+
+go

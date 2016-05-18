@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+
+#stolen from https://github.com/mathiasbynens/dotfiles/blob/master/.osx
+
+#sudo nvram SystemAudioVolume=" "
+#sudo pmset -a standbydelay 86400
+#sudo systemsetup -setcomputersleep Off > /dev/null
+
+if [ "$1" == "--safe" ]; then
+    safe="safe"
+fi
+
+if [ "$safe" != "" ]; then
+    computer_name="`sudo scutil --get ComputerName`"
+else
+    computer_name="Typewriter"
+fi
+read -p "Computer Name? [$computer_name] " cname
+exit
+if [ "$cname" != "" ]; then computer_name="$cname"; fi
+sudo scutil --set ComputerName "$computer_name"
+sudo scutil --set HostName "$computer_name"
+sudo scutil --set LocalHostName "$computer_name"
+sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "$computer_name"
+
+defaults write com.apple.desktop Background '{default = {ImageFilePath = "~/pictures/roll.iPhone/IMG_5524.JPG"; };}'
+
+# Expand save panel by default
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
+
+# Expand print panel by default
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
+
+# Save to disk (not to iCloud) by default
+defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
+
+
+# Trackpad: enable tap to click for this user and for the login screen
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+
+
+defaults write NSGlobalDomain KeyRepeat -int 0
+
+defaults write com.apple.screensaver askForPassword -int 1
+defaults write com.apple.screensaver askForPasswordDelay -int 0
+
+defaults write com.apple.screencapture disable-shadow -bool true
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+defaults write com.apple.finder ShowPathbar -bool true
+defaults write com.apple.finder QLEnableTextSelection -bool true
+defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
+# When performing a search, search the current folder by default
+defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+# Disable the warning when changing a file extension
+defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
+
+# Avoid creating .DS_Store files on network volumes
+defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+
+# Four-letter codes for the other view modes: `icnv`, `Nlsv`, `clmv`, `Flwv`
+defaults write com.apple.finder FXPreferredViewStyle -string "clmv"
+
+# Enable AirDrop over Ethernet and on unsupported Macs running Lion
+defaults write com.apple.NetworkBrowser BrowseAllInterfaces -bool true
+
+# Set the icon size of Dock items to 36 pixels
+defaults write com.apple.dock tilesize -int 36
+
+# Show no indicator lights for open applications in the Dock
+defaults write com.apple.dock show-process-indicators -bool false
+
+# Disable Dashboard
+defaults write com.apple.dashboard mcx-disabled -bool true
+defaults write com.apple.dock dashboard-in-overlay -bool true
+# Don’t automatically rearrange Spaces based on most recent use
+defaults write com.apple.dock mru-spaces -bool false
+
+# Remove the auto-hiding Dock delay
+defaults write com.apple.dock autohide-delay -float 0
+
+# Make Dock icons of hidden applications translucent
+defaults write com.apple.dock showhidden -bool false
+
+# Enable Safari’s debug menu
+#defaults write com.apple.Safari IncludeInternalDebugMenu -bool true
+# Enable the Develop menu and the Web Inspector in Safari
+defaults write com.apple.Safari IncludeDevelopMenu -bool true
+defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
+defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true
+
+# Use plain text mode for new TextEdit documents
+defaults write com.apple.TextEdit RichText -int 0
+
+# find . -path "$scriptdir/\*" -name '*.safari*' | xargs open -a Safari 
+add_app() {
+    app="$@"
+    defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/${app}.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
+}
+
+defaults write com.apple.dock autohide -bool true
+defaults write com.apple.dock tilesize -int 36
+defaults write com.apple.dock persistent-apps '<array></array>'
+defaults write com.apple.dock persistent-others '<array></array>'
+add_app Safari
+add_app Utilities/Terminal
+add_app Preview
+killall Dock
+
+if [ "$safe" != "" ]; then
+    echo "This will remove directories in your home directory"
+    read -p "Run? [yes] " r
+    if [ "$r" == "" ]; then
+        sudo rm -rf ~/Downloads
+        sudo rm -rf ~/Public
+        sudo rm -rf ~/Sites
+
+        sudo mv ~/Applications ~/applications
+        sudo mv ~/Desktop ~/desktop
+        sudo mv ~/Documents ~/documents
+        sudo mv ~/Library ~/library
+        sudo mv ~/Movies ~/movies
+        sudo mv ~/Music ~/music
+        sudo mv ~/Pictures ~/pictures
+
+        sudo ln -s ~/desktop ~/downloads
+    fi
+fi

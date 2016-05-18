@@ -1,0 +1,121 @@
+#!/bin/bash
+export PATH=/usr/bin:/usr/local/bin:~/local/scripts:~/local/build:$PATH
+export MAILDIR=~/.mail
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+
+fetch_mail() {
+    for c in ~/.secret/account.*.offlineimap; do
+        build etc timeout -k 30  60 /usr/local/bin/offlineimap -o -c "$c"
+        #-u quiet
+    done
+    build mail unread | notify Mail
+    mu index -q
+}
+fetch_vdir() {
+    for c in ~/.secret/account.*.vdirsyncer; do
+        build etc timeout -k 20 30 vdirsyncer -c "$c" sync
+    done
+}
+next_event() { khal-up | notify "Coming Up"; }
+fetch_all() {
+    if [ -f ~/.nosync ]; then
+        exit
+    fi
+    if [ "`build etc online`" != "" ]; then
+        fetch_vdir
+        fetch_mail
+    fi
+}
+do_ctag() { build ctag $@; }
+
+function notify() { if [ ! -f ~/.silent ]; then build mac notify $1; fi }
+
+the_status() {
+    s=""
+    #⚠︎
+    if [ "`build mac battery`" -le 20 ]; then s="$s ⚡︎ Low"; fi
+    if [ "`backup status`" != "" ]; then s="$s ♼  Late"; fi
+    mail="`build mail count`"; if [ "$mail" == "0" ]; then mail=""; fi
+    curmail="(`build mail count -cur`)"; if [ "$curmail" == "(0)" ]; then curmail=""; fi
+    mail="$mail$curmail"
+    if [ "$mail" != "" ]; then s="$s ✉︎ $mail"; fi
+    rem="`build todo count`"
+    mrem="`build mail with-subject Todo | wc -l | sed 's/^ *//g'`"
+    rem="`expr $rem + $mrem`"
+    if [ "$rem" -ge "1" ]; then s="$s ✓ $rem"; fi
+    next="`khal-next`"
+    if [ "$next" != "" ]; then
+        s="$s [$next]";
+    else
+        s="$s |";
+    fi
+    s="$s `date '+%b %d %l:%M'`"
+    s="$s "
+    echo "$s"
+}
+
+dashboard() {
+    while true; do
+        todos="`build todo --pretty list`"
+        todo_lines="`echo "$todos" | wc -l`"
+
+        lines="`tput lines`"
+        lines="`expr $lines - 3`"
+        before_todo="`expr $lines - $todo_lines`"
+
+        events="`khal-agenda`"
+        events="`echo "$events" | head -$before_todo`"
+        event_lines="`echo "$events" | wc -l`"
+        after_events="`expr $before_todo - $event_lines`"
+
+        clear
+        date '+%b %d %l:%M'
+        echo "$events"
+        echo -en "\033[0m"
+        for i in `seq 0 $after_events`; do echo; done
+        echo "$todos"
+        read -s -e -t 5 i
+    done
+}
+do_mail() { while [ "" == "" ]; do mutt; done; }
+
+khal-fake() {
+    (
+        cd ~/local/khal;
+        . venv/bin/activate;
+        khal -c ~/.khal.conf "$@"
+    )
+}
+khal-up() {
+    O="$1"
+    if [ "$O" == "" ]; then O=10; fi
+    khal-fake list --notstarted --format "{start-time} {title}" "`date '+%Y-%m-%d %I:%M%p'`" "${O}m" | grep -v 'No events'
+}
+khal-next() {
+    khal-fake list --notstarted --format "{start-time} {title}" "`date '+%Y-%m-%d %I:%M%p'`" | head -1 | grep -v 'No events' | sed 's/^ //' | cut -c 1-25
+}
+khal-agenda() {
+    khal-fake --color list --format "{start-date-once-newline}{yellow}{start-date-once:<12}{reset} {blue}{start-end-time-style:<16}{reset} {magenta}{title:<.50}{reset} {recurse} {cyan}{location:<.25}{reset}" `date '+%Y-%m-%d %I:%M%p'` 6d
+}
+
+
+a="$1"
+shift;
+if [ "$a" == "tmux" ]; then
+    the_status $@
+elif [ "$a" == "today" ]; then
+    dashboard $@
+elif [ "$a" == "fetch" ]; then
+    fetch_all $@
+elif [ "$a" == "next-event" ]; then
+    next_event $@
+elif [ "$a" == "ctag" ]; then
+    do_ctag "$@"
+elif [ "$a" == "notify" ]; then
+    notify $@
+elif [ "$a" == "mail" ]; then
+    do_mail $@
+else
+    the_status $@
+fi

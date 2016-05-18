@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+export PATH=/usr/bin:/usr/local/bin:~/local/scripts:~/local/build:$PATH
+
+backup_status() {
+    WAVE=`echo $(( $(date +%s) - $(stat -f%c ~/.lastwavebackup) ))`
+    GOOG=`echo $(( $(date +%s) - $(stat -f%c ~/.lastgooglebackup) ))`
+    ICLO=`echo $(( $(date +%s) - $(stat -f%c ~/.lasticloudbackup) ))`
+    DAY="86400"
+    DAYTwo="172800"
+    if [ "$WAVE" -ge "$DAY" ]; then echo "Wave"; fi
+    if [ "$GOOG" -ge "$DAYTwo" ]; then echo "Google"; fi
+    if [ "$ICLO" -ge "$DAYTwo" ]; then echo "iCloud"; fi
+}
+
+
+backup_important() {
+    cd ~/
+    build ssh with-agent build git autocommit
+}
+
+backup_installs() {
+    build install store ~/local/scripts/install
+    build ssh store ~/local/archives
+}
+
+FOLDERS='documents local pictures class'
+backup-wave() {
+    name="wave"
+    completed=""
+    for f in $FOLDERS; do
+        build etc timeout 1200 rsync -av --delete-excluded --delete --exclude='.tags' ~/$f/ wave:~/backup/$f/
+        if [ "$?" != "0" ]; then completed="no"; fi
+    done
+    if [ "$completed" == "" ]; then
+        date > ~/.last${name}backup
+    fi
+}
+backup-icloud() {
+    name="icloud"
+    completed=""
+    for f in $FOLDERS; do
+        build etc timeout 1200 rsync -av --delete-excluded --delete --exclude='.tags' ~/$f/ ~/library/Mobile\ Documents/com~apple~CloudDocs/backup/$f/
+        if [ "$?" != "0" ]; then completed="no"; fi
+    done
+    if [ "$completed" == "" ]; then
+        date > ~/.last${name}backup
+    fi
+}
+
+backup-google() {
+    name="google"
+    completed=""
+    for f in $FOLDERS; do
+        build etc timeout 1200 gdrsync.py -s -d -r ~/$f/ backup/$f/ -v
+        if [ "$?" != "0" ]; then completed="no"; fi
+    done
+    if [ "$completed" == "" ]; then
+        date > ~/.last${name}backup
+    fi
+}
+
+
+if [ -f ~/.nobackup ]; then
+    exit
+fi
+
+for a in $@; do
+    if [ "$a" == "important" ]; then
+        backup_important
+    elif [ "$a" == "installs" ]; then
+        backup_installs
+    elif [ "$a" == "google" ]; then
+        backup-google
+    elif [ "$a" == "wave" ]; then
+        backup-wave
+    elif [ "$a" == "icloud" ]; then
+        backup-icloud
+    elif [ "$a" == "status" ]; then
+        backup_status
+    else
+        echo "Command unknown"
+    fi
+done
