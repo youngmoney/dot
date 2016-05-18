@@ -70,7 +70,16 @@ setup-dirs-simple() {
     if [ "$r" == "" ]; then
         mkdir -p ~/local
         rm -rf ~/local/build
-        git clone git@taylorlmoney.com:build ~/local/build
+        key="`ssh-add -l | awk '{print $3}' | grep quick-start`"
+        if [ "$key" == "" ]; then
+            read -p "where is quick-start key? [ignore] " key
+        fi
+        if [ "$key" == "" ]; then
+            git clone git@taylorlmoney.com:build ~/local/build
+        else
+            ssh-agent bash -c 'ssh-add '"$key"'; git clone git@taylorlmoney.com:build ~/local/build'
+        fi
+
         rm -rf ~/local/scripts
         mv "$scriptdir" ~/local/scripts
     fi
