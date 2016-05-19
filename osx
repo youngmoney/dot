@@ -16,7 +16,6 @@ else
     computer_name="Typewriter"
 fi
 read -p "Computer Name? [$computer_name] " cname
-exit
 if [ "$cname" != "" ]; then computer_name="$cname"; fi
 sudo scutil --set ComputerName "$computer_name"
 sudo scutil --set HostName "$computer_name"
