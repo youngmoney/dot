@@ -8,7 +8,7 @@ fi
 export PATH=$SCRIPTS:$PATH
 export PATH=$SCRIPTS/../build:$PATH
 export PATH=/usr/local/bin:$PATH
-export EDITOR=vim; export VISUAL=$EDITOR
+export EDITOR=`which vim`; export VISUAL=$EDITOR
 export MAILDIR=~/.mail
 export KHARD_CONFIG=~/.khard.conf
 
