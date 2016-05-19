@@ -162,6 +162,8 @@ autocmd Filetype markdown highlight link mdAlert Error
 autocmd Filetype markdown syntax match mdMath "\$\_.\{-}\$"
 autocmd Filetype markdown highlight link mdMath Structure
 autocmd Filetype markdown set textwidth=80
+autocmd Filetype markdown syntax match mdBudget "^\(in\|tx\|bg\|ex\) .*$"
+autocmd Filetype markdown highlight link mdBudget Ignore
 highlight nonascii guibg=Red ctermbg=1 term=standout
 au BufReadPost * syntax match nonascii "[^\u0000-\u007F]"
 map <leader>s ]s
