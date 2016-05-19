@@ -39,7 +39,7 @@ go() {
 }
 
 setup-dot() {
-    build dot --no-backup -f $scriptdir
+    build dot --no-backup -f ~/local/scripts
     touch ~/.my_home
     source ~/.bashrc
     if [ -d ~/local/archives ]; then
