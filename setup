@@ -19,6 +19,7 @@ go() {
         [ -d $scriptdir/../build ] && setup-dirs || setup-dirs-simple
     fi
 
+    PATH=$PATH:~/local/build
     setup-dot
     read -p "allow backups?[Y/n]" q
     if [ "$q" != "" ]; then touch ~/.nobackup; fi

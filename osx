@@ -110,7 +110,7 @@ add_app Utilities/Terminal
 add_app Preview
 killall Dock
 
-if [ "$safe" != "" ]; then
+if [ "$safe" == "" ]; then
     echo "This will remove directories in your home directory"
     read -p "Run? [yes] " r
     if [ "$r" == "" ]; then
