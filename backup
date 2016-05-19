@@ -23,7 +23,7 @@ backup_installs() {
     build ssh store ~/local/archives
 }
 
-FOLDERS='documents local pictures class'
+FOLDERS='documents local pictures'
 backup-wave() {
     name="wave"
     completed=""
