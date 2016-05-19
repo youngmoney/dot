@@ -86,7 +86,7 @@ function! Ulti_ExpandOrJump_and_getRes()
     return g:ulti_expand_or_jump_res
 endfunction
 inoremap <c-a> <C-R>=(Ulti_ExpandOrJump_and_getRes() > 0)?"":"\n"<CR>
-set wildignore+=*/tmp/*,*.so,*.swp,*.zip,*.d,*.o,*.class,*/build/*,*.pdf
+set wildignore+=*/tmp/*,*.so,*.swp,*.zip,*.d,*.o,*.class,build/*,*.pdf
 
 
 "Slime
