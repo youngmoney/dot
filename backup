@@ -7,9 +7,10 @@ backup_status() {
     ICLO=`echo $(( $(date +%s) - $(stat -f%c ~/.lasticloudbackup) ))`
     DAY="86400"
     DAYTwo="172800"
+    DAYThree="259200"
     if [ "$WAVE" -ge "$DAY" ]; then echo "Wave"; fi
-    if [ "$GOOG" -ge "$DAYTwo" ]; then echo "Google"; fi
-    if [ "$ICLO" -ge "$DAYTwo" ]; then echo "iCloud"; fi
+    if [ "$GOOG" -ge "$DAYThree" ]; then echo "Google"; fi
+    if [ "$ICLO" -ge "$DAY" ]; then echo "iCloud"; fi
 }
 
 
@@ -28,7 +29,7 @@ backup-wave() {
     name="wave"
     completed=""
     for f in $FOLDERS; do
-        build etc timeout 1200 rsync -av --delete-excluded --delete --exclude='.tags' ~/$f/ wave:~/backup/$f/
+        $TIMEOUT rsync -av --delete-excluded --delete --exclude='.tags' ~/$f/ wave:~/backup/$f/
         if [ "$?" != "0" ]; then completed="no"; fi
     done
     if [ "$completed" == "" ]; then
@@ -39,7 +40,7 @@ backup-icloud() {
     name="icloud"
     completed=""
     for f in $FOLDERS; do
-        build etc timeout 1200 rsync -av --delete-excluded --delete --exclude='.tags' ~/$f/ ~/library/Mobile\ Documents/com~apple~CloudDocs/backup/$f/
+        $TIMEOUT rsync -av --delete-excluded --delete --exclude='.tags' ~/$f/ ~/library/Mobile\ Documents/com~apple~CloudDocs/backup/$f/
         if [ "$?" != "0" ]; then completed="no"; fi
     done
     if [ "$completed" == "" ]; then
@@ -51,7 +52,7 @@ backup-google() {
     name="google"
     completed=""
     for f in $FOLDERS; do
-        build etc timeout 1200 gdrsync.py -s -d -r ~/$f/ backup/$f/ -v
+        $TIMEOUT gdrsync.py -s -d -r ~/$f/ backup/$f/ -v
         if [ "$?" != "0" ]; then completed="no"; fi
     done
     if [ "$completed" == "" ]; then
@@ -62,6 +63,12 @@ backup-google() {
 
 if [ -f ~/.nobackup ]; then
     exit
+fi
+
+export TIMEOUT="build etc timeout 1200"
+if [ "$1" == "--full" ]; then
+    TIMEOUT=""
+    shift
 fi
 
 for a in $@; do
