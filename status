@@ -32,18 +32,22 @@ do_ctag() { build ctag $@; }
 function notify() { if [ ! -f ~/.silent ]; then build mac notify $1; fi }
 
 the_status() {
+    if [ "$1" == "--color" ]; then
+        reset="#[fg=colour255]"
+        # high="#[fg=colour160]"
+    fi
     s=""
     #⚠︎
     if [ "`build mac battery`" -le 20 ]; then s="$s ⚡︎ Low"; fi
     if [ "`backup status`" != "" ]; then s="$s ♼  Late"; fi
     mail="`build mail count`"; if [ "$mail" == "0" ]; then mail=""; fi
     curmail="(`build mail count -cur`)"; if [ "$curmail" == "(0)" ]; then curmail=""; fi
-    mail="$mail$curmail"
+    mail="${high}$mail${reset}${curmail}"
     if [ "$mail" != "" ]; then s="$s ✉︎ $mail"; fi
     rem="`build todo count`"
     mrem="`build mail with-subject Todo | wc -l | sed 's/^ *//g'`"
     rem="`expr $rem + $mrem`"
-    if [ "$rem" -ge "1" ]; then s="$s ✓ $rem"; fi
+    if [ "$rem" -ge "1" ]; then s="$s ✓ ${high}$rem${reset}"; fi
     next="`khal-next`"
     if [ "$next" != "" ]; then
         s="$s [$next]";
@@ -52,7 +56,7 @@ the_status() {
     fi
     s="$s `date '+%b %d %l:%M'`"
     s="$s "
-    echo "$s"
+    echo "${reset}$s"
 }
 
 dashboard() {
@@ -117,5 +121,5 @@ elif [ "$a" == "notify" ]; then
 elif [ "$a" == "mail" ]; then
     do_mail $@
 else
-    the_status $@
+    the_status $a $@
 fi
