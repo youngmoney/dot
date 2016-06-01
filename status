@@ -14,7 +14,7 @@ fetch_mail() {
 }
 fetch_vdir() {
     for c in ~/.secret/account.*.vdirsyncer; do
-        build etc timeout -k 20 30 vdirsyncer -c "$c" sync
+        build etc timeout -k 20 30 vdirsyncer -c "$c" sync --max-workers=1
     done
 }
 next_event() { khal-up | notify "Coming Up"; }
@@ -23,8 +23,12 @@ fetch_all() {
         exit
     fi
     if [ "`build etc online`" != "" ]; then
-        fetch_vdir
-        fetch_mail
+        if [ "$1" != "mail" ]; then
+            fetch_vdir
+        fi
+        if [ "$1" != "vdir" ]; then
+            fetch_mail
+        fi
     fi
 }
 do_ctag() { build ctag $@; }
