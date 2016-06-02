@@ -51,3 +51,4 @@ alias tmux='tmux -2'; export TERM="xterm-256color"; HISTCONTROL=ignoreboth; SERV
 if command -v tmux>/dev/null && [ -f ~/.my_home ] && [[ ! $TERM =~ screen ]] && [ -z "$TMUX" ] && [ "$USER" != "root" ]; then tmux -S $SERVE has-session && exec tmux -S $SERVE attach || exec tmux -S $SERVE new -s Global; fi
 
 for f in $SCRIPTS/secret/*.bash; do source "$f"; done
+PROMPT_COMMAND="build heroku auto-activate; $PROMPT_COMMAND"
