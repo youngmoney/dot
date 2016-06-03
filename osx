@@ -24,6 +24,12 @@ sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.serve
 
 defaults write com.apple.desktop Background '{default = {ImageFilePath = "~/pictures/roll.iPhone/IMG_5524.JPG"; };}'
 
+sudo pmset displaysleep 5
+sudo pmset -c displaysleep 15
+
+sudo pmset sleep 5
+sudo pmset -c sleep 20
+
 # Expand save panel by default
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
