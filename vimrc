@@ -21,7 +21,7 @@ Bundle 'epeli/slimux'
 Bundle 'christoomey/vim-tmux-navigator'
 
 "Completion
-Bundle 'Valloric/YouCompleteMe'
+"Bundle 'Valloric/YouCompleteMe'
 Bundle 'SirVer/ultisnips'
 Bundle 'honza/vim-snippets'
 "Bundle 'sheerun/vim-polyglot'
