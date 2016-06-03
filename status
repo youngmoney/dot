@@ -37,7 +37,8 @@ function notify() { if [ ! -f ~/.silent ]; then build mac notify $1; fi }
 
 the_status() {
     if [ "$1" == "--color" ]; then
-        reset="#[fg=colour255]"
+        rest=""
+        # reset="#[fg=colour255]"
         # high="#[fg=colour160]"
     fi
     s=""
