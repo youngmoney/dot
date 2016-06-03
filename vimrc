@@ -43,6 +43,7 @@ Bundle 'dhruvasagar/vim-table-mode'
 filetype on
 filetype plugin indent on
 syntax on
+set ft=pandoc
 set shellcmdflag=-ic
 silent !mkdir -p ~/.vim/backup ~/.vim/swap >/dev/null 2>&1
 set backupdir=~/.vim/backup//

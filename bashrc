@@ -26,7 +26,7 @@ alias gc="git commit"; alias gl='build git pretty-log'
 alias sup="build vagrant sup";
 alias refresh="source ~/.bash_profile"
 alias n="vim ~/documents/scratch.md '+cd ~/documents'" #+'CtrlP'"
-alias vess="vim -R - -c':set ft=pandoc'"
+alias vess="vim -R -"
 alias vore="vess"; alias vimmd="vess"
 
 ssh-add ~/.ssh/*_rsa > /dev/null 2>&1
