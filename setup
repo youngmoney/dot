@@ -11,7 +11,18 @@ go() {
         fi
     fi
 
-    bash $scriptdir/osx $safe
+    if [ "$(uname)" == "Darwin" ]; then
+        MAC="Mac"
+        echo Detected: Mac OSX
+    else
+        echo Detected: Linux '(apt based)'
+    fi
+    sleep 2
+    echo "setup starting"
+
+    if [ "$MAC" != "" ]; then
+        bash $scriptdir/osx $safe
+    fi
 
     if [ "$safe" != "" ]; then
         echo "playing it safe, not moving any files"
@@ -31,7 +42,9 @@ go() {
     else
         setup-install
         build cron install ~/.cron
-        build mac dud mail
+        if [ "$MAC" != "" ]; then
+            build mac dud mail
+        fi
         setup-git
     fi
 
