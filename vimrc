@@ -24,6 +24,7 @@ Bundle 'christoomey/vim-tmux-navigator'
 "Bundle 'Valloric/YouCompleteMe'
 Bundle 'SirVer/ultisnips'
 Bundle 'honza/vim-snippets'
+Bundle 'nvie/vim-flake8'
 "Bundle 'sheerun/vim-polyglot'
 
 "Whitespace and Characters
@@ -212,6 +213,7 @@ if g:projectType == ""
   autocmd Filetype java set makeprg=javac\ %
   autocmd Filetype python map ∫ :w<Return>:!python %<Return>
   autocmd Filetype python map ® :w<Return>:!python %<Return>
+  autocmd FileType python map ƒ :w<Return>:call Flake8()<CR>
   autocmd Filetype ruby map ∫ :w<Return>:!ruby %<Return>
   autocmd Filetype ruby map ® :w<Return>:!ruby %<Return>
   autocmd Filetype markdown map ® :w<Return>:execute "!build markdown -o %"<Return><Return>
