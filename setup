@@ -1,34 +1,51 @@
 #!/usr/bin/env bash
-scriptdir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
+if command -v realpath >/dev/null 2>&1; then
+    SCRIPT=`realpath "${BASH_SOURCE[0]}" 2>/dev/null`
+    scriptdir=`dirname "$SCRIPT"`
+else
+    scriptdir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+fi
 PATH=../build:$PATH
 
 go() {
-    read -p "make home?[Y/n]" q
-    if [ "$q" == "" ]; then touch ~/.myhome;
-    else rm -f ~/.myhome; fi
-    read -p "allow backups?[Y/n]" q
-    if [ "$q" != "" ]; then touch ~/.nobackup;
-    else rm -f ~/.nobackup; fi
-    read -p "allow sync?[Y/n]" q
-    if [ "$q" != "" ]; then touch ~/.nosync;
-    else rm -f ~/.nosync; fi
+    if [ "$1" == "--no" ]; then
+        touch ~/.nobackup
+        touch ~/.nosync
+        no="--no"
+    else
+        read -p "make home?[Y/n]" q
+        if [ "$q" == "" ]; then touch ~/.myhome;
+        else rm -f ~/.myhome; fi
+        read -p "allow backups?[Y/n]" q
+        if [ "$q" != "" ]; then touch ~/.nobackup;
+        else rm -f ~/.nobackup; fi
+        read -p "allow sync?[Y/n]" q
+        if [ "$q" != "" ]; then touch ~/.nosync;
+        else rm -f ~/.nosync; fi
+    fi
 
-    bash $scriptdir/osx
+    if [ $(uname -s) == "Darwin" ]; then bash $scriptdir/osx; fi
 
     [ -d $scriptdir/../build ] && setup-dirs || setup-dirs-simple
 
     export PATH=$PATH:~/local/build
-    setup-dot
 
-    setup-install
-    if [ -d ~/local/archives ]; then
+    setup-install $no
+
+    setup-dot
+    if [ -d ~/local/archives ] && [ "$no" == "" ]; then
         read -p "restore ssh?[Y/n]" q
         if [ "$q" == "" ]; then build ssh restore ~/local/archives; fi
     fi
     build cron install ~/.cron
-    setup-git
-    setup-account
-    build mac dud mail
+    if [ "$no" == "" ]; then
+        setup-git
+        setup-account
+    else
+        echo "run setup git"
+        echo "run setup account"
+    fi
+    if [ $(uname -s) == "Darwin" ]; then build mac dud mail; fi
 }
 
 safe-rm() {
@@ -44,8 +61,7 @@ safe-rm() {
 
 setup-dot() {
     build dot --no-backup -f ~/local/scripts
-    touch ~/.my_home
-    source ~/.bashrc
+    . ~/.bashrc
     build mail link-mailcap
 }
 
@@ -66,9 +82,10 @@ setup-dirs-simple() {
     if [ ~/local/scripts != "$scriptdir" ]; then
         safe-rm ~/local/scripts
         mv "$scriptdir" ~/local/scripts
+        scriptdir=~/local/scripts
     fi
     if [ ! -d ~/local/build ]; then
-        git clone git@github.com:youngmoney/build ~/local/build
+        git clone https://github.com/youngmoney/build.git ~/local/build
     fi
 }
 
@@ -77,10 +94,14 @@ setup-install() {
     mu index
     echo "The following extras must be installed on their own"
     echo 'gdrsync (setup); peppermint'
-    read -p "Run Setups? [yes] " r
-    if [ "$r" == "" ]; then
-        gdrsync.py ~/desktop test -n
-        open $scriptdir/taylormint.terminal
+    if [ "$1" != "--no" ]; then
+        read -p "Run Setups? [yes] " r
+        if [ "$r" == "" ]; then
+            gdrsync.py ~/desktop test -n
+            open $scriptdir/taylormint.terminal
+        fi
+    else
+        echo install gdrsyn and peppermint
     fi
     echo "install xCode as well"
 }
@@ -88,7 +109,7 @@ setup-install() {
 setup-account() {
     read -p "Add Account? " q
     while [ "$q" == "" ]; do
-        $scriptdir/template/account.template
+        $scriptdir/templates/account.template
         read -p "Add Account? " q
     done
 }
@@ -97,8 +118,8 @@ setup-git() {
     default_email=git@taylorlmoney.com
     read -p "git email[$default_email]: " email
     if [ "$email" == "" ]; then email="$default_email"; fi
-    build template fill --email "$email" $scriptdir/template/git.bash.template > ~/.secret/git.bash
-    source ~/.secret/git.bash
+    build template fill --email "$email" $scriptdir/templates/git.bash.template > ~/.secret/git.bash
+    . ~/.secret/git.bash
 }
 
 
@@ -111,5 +132,5 @@ elif [ "$a" == "account" ]; then
 elif [ "$a" == "dot" ]; then
     setup-dot "$@"
 else
-    go
+    go $a $@
 fi

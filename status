@@ -91,9 +91,11 @@ do_mail() { while [ "" == "" ]; do mutt; done; }
 
 khal-fake() {
     (
-        cd ~/local/khal;
-        . venv/bin/activate;
-        khal -c ~/.khal "$@"
+        if [ -d ~/local/khal ]; then
+            cd ~/local/khal;
+            . venv/bin/activate;
+            khal -c ~/.khal "$@"
+        fi
     )
 }
 khal-up() {
@@ -108,6 +110,14 @@ khal-agenda() {
     khal-fake --color list --format "{start-date-once-newline}{yellow}{start-date-once:<12}{reset} {blue}{start-end-time-style:<16}{reset} {magenta}{title:<.50}{reset} {recurse} {cyan}{location:<.25}{reset}" `date '+%Y-%m-%d %I:%M%p'` 6d
 }
 
+do-run() {
+    if build etc exists reattach-to-user-namespace; then
+        reattach-to-user-namespace "$@"
+    else
+        if [ "$1" == "-l" ]; then shift; fi
+        $@
+    fi
+}
 
 a="$1"
 shift;
@@ -125,6 +135,8 @@ elif [ "$a" == "notify" ]; then
     notify $@
 elif [ "$a" == "mail" ]; then
     do_mail $@
+elif [ "$a" == "run" ]; then
+    do-run $@
 else
     the_status $a $@
 fi
