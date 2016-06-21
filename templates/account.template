@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
 SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+OUT="$SCRIPTS"
+mkdir -p ~/.accounts
+OUT=~/.accounts
 
 new-contact() {
         account="$1"
@@ -10,7 +13,7 @@ new-contact() {
         secret="$5"
         refresh="$6"
 
-        config="$SCRIPTS/account.$account.contact.vdirsyncer"
+        config="$OUT/account.$account.contact.vdirsyncer"
 
         build template fill --name "$account" --username "$username"\
                             --clientid "$clientid" --secret "$secret" --refresh "$refresh"\
@@ -29,7 +32,7 @@ new-calendar() {
         secret="$5"
         refresh="$6"
 
-        config="$SCRIPTS/account.$account.calendar.vdirsyncer"
+        config="$OUT/account.$account.calendar.vdirsyncer"
 
         build template fill --name "$account" --username "$username"\
                             --clientid "$clientid" --secret "$secret" --refresh "$refresh"\
@@ -48,21 +51,23 @@ new-email() {
         secret="$5"
         refresh="$6"
 
-        config=~/.secret/account.$account.send
         build mail gmail-auth --generate_oauth2_token "--client_id=$clientid" "--client_secret=$secret"
-
         read -p "refresh token: " refresh
 
+        config="$OUT/account.$account.offlineimap"
+        build template fill --name "$account" --username "$username"\
+                            --clientid "$clientid" --secret "$secret" --refresh "$refresh"\
+                            "$SCRIPTS/account.offlineimap.template" > "$config"
 
+        config="$OUT/account.$account.send"
         build template fill --name "$account" --username "$username"\
                             --clientid "$clientid" --secret "$secret" --refresh "$refresh"\
-                            "$SCRIPTS/account.offlineimap.template" > "$SCRIPTS/account.$account.offlineimap"
-        build template fill --name "$account" --username "$username"\
-                            --clientid "$clientid" --secret "$secret" --refresh "$refresh"\
-                            "$SCRIPTS/account.send.template" > "$SCRIPTS/account.$account.send"
+                            "$SCRIPTS/account.send.template" > "$config"
+
+        config="$OUT/account.$account.mutt"
         build template fill --name "$account" --username "$username"\
                             --domain "$domain" --sendconfig "$config" --short "$short"\
-                            "$SCRIPTS/account.mutt.template" > "$SCRIPTS/account.$account.mutt"
+                            "$SCRIPTS/account.mutt.template" > "$config"
 }
 
 new-account() {

@@ -3,74 +3,58 @@ scriptdir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
 PATH=../build:$PATH
 
 go() {
-    if [ ~/local/scripts == "$scriptdir" ]; then
-        echo "it appears you are trying to reinstall"
-        read -p "play it safe?[Y] " q
-        if [ "$q" == "" ]; then
-            safe="--safe"
-        fi
-    fi
+    read -p "make home?[Y/n]" q
+    if [ "$q" == "" ]; then touch ~/.myhome;
+    else rm -f ~/.myhome; fi
+    read -p "allow backups?[Y/n]" q
+    if [ "$q" != "" ]; then touch ~/.nobackup;
+    else rm -f ~/.nobackup; fi
+    read -p "allow sync?[Y/n]" q
+    if [ "$q" != "" ]; then touch ~/.nosync;
+    else rm -f ~/.nosync; fi
 
-    if [ "$(uname)" == "Darwin" ]; then
-        MAC="Mac"
-        echo Detected: Mac OSX
-    else
-        echo Detected: Linux '(apt based)'
-    fi
-    sleep 2
-    echo "setup starting"
+    bash $scriptdir/osx
 
-    if [ "$MAC" != "" ]; then
-        bash $scriptdir/osx $safe
-    fi
-
-    if [ "$safe" != "" ]; then
-        echo "playing it safe, not moving any files"
-    else
-        [ -d $scriptdir/../build ] && setup-dirs || setup-dirs-simple
-    fi
+    [ -d $scriptdir/../build ] && setup-dirs || setup-dirs-simple
 
     export PATH=$PATH:~/local/build
     setup-dot
-    read -p "allow backups?[Y/n]" q
-    if [ "$q" != "" ]; then touch ~/.nobackup; fi
-    read -p "allow sync?[Y/n]" q
-    if [ "$q" != "" ]; then touch ~/.nosync; fi
 
-    if [ "$safe" != "" ]; then
-        echo "playing it safe and not installing"
-    else
-        setup-install
-        build cron install ~/.cron
-        if [ "$MAC" != "" ]; then
-            build mac dud mail
-        fi
-        setup-git
+    setup-install
+    if [ -d ~/local/archives ]; then
+        read -p "restore ssh?[Y/n]" q
+        if [ "$q" == "" ]; then build ssh restore ~/local/archives; fi
     fi
-
+    build cron install ~/.cron
+    setup-git
     setup-account
+    build mac dud mail
+}
+
+safe-rm() {
+    if [ -e "$@" ]; then
+        if [ "$(ls -A "$@" | grep -v .DS_Store)" ]; then
+            file=$(basename "$@")
+            sudo mv "$@" ~/desktop/${file}.$(date +%s)
+        else
+            sudo rm -rf "$@"
+        fi
+    fi
 }
 
 setup-dot() {
     build dot --no-backup -f ~/local/scripts
     touch ~/.my_home
     source ~/.bashrc
-    if [ -d ~/local/archives ]; then
-        read -p "restore ssh?[Y/n]" q
-        if [ "$q" == "" ]; then build ssh restore ~/local/archives; fi
-    fi
     build mail link-mailcap
 }
 
 setup-dirs() {
-    echo "Copy self to this Computer"
-    echo "This will remove directories in your home directory"
-    read -p "Run? [yes] " r
-    if [ "$r" == "" ]; then
+    if [ ~/local/scripts != "$scriptdir" ]; then
         cd $scriptdir/../../
         for f in *; do
             if [ -d "$f" ]; then
-                sudo rm -rf ~/$f
+                safe-rm -rf ~/$f
                 sudo mv $f ~/$f
             fi
         done
@@ -78,28 +62,13 @@ setup-dirs() {
 }
 
 setup-dirs-simple() {
-    echo "Copy self to this Computer"
-    echo "This will edit ~/local"
-    read -p "Run? [yes] " r
-    if [ "$r" == "" ]; then
-        mkdir -p ~/local
-        rm -rf ~/local/build
-        key="`ssh-add -l | awk '{print $3}' | grep quick-start`"
-        if [ "$key" == "" ]; then
-            if [ -f "../quick-start" ]; then
-                key=../quick-start
-            else
-                read -p "where is quick-start key? [ignore] " key
-            fi
-        fi
-        if [ "$key" == "" ]; then
-            git clone git@taylorlmoney.com:build ~/local/build
-        else
-            ssh-agent bash -c 'ssh-add '"$key"'; git clone git@taylorlmoney.com:build ~/local/build'
-        fi
-
-        rm -rf ~/local/scripts
+    mkdir -p ~/local
+    if [ ~/local/scripts != "$scriptdir" ]; then
+        safe-rm ~/local/scripts
         mv "$scriptdir" ~/local/scripts
+    fi
+    if [ ! -d ~/local/build ]; then
+        git clone git@github.com:youngmoney/build ~/local/build
     fi
 }
 
@@ -119,7 +88,7 @@ setup-install() {
 setup-account() {
     read -p "Add Account? " q
     while [ "$q" == "" ]; do
-        $scriptdir/secret/account.template
+        $scriptdir/template/account.template
         read -p "Add Account? " q
     done
 }
@@ -128,8 +97,19 @@ setup-git() {
     default_email=git@taylorlmoney.com
     read -p "git email[$default_email]: " email
     if [ "$email" == "" ]; then email="$default_email"; fi
-    build template fill --email "$email" $scriptdir/secret/git.bash.template > $scriptdir/secret/git.bash
-    source $scriptdir/secret/git.bash
+    build template fill --email "$email" $scriptdir/template/git.bash.template > ~/.secret/git.bash
+    source ~/.secret/git.bash
 }
 
-go
+
+a="$1"
+shift;
+if [ "$a" == "git" ]; then
+    setup-git "$@"
+elif [ "$a" == "account" ]; then
+    setup-account "$@"
+elif [ "$a" == "dot" ]; then
+    setup-dot "$@"
+else
+    go
+fi

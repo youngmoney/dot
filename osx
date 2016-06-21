@@ -6,16 +6,10 @@
 #sudo pmset -a standbydelay 86400
 #sudo systemsetup -setcomputersleep Off > /dev/null
 
-if [ "$1" == "--safe" ]; then
-    safe="safe"
-fi
+computer_name="`sudo scutil --get ComputerName`"
+computer_name="Typewriter"
 
-if [ "$safe" != "" ]; then
-    computer_name="`sudo scutil --get ComputerName`"
-else
-    computer_name="Typewriter"
-fi
-read -p "Computer Name? [$computer_name] " cname
+# read -p "Computer Name? [$computer_name] " cname
 if [ "$cname" != "" ]; then computer_name="$cname"; fi
 sudo scutil --set ComputerName "$computer_name"
 sudo scutil --set HostName "$computer_name"
@@ -115,22 +109,22 @@ add_app Utilities/Terminal
 add_app Preview
 killall Dock
 
-if [ "$safe" == "" ]; then
-    echo "This will remove directories in your home directory"
-    read -p "Run? [yes] " r
-    if [ "$r" == "" ]; then
-        sudo rm -rf ~/Downloads
-        sudo rm -rf ~/Public
-        sudo rm -rf ~/Sites
-
-        sudo mv ~/Applications ~/applications
-        sudo mv ~/Desktop ~/desktop
-        sudo mv ~/Documents ~/documents
-        sudo mv ~/Library ~/library
-        sudo mv ~/Movies ~/movies
-        sudo mv ~/Music ~/music
-        sudo mv ~/Pictures ~/pictures
-
-        sudo ln -s ~/desktop ~/downloads
+for f in ~/*; do
+    if [ -d "$f" ]; then
+        a="$f"
+        xpath=${a%/*}
+        xbase=${a##*/}
+        xfext=${xbase##*.}
+        xpref=${xbase%.*}
+        newbase="`echo ${xbase} | tr '[:upper:]' '[:lower:]'`"
+        a="${xpath}/${newbase}"
+        if [ "$f" != "$a" ]; then
+            mv "$f" "$a"
+        fi
     fi
-fi
+done
+d="`date +%s`"
+if [ -d ~/public ]; then sudo mv ~/public ~/desktop/public.$d; fi
+if [ -d ~/sites ]; then sudo mv ~/sites ~/desktop/sites.$d; fi
+if [ -d ~/downloads ]; then sudo mv ~/downloads ~/desktop/downloads.$d; fi
+sudo ln -s ~/desktop ~/downloads

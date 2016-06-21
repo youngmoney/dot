@@ -5,7 +5,7 @@ export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 
 fetch_mail() {
-    for c in ~/.secret/account.*.offlineimap; do
+    for c in ~/.accounts/account.*.offlineimap; do
         build etc timeout -k 30  60 /usr/local/bin/offlineimap -o -c "$c"
         #-u quiet
     done
@@ -13,7 +13,7 @@ fetch_mail() {
     mu index -q
 }
 fetch_vdir() {
-    for c in ~/.secret/account.*.vdirsyncer; do
+    for c in ~/.accounts/account.*.vdirsyncer; do
         build etc timeout -k 20 30 vdirsyncer -c "$c" sync --max-workers=1
     done
 }
@@ -93,7 +93,7 @@ khal-fake() {
     (
         cd ~/local/khal;
         . venv/bin/activate;
-        khal -c ~/.khal.conf "$@"
+        khal -c ~/.khal "$@"
     )
 }
 khal-up() {
