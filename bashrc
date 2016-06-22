@@ -51,7 +51,7 @@ if [ ! -f ~/.myhome ]; then COMPNAME=" \e[31m$(id -un)\e[0m "; fi
 export PS1="\[\033[36m\]\u\[\033[m\]:\[\033[33;1m\]\w\[\033[m\]\[\e[1;35m\]\$(build git state)\[\e[0;39m\]$COMPNAME$ "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
 
-ssh-setup() { ssh-share $1; ssh $1 "mkdir -p ~/local/scripts"; scp $SCRIPTS/* $1:~/local/scripts/; scp -r ~/local/build $1:~/local; ssh $1 "echo '. ~/local/scripts/bashrc'>>.bash_profile;echo 'source ~/local/scripts/vimrc'>>.vimrc; echo 'source-file ~/local/scripts/tmux'>>.tmux.conf;"; }
+ssh-setup() { ssh-share $1; ssh $1 "mkdir -p ~/local/dot"; scp $SCRIPTS/* $1:~/local/dot/; scp -r ~/local/build $1:~/local; ssh $1 "echo '. ~/local/dot/bashrc'>>.bash_profile;echo 'source ~/local/dot/vimrc'>>.vimrc; echo 'source-file ~/local/dot/tmux'>>.tmux.conf;"; }
 
 # tmux
 alias tmux='tmux -2'; export TERM="xterm-256color"; HISTCONTROL=ignoreboth; SERVE='/tmp/tmux-global'

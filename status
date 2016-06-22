@@ -1,5 +1,5 @@
 #!/bin/bash
-export PATH=/usr/bin:/usr/local/bin:~/local/scripts:~/local/build:$PATH
+export PATH=/usr/bin:/usr/local/bin:~/local/dot:~/local/build:$PATH
 export MAILDIR=~/.mail
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"

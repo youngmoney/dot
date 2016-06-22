@@ -60,13 +60,13 @@ safe-rm() {
 }
 
 setup-dot() {
-    build dot --no-backup -f ~/local/scripts
+    build dot --no-backup -f ~/local/dot
     . ~/.bashrc
     build mail link-mailcap
 }
 
 setup-dirs() {
-    if [ ~/local/scripts != "$scriptdir" ]; then
+    if [ ~/local/dot != "$scriptdir" ]; then
         cd $scriptdir/../../
         for f in *; do
             if [ -d "$f" ]; then
@@ -79,10 +79,10 @@ setup-dirs() {
 
 setup-dirs-simple() {
     mkdir -p ~/local
-    if [ ~/local/scripts != "$scriptdir" ]; then
-        safe-rm ~/local/scripts
-        mv "$scriptdir" ~/local/scripts
-        scriptdir=~/local/scripts
+    if [ ~/local/dot != "$scriptdir" ]; then
+        safe-rm ~/local/dot
+        mv "$scriptdir" ~/local/dot
+        scriptdir=~/local/dot
     fi
     if [ ! -d ~/local/build ]; then
         git clone https://github.com/youngmoney/build.git ~/local/build
