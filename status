@@ -101,13 +101,14 @@ khal-fake() {
 khal-up() {
     O="$1"
     if [ "$O" == "" ]; then O=10; fi
-    khal-fake list --notstarted --format "{start-time} {title}" "`date '+%Y-%m-%d %I:%M%p'`" "${O}m" | grep -v 'No events'
+    khal -c ~/.khal list --notstarted --format "{start-time} {title}" "`date '+%Y-%m-%d %I:%M%p'`" "${O}m" | grep -v 'No events' | grep -v '^$'
 }
 khal-next() {
-    khal-fake list --notstarted --format "{start-time} {title}" "`date '+%Y-%m-%d %I:%M%p'`" | head -1 | grep -v 'No events' | sed 's/^ //' | cut -c 1-25
+    khal -c ~/.khal list --notstarted --day-format '' --format "{start-time} {title}" "`date '+%Y-%m-%d %I:%M%p'`" | head -1 | grep -v 'No events' | sed 's/^ //' | cut -c 1-25 | grep -v '^$'
 }
 khal-agenda() {
-    khal-fake --color list --format "{start-date-once-newline}{yellow}{start-date-once:<12}{reset} {blue}{start-end-time-style:<16}{reset} {magenta}{title:<.50}{reset} {recurse} {cyan}{location:<.25}{reset}" `date '+%Y-%m-%d %I:%M%p'` 6d
+    echo
+    khal -c ~/.khal --color list --day-format '{yellow}{name}{reset}' --format "            {blue}{start-end-time-style:<16}{reset} {magenta}{title:<.50}{reset} {recurse} {cyan}{location:<.25}{reset}" `date '+%Y-%m-%d %I:%M%p'` 6d
 }
 
 do-run() {

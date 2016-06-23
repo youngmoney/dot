@@ -1,6 +1,6 @@
 [calendars]
 [[events]]
-path = ~/.calendar
+path = ~/.calendar/*/*
 type = discover
 
 [locale]
