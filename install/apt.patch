@@ -1,0 +1,10 @@
+7d6
+< brew install duti 
+14d12
+< brew install mpv 
+16d13
+< brew install mu 
+17a15
+> brew install maildir-utils
+21d18
+< brew install reattach-to-user-namespace 
