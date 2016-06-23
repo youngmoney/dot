@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+
+branch-name () {
+    state=`git branch 2>/dev/null | grep '^*' | colrm 1 2`
+    if [ -n $"$state" ]; then echo "$state"; fi
+}
+
+branch-relationship () {
+    state=`git branch -v 2>/dev/null | grep '^*' | awk -F '[' '{print $2}' - | awk -F ']' '{print $1}'`
+    if [ -n $"$state" ]; then echo "$state"; fi
+}
+
+state () {
+    state=""
+    name=`branch-name`
+    if [ "$name" != "" ]; then state="$state $name"; fi
+    rela=`branch-relationship`
+    if [ "$rela" != "" ]; then state="$state ($rela)"; fi
+    #if [ "$1" == "-c" ]; then state="\e[1;35m\]\$state\[\e[0;39m\]"; fi
+    echo "$state"
+}
+
+search() {
+    git log -S "$@"
+}
+
+find() {
+    git rev-list --all | (
+        while read revision; do
+            git grep -F "${@}" $revision
+        done
+    )
+}
+
+ls-all() {
+    git log --all --pretty=format: --name-only --diff-filter=A | sort - | uniq
+}
+
+cat-last() {
+    file="$1"
+    rev="`git log -1 --pretty=format:%h -- \"$file\"`"
+    if [ "$rev" == "" ]; then
+        echo "not found"
+    else
+        out="`git show $rev:"$file" 2>&1`"
+        if [ "$?" == "0" ]; then
+            echo "$out"
+        else
+            git show $rev^1:"$file"
+        fi
+    fi
+}
+
+pretty-log () {
+    git log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit $@
+}
+
+ls-branch-relations() {
+    current_dir="`pwd`"
+    cd "$current_dir"
+    find . -name ".git" -print0 | while IFS= read -r -d $'\0' line; do
+        cd "$current_dir"
+        if [ -d "$line" ]; then
+            cd "$line"
+            cd ..
+            state="`branch-relationship`"
+            if [ "$state" != "" ]; then
+                d="`echo $line | sed 's/\.\///' | sed 's/\/.git//'`"
+                echo "$d" "$state"
+            fi
+        fi
+    done;
+}
+
+autocommit() {
+    current_dir="`pwd`"
+    cd "$current_dir"
+    find . -name ".git" -print0 | while IFS= read -r -d $'\0' line; do
+        cd "$current_dir"
+        if [ -d "$line" ]; then
+            cd "$line"
+            cd ..
+            every="`git config autocommit.every`"
+            remote="`git config autocommit.remote`"
+            branch="`git config autocommit.branch`"
+            if [ "$branch" == "" ]; then branch="master"; fi
+            add="`git config autocommit.add`"
+            if [ "$add" == "" ]; then add='*'; fi
+            pushforce="`git config autocommit.force`"
+            if [ "$pushforce" != "" ]; then pushforce="-f"; fi
+            add=$add
+
+            commited=""
+            if [ "$every" != "" ]; then
+                git add --all $add
+                git commit -a -m "`date`" -q
+                commited="commited"
+            fi
+
+            if [ "$remote" != "" ]; then
+                if [ "$commited" == "" ]; then
+                    git add --all $add
+                    git commit -a -m "`date`" -q
+                    commited="commited"
+                fi
+                git push $f "$remote" "$branch" -q
+            fi
+
+        fi
+    done;
+    cd "$current_dir"
+}
+
+a=$1
+shift
+if [ "$a" == "branch-name" ]; then
+    branch-name $@
+elif [ "$a" == "branch-relationship" ]; then
+    branch-relationship $@
+elif [ "$a" == "state" ]; then
+    state $@
+elif [ "$a" == "pretty-log" ]; then
+    pretty-log $@
+elif [ "$a" == "ls-relations" ]; then
+    ls-branch-relations $@
+elif [ "$a" == "autocommit" ]; then
+    autocommit $@
+elif [ "$a" == "search" ]; then
+    search $@
+elif [ "$a" == "find" ]; then
+    find $@
+elif [ "$a" == "ls-all" ]; then
+    ls-all $@
+elif [ "$a" == "cat" ]; then
+    cat-last "$@"
+else
+    echo "branch-name: active branch name"
+    echo "branch-relationship: branch upstream relationship (ahead)"
+    echo "state: 'name (relationship)'"
+    echo "pretty-log: show git log in a nice colorful format"
+    echo "ls-relations: shows branch-relationships for all gits"
+    echo "autocommit: autocommits all git repos"
+    echo "            set:"
+    echo "                autocommit.every (time frame, ignored)"
+    echo "                autocommit.remote (to push)"
+    echo "            optional:"
+    echo "                autocommit.branch (to push to)"
+    echo "                autocommit.force (push -f)"
+    echo "                autocommit.add (specify --add)"
+            # branch="`git config autocommit.branch`"
+            # if [ "$branch" == "" ]; then branch="master"; fi
+            # add="`git config autocommit.add`"
+            # if [ "$add" == "" ]; then add='*'; fi
+            # pushforce="`git config autocommit.force`"
+    echo "search: search repo for string (history)"
+    echo "ls-all: list all files that ever existed"
+    echo "cat: cat the last occurance of a file"
+fi

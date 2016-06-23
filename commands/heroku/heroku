@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+function build_heroku() {
+    source venv/bin/activate
+    heroku config:pull
+    source .env
+    export DATABASE_URL=$DATABASE_URL
+}
+
+virtualenv_auto_activate() {
+    if [ -e "venv" ]; then
+        # Check to see if already activated to avoid redundant activating
+        v="$(pwd -P)/venv"
+        if [ "$VIRTUAL_ENV" != "$v" ]; then
+            echo Activating virtualenv...
+            bash --rcfile <(echo '. ~/.bashrc; . venv/bin/activate')
+        fi
+    fi
+}
+
+if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+    echo "start heroku project (with python virtualenv)"
+    echo "pull database connection and environment"
+elif [ "$1" == "auto-activate" ]; then
+    virtualenv_auto_activate
+else
+    build_heroku $@
+fi

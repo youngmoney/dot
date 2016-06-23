@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+arg="$1"
+shift
+
+[ "$arg" == "--help" ] && echo "this command, try build help" && exit
+
+if command -v realpath >/dev/null 2>&1; then
+    SCRIPTS="$(dirname $(realpath "${BASH_SOURCE[0]}" 2>/dev/null))"
+elif command -v readlink >/dev/null 2>&1; then
+    SCRIPTS="$(dirname $(readlink --canonicalize-existing ${BASH_SOURCE[0]}))"
+else
+    SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+    if [ "$SCRIPTS" == "${HOME}" ]; then SCRIPTS=~/local/dot/commands/build; fi
+fi
+
+
+command -v build >/dev/null 2>&1 || PATH=$PATH:$SCRIPTS
+
+BUILD_PATH=${BUILD_PATH}:$(cd ${SCRIPTS}/..; pwd -P)
+IFS=: read -r -d '' -a path_array < <(printf '%s:\0' "$BUILD_PATH")
+for p in "${path_array[@]}"; do
+    if [ "$p" != "" ]; then
+        commanddir="$p"
+        commandsh="$commanddir/$arg/$arg"
+        if [ -f "$commandsh" ]; then
+            break
+        fi
+
+    fi
+done
+
+if [ -f "$commandsh" ]; then
+    "$commandsh" "$@"
+else
+    echo "Available Commands"
+    for p in "${path_array[@]}"; do
+        if [ "$p" != "" ]; then
+            commanddir="$p"
+            for c in $commanddir/*; do
+                echo
+                basename "$c" | sed 's/^/  /'
+                $c/`basename "$c"` --help  | sed 's/^/    /'
+            done
+        fi
+    done
+fi

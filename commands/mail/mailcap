@@ -1,0 +1,80 @@
+# $Id: sample.mailcap,v 3.0 2002/01/24 12:11:17 roessler Exp $
+
+# ~/.mutt/mailcap
+#
+# this uses the view_attachment script found in ~/.mutt/view_attachment.sh
+#
+# this is meant for an OS X system
+
+# MS Excel
+# this will use the default xls spreadsheet handler from open
+application/x-msexcel; build mail open-attachment %s
+application/ms-exc; build mail open-attachment %s
+application/excel; build mail open-attachment %s
+application/msexcel; build mail open-attachment %s
+application/vnd.ms-exc; build mail open-attachment %s
+application/vnd.ms-excel; build mail open-attachment %s
+
+# MS Word
+# use textedit to open .doc files as it's more light-weight
+application/msword; build mail open-attachment %s "-" '/Applications/TextEdit.app'
+
+#
+# for Star/OpenOffice stuff, use NeoOffice/J
+#
+# Star/Open Office Writer
+application/vnd.sun.xml.writer; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.sun.xml.writer.global; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.stardivision.writer; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.stardivision.writer-global; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/x-starwriter; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.sun.xml.writer.template; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+
+# Star/Open Office Calc
+application/vnd.sun.xml.calc; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.stardivision.calc; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/x-starcalc; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.sun.xml.calc.template; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+
+# Star/Open Office Draw
+application/vnd.sun.xml.draw; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.stardivision.draw; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/x-stardraw; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.sun.xml.draw.template; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+
+# Star/Open Office Math
+application/vnd.sun.xml.math; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.stardivision.math; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/x-starmath; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+
+application/vnd.sun.xml.writer; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+
+# Star/Open Office Impress
+application/x-starimpress; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.sun.xml.impress.template; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.sun.xml.impress; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.stardivision.impress; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+application/vnd.stardivision.impress-packed; build mail open-attachment %s "-" '/Applications/NeoOfficeJ.app'
+
+# Images
+image/jpeg; build mail open-attachment %s
+image/jpg; build mail open-attachment %s
+image/JPG; build mail open-attachment %s
+image/pjpeg; build mail open-attachment %s
+image/png; build mail open-attachment %s
+image/gif; build mail open-attachment %s
+
+# PDF
+application/pdf; build mail open-attachment %s pdf
+
+# HTML
+# -- always use lynx; it's gay to use safari for this
+# text/html; elinks -force-html %s
+#text/html; lynx %s
+text/html; lynx -assume_charset=%{charset} -display_charset=utf-8 -dump %s; nametemplate=%s.html; copiousoutput
+#text/html; pandoc -f html -t markdown; copiousoutput; description=HTML Text; test=type pandoc >/dev/null
+#
+# text/plain; less %s
+
+# Unidentified.
+application/octet-stream; build mail open-attachment %s "-" 

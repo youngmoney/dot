@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+search_md() { mdfind -onlyin . $@ | sort | sed "s:$(pwd)/::g"; }
+search_find() { find . -name "*$@*" | sort | sed "s:\./::g"; }
+search_contents() { grep -inIEr --color=ALWAYS "$@" . ; }
+search_grep() { grep -lr "$@" . | sort | sed "s:\./::g"; }
+
+search() {
+    s="$1"
+    shift
+    RESULTS=""`"$s" $@`""
+    TOP_RESULT=`echo "$RESULTS" | head -1`
+    echo "$RESULTS"
+    echo "$RESULTS" > ~/.build_search_results
+    echo "$TOP_RESULT" > ~/.build_search_top_result
+}
+
+
+arg=$1
+shift
+if [ "$arg" == "content" ]; then
+    search search_contents $@
+elif [ "$arg" == "file" ]; then
+    search search_grep $@
+elif [ "$arg" == "file-find" ]; then
+    search search_find $@
+elif [ "$arg" == "file-grep" ]; then
+    search search_grep $@
+elif [ "$arg" == "file-mdfind" ]; then
+    search search_md $@
+else
+    echo "content <search>: show highlighted content matches"
+    echo "file <search>: just the files"
+    echo "file-find <search>: just the files (using find)"
+    echo "file-grep <search>: just the files (using grep)"
+    echo "file-mdfind <search>: just the files (using mdfind)"
+fi

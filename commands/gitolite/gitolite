@@ -1,0 +1,236 @@
+#!/usr/bin/env bash
+
+GITO_DIR=`git config --global gitolite.directory`
+CONF_DIR=`git config --global gitolite.repos`
+REMOTE=`git config --global gitolite.remote`
+KEY_NAME=`git config --global gitolite.user`
+
+CONF=$GITO_DIR/$CONF_DIR
+
+setup() {
+    DEFAULT_CONF="conf/repos"
+    DEFAULT_REMOTE="git@gitolite"
+    DEFAULT_USER="gitolite-admin"
+    read -p "Gitolite-Admin directory? " dir
+    eval dir=$dir
+    if [ ! -d "$dir" ]; then echo "Does Not Exist"; exit; fi
+
+
+    read -p "Repo conf directory (default $DEFAULT_CONF)? $dir/" conf
+    if [ "$conf" == "" ]; then conf="$DEFAULT_CONF"; fi
+    mkdir -p "$dir/$conf"
+
+    read -p "Gitolite Remote (default $DEFAULT_REMOTE)? " remote
+    if [ "$remote" == "" ]; then remote="$DEFAULT_REMOTE"; fi
+
+    read -p "Gitolite User (default $DEFAULT_USER)? " user
+    if [ "$remote" == "" ]; then remote="$DEFAULT_USER"; fi
+
+    git config --global gitolite.directory "$dir"
+    git config --global gitolite.repos "$conf"
+    git config --global gitolite.remote "$remote"
+    git config --global gitolite.user "$user"
+
+    echo "" >> $dir/conf/gitolite.conf
+    echo 'include "repos/*.conf"' >> $dir/conf/gitolite.conf
+}
+
+create() {
+    CUR="`pwd`"
+    REPO="$1"
+    if [ "$REPO" == "" ]; then
+        while true; do
+            read -p "Repo Name: " REPO
+            case $REPO in
+                "" ) exit;;
+                * ) break;;
+            esac
+        done
+    fi
+    conf=$CONF/`echo ${REPO} | sed "s/\//SLASH/g"`.conf
+    if [ -f $conf ]; then echo "Exists"; exit; fi
+    echo "Creating Remote"
+    email="`git config user.email`"
+    echo "repo    $REPO
+        RW+     =  $KEY_NAME
+        # config deploy.dokku = \"$REPO\"
+        # config deploy.cron = \"1 * * * * hourly\"
+        # config deploy.notify = \"$email\"
+        # config deploy.mirror = \"git@github.com:$KEY_NAME/$REPO.git\"
+" > $conf
+    cd $GITO_DIR
+    git add $conf
+    git commit -am "Added $REPO" -q
+    git push --quiet
+    cd $CUR
+    if git rev-parse --git-dir > /dev/null 2>&1; then
+        while true; do
+            read -p "Add remote as gitolite? " yn
+            case $yn in
+                [Nn]* ) exit;;
+                * ) add-remote "$REPO"; break;;
+                * ) echo "Please answer yes or no.";;
+            esac
+        done
+    fi
+}
+
+edit() {
+    REPO="$1"
+    if [ "$REPO" == "" ]; then REPO=`git config --local gitolite.repo`; fi
+    if [ "$REPO" == "" ]; then echo "Specify a repo"; exit; fi
+    conf=$CONF/`echo ${REPO} | sed "s/\//SLASH/g"`.conf
+    $EDITOR $conf
+    cd $GITO_DIR
+    git commit -am "Edited $REPO" -q
+    git push --quiet
+}
+
+delete() {
+    REPO="$1"
+    if [ "$REPO" == "" ]; then REPO=`git config --local gitolite.repo`; fi
+    if [ "$REPO" == "" ]; then echo "Specify a repo"; exit; fi
+    conf=$CONF/`echo ${REPO} | sed "s/\//SLASH/g"`.conf
+    rm $conf
+    cd $GITO_DIR
+    git commit --quiet -am "Deleted $REPO" -q
+    git push --quiet
+    echo "$REPO still cached on server"
+}
+
+list() {
+    for r in $CONF/*.conf; do
+        echo $(basename "$r") | cut -d'.' -f1 | sed "s/SLASH/\//g"
+    done
+}
+
+add-remote() {
+    if [ "$1" == "" ]; then echo "Specify a Remote Name"; fi
+    [[ -d .git ]] || git init
+    git remote add gitolite "$REMOTE:$1"
+    git config --local gitolite.repo $1
+    while true; do
+        read -p "Push master? " yn
+        case $yn in
+            [Nn]* ) exit;;
+            * ) git push gitolite master; break;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+}
+
+
+destroy() {
+    des="$GITO_DIR/local/commands/destroy"
+    if [ ! -f "$des" ]; then
+        echo "Not Functional";
+        echo "Destroying a repo on the server requires server access."
+        echo "This command looks for the script GITO_DIR/local/commands/destroy"
+        echo "and executes it with one argument: <repo>"
+        echo "Then this command runs 'delete <repo>'"
+        exit;
+    fi
+    REPO=$1
+    if [ "$REPO" == "" ]; then echo "Specify a Name"; exit; fi
+    while true; do
+        read -p "Destroy $REPO? " yn
+        case $yn in
+            [Nn]* ) exit;;
+            * ) break;;
+        esac
+    done
+    $des "$REPO"
+    delete "$REPO"
+    echo "Everything Destroyed for $REPO"
+}
+
+key-list() {
+    for f in $GITO_DIR/keydir/*.pub; do
+        echo "$f" | sed 's/.pub$//' | sed 's:^.*/::'
+    done
+}
+
+key-add() {
+    name="$1"
+    key="$2"
+    if [ "$name" == "" ]; then
+        read -p "name: " name
+    fi
+    if [ "$key" == "" ]; then
+        read -p "key: " key
+    fi
+    if [ "$name" != "" ] && [ -f "$key" ]; then
+        destkey=$GITO_DIR/keydir/$name.pub
+        cp "$key" "$destkey"
+        cd $GITO_DIR
+        git add $destkey
+        git commit --quiet -am "Added user: $name" -q
+        git push --quiet
+    else
+        echo "error"
+    fi
+}
+
+key-delete() {
+    key=$GITO_DIR/keydir/$1.pub
+    if [ -f "$key" ]; then
+        read -p "remove key $1? " q
+        if [ "$q" == "" ]; then
+            rm "$key"
+            cd $GITO_DIR
+            git commit --quiet -am "Removed user: $1" -q
+            git push --quiet
+        fi
+    else
+        echo "key not found"
+    fi
+}
+
+if [ "`git config --global gitolite.directory`" == "" ]; then
+    if [ ! "$1" == "setup" ]; then
+        echo "run 'gitolite setup' first";
+        exit;
+    fi
+fi
+
+a=$1
+shift
+if [ "$a" == "list" ]; then
+    list $@
+elif [ "$a" == "create" ]; then
+    create $@
+elif [ "$a" == "edit" ]; then
+    edit $@
+elif [ "$a" == "delete" ]; then
+    delete $@
+elif [ "$a" == "new" ]; then
+    new $@
+elif [ "$a" == "add-remote" ]; then
+    add-remote $@
+elif [ "$a" == "destroy" ]; then
+    destroy $@
+elif [ "$a" == "key" ]; then
+    a="$1"
+    shift
+    if [ "$a" == "list" ]; then
+        key-list $@
+    elif [ "$a" == "add" ]; then
+        key-add $@
+    elif [ "$a" == "delete" ]; then
+        key-delete $@
+    else
+        echo "list"
+        echo "add name key.pub"
+        echo "delete name"
+    fi
+elif [ "$a" == "setup" ]; then
+    setup $@
+else
+    echo "list: list gitolite repo's"
+    echo "create <repo>: create <repo> on the server"
+    echo "edit <repo>: edit the permisions for <repo>"
+    echo "delete <repo>: delete <repo> from config"
+    echo "destroy <repo>: delete config and removes from server"
+    echo "add-remote <repo>: add the gitolite remote to the repo"
+    echo "setup: runs the setup script"
+fi

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+PROJECT() {
+    echo "I exist"
+}
+
+a="$1"
+shift
+
+if [ "$a" == "PROJECT" ]; then
+    PROJECT $@
+elif [ "$a" == "" ]; then
+    PROJECT "$@"
+else
+    echo "PROJECT: help"
+fi

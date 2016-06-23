@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+
+scriptdir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
+
+mac_ssh() {
+    if [ "$1" != "" ]; then
+        sudo systemsetup -setremotelogin off
+    else
+        sudo systemsetup -setremotelogin on
+        ifconfig | grep broadcast
+    fi
+}
+
+mac_add_contact() {
+    "$scriptdir/addcontact" $@
+}
+
+mac_notify() {
+    in=`cat`
+    if [ -f ~/.silent ]; then
+        echo "$in" | xargs -I % /usr/local/bin/tmux -S /tmp/tmux-global display-message "$1: %"
+    else
+        echo "$in" | build etc timeout 3 xargs -I % osascript -e "display notification \"`echo % | sed 's/\"//g'`\" with title \"$1\""
+    fi
+}
+
+mac_battery() {
+    ioreg -l | grep -i capacity | tr '\n' ' | ' | awk '{printf("%d", $10/$5 * 100)}'
+}
+
+dud() {
+    open ~/local/build/commands/mac/dud.app
+
+    link="$@"
+    if [ "$link" == "mail" ]; then
+        duti -s com.taylorlmoney.dud mailto
+    elif [ "$link" == "photo" ]; then
+        duti -s com.taylorlmoney.dud photos
+    else
+        echo "no linking found, you might need to edit dud's Info.plist"
+        echo "options: mail, photo"
+    fi
+}
+
+desktop() {
+    img=$@
+    if [ "$img" == "" ]; then
+        img="`osascript -e 'posix path of (choose file with prompt \"Please select a PDF document:\" default location (path to documents folder))'`"
+    fi
+    # osascript -e "tell application \"Finder\" to set desktop picture to POSIX file \"$img\""
+    osascript -e "tell application \"System Events\" to set picture of item 1 of (a reference to every desktop) to \"$img\""
+    # defaults write com.apple.desktop Background "{default = {ImageFilePath = \"$img\"; };}"
+    # killall Dock
+}
+
+airport() {
+    /System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport $@
+}
+
+airport-reset() {
+    # nEiL MiLlEr
+    /usr/sbin/networksetup -setairportpower en0 off
+    /usr/sbin/networksetup -setairportpower en1 off
+    /usr/sbin/networksetup -setairportpower en2 off
+    rm -rf /Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist
+    /usr/sbin/networksetup -addpreferredwirelessnetworkatindex en0 "This is a test" 0 WPA2 Welcome12345678
+    /usr/sbin/networksetup -addpreferredwirelessnetworkatindex en1 "This is a test" 0 WPA2 Welcome12345678
+    /usr/sbin/networksetup -addpreferredwirelessnetworkatindex en2 "This is a test" 0 WPA2 Welcome12345678
+    /usr/sbin/networksetup -setairportpower en0 on
+    /usr/sbin/networksetup -setairportpower en1 on
+    /usr/sbin/networksetup -setairportpower en2 on
+    exit 0
+
+    #If you want to specify a SSID rather than clear everything
+
+    /usr/sbin/networksetup -removepreferredwirelessnetwork en0 xxxxxxxxxxxxx
+
+    Here is an alternative script from Don Cragun @ Unix.com 
+
+    networksetup -listpreferredwirelessnetworks en1 | while read wireless
+    do    echo Deleting "$wireless"
+            /usr/sbin/networksetup -removepreferredwirelessnetwork en1 "$wireless"
+    done
+    /usr/sbin/networksetup -addpreferredwirelessnetworkatindex en1 "This is a test" 0 WPA2 123456789
+    exit 0
+}
+
+arg=$1
+shift
+if [ "$arg" == "ssh" ]; then
+    mac_ssh $@
+elif [ "$arg" == "notify" ]; then
+    mac_notify "$@"
+elif [ "$arg" == "addcontact" ]; then
+    mac_add_contact "$@"
+elif [ "$arg" == "battery" ]; then
+    mac_battery "$@"
+elif [ "$arg" == "dud" ]; then
+    dud $@
+elif [ "$arg" == "desktop" ]; then
+    desktop $@
+elif [ "$arg" == "airport" ]; then
+    airport $@
+else
+    echo "ssh [off]: no args enables remote login, false or no diables"
+    echo "addcontact: add a contact"
+    echo "notify [title]: reads stdin and makes notification with title"
+    echo "battery: percent"
+    echo "dud [type]: assigned the link type to dud (eg mail)"
+fi

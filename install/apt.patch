@@ -1,10 +1,12 @@
-7d6
+4d3
+< brew install contacts 
+7d5
 < brew install duti 
-14d12
+14d11
 < brew install mpv 
-16d13
+16d12
 < brew install mu 
-17a15
+17a14
 > brew install maildir-utils
-21d18
+21d17
 < brew install reattach-to-user-namespace 

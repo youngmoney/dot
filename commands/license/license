@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+function license() {
+    license="$1"
+    if [ "$license" == "" ]; then license="mit"; fi
+    builddir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
+    license_dir="$builddir/licenses"
+    license_file="$license_dir/$license"
+    if [ -f "$license_file" ]; then
+        cat "$license_file" > LICENSE.txt
+    else
+        echo "Licenses (default MIT):"
+        ls -1 "$license_dir"
+    fi
+}
+
+if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+    echo "create a license (default MIT)"
+    echo "call with --list to see options"
+else
+    license $@
+fi

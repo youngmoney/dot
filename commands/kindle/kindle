@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+scriptdir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
+if [ "$KINDLE_DIR" == "" ]; then KINDLE_DIR="/Volumes/Kindle/documents"; fi
+export KINDLE_DIR;
+
+notes-and-quotes () {
+    "$scriptdir/notes.py"
+}
+
+function kindle() {
+    for b in $@; do
+        kindlegen -o kindle."$b".mobi "$b"
+    done
+    if [ -d "$KINDLE_DIR" ]
+        then mv kindle.*.mobi "$KINDLE_DIR"
+    fi
+}
+
+a=$1
+shift
+if [ "$a" == "notes" ]; then
+    notes-and-quotes $@
+elif [ "$a" == "books" ]; then
+    kindle $@
+else
+    echo "notes: echo out clippings (notes/quotes) by book"
+    echo "books: uses kindlegen to convert optional inputs to mobi"
+    echo "      if kindle is present moves any converted books (even previous)"
+fi

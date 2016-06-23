@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+function build_project() {
+    project="$1"
+    dir=$2
+    if [ "$dir" == "" ]; then
+        read -p "where? [current directory] " dir
+    fi
+    if [ "$dir" == "" ]; then dir=.; fi
+    builddir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
+    templates="$builddir/templates"
+    projectdir="$templates/$project"
+    if [ "$project" != "" ] && [ -d "$projectdir" ]; then
+        projectscript="$projectdir/template.sh"
+        mkdir -p $dir >/dev/null 2>/dev/null
+        cp -r "$projectdir/"* "$dir"
+        rm "$dir/template.sh"
+        if [ -f "$projectscript" ]; then
+            old=`pwd`
+            cd $dir
+            $projectscript
+            cd $old
+        fi
+        echo "template $project added"
+    else
+        echo "Projects Types:"
+        ls -1 "$templates"
+    fi
+}
+
+if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+    echo "create a project from the passed template"
+    echo "in current directory (or second arg)"
+    echo "call with no args to see options"
+else
+    build_project $@
+fi

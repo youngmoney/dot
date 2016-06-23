@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+function debug_log_droid() {
+    ant debug
+    if [ $? -eq 0 ]; then
+        adb install -r bin/*-debug.apk
+        adb shell am start -n $@
+        echo $?
+        echo $@
+        adb logcat
+    else
+        exit 1
+    fi
+
+    exit 0
+}
+
+function debug_droid() {
+    ant debug
+    if [ $? -eq 0 ]; then
+        adb install -r bin/*-debug.apk
+        DEBUG_PORT=8750
+        clear
+        adb shell am start -n $@
+        if [ $? -eq 0 ]; then
+            clear
+            sleep 3 # wait for the app to start
+            APP_DEBUG_PORT=$(adb jdwp | tail -1);
+            adb forward tcp:$DEBUG_PORT jdwp:$APP_DEBUG_PORT
+            if [ $? -eq 0 ]; then
+                clear
+                jdb -attach localhost:$DEBUG_PORT -sourcepath .
+            fi
+        fi
+    else
+        exit 1
+    fi
+
+    exit 0
+}
+
+DEFAULT_ANDROID_EMULATOR="ice"
+function build_emulator() {
+    em="$1"
+    if [ "$em" == "" ]; then
+        em="$DEFAULT_ANDROID_EMULATOR"
+    fi
+    emulator -avd $em &
+}
+
+function build_emulator_down() {
+    adb -s emulator-5554 emu kill
+}
+
+arg=$1
+shift
+if [ "$arg" == "log" ]; then
+    debug_log_droid $@
+elif [ "$arg" == "debug" ]; then
+    debug_droid $@
+elif [ "$arg" == "up" ]; then
+    build_emulator $@
+elif [ "$arg" == "down" ]; then
+    build_emulator_down $@
+else
+    echo "log [activity]: build (debug), start activity, watch logs"
+    echo "debug activity: build (debug), start activity, open jdb"
+    echo "up [emulator]: start emulator (default: $DEFAULT_ANDROID_EMULATOR"
+    echo "down [emulator]: kill emulator (default all)"
+fi

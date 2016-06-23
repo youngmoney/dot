@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+if command -v realpath >/dev/null 2>&1; then
+    SCRIPTS="$(dirname $(realpath "${BASH_SOURCE[0]}" 2>/dev/null))"
+elif command -v readlink >/dev/null 2>&1; then
+    SCRIPTS="$(dirname $(readlink --canonicalize-existing ${BASH_SOURCE[0]}))"
+else
+    SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+    if [ "$SCRIPTS" == "${HOME}" ]; then SCRIPTS=~/local/dot; fi
+fi
+pathadd() { [[ ":$PATH:" != *":$1:"* ]] && PATH="${PATH:+"$PATH:"}$1"; }
+pathadd "$SCRIPTS"
+export PATH
+DOT="$(cd $SCRIPTS/..; pwd -P)"
+LOCALCONF=~/.local-conf
+
+go() {
+    mkdir -p ~/.local-conf
+    if [ "$1" == "--no" ]; then
+        rm -f $LOCALCONF/backup.me
+        rm -f $LOCALCONF/sync.me
+        rm -f $LOCALCONF/home.me
+        no="--no"
+    else
+        read -p "make home?[Y/n]" q
+        if [ "$q" == "" ]; then touch $LOCALCONF/home.me;
+        else rm -f $LOCALCONF/home.me; fi
+        read -p "allow backups?[Y/n]" q
+        if [ "$q" == "" ]; then touch $LOCALCONF/backup.me;
+        else rm -f $LOCALCONF/backup.me; fi
+        read -p "allow sync?[Y/n]" q
+        if [ "$q" == "" ]; then touch $LOCALCONF/sync.me;
+        else rm -f $LOCALCONF/sync.me; fi
+    fi
+
+    if [ $(uname -s) == "Darwin" ]; then bash $DOT/conf/osx; fi
+
+    [ -d $DOT/../archives ] && setup-dirs || setup-dirs-simple
+
+    setup-install $no
+
+    setup-dot
+    if [ -d ~/local/archives ] && [ "$no" == "" ]; then
+        read -p "restore ssh?[Y/n]" q
+        if [ "$q" == "" ]; then build ssh restore ~/local/archives; fi
+    fi
+    build cron install ~/.cron
+    if [ "$no" == "" ]; then
+        setup-git
+        setup-account
+    else
+        echo "run setup git"
+        echo "run setup account"
+    fi
+    if [ $(uname -s) == "Darwin" ]; then build mac dud mail; fi
+}
+
+safe-rm() {
+    if [ -e "$@" ]; then
+        if [ "$(ls -A "$@" | grep -v .DS_Store)" ]; then
+            file=$(basename "$@")
+            sudo mv "$@" ~/desktop/${file}.$(date +%s)
+        else
+            sudo rm -rf "$@"
+        fi
+    fi
+}
+
+setup-dot() {
+    build dot --no-backup -f ~/local/dot/conf
+    . ~/.bashrc
+    build mail link-mailcap
+}
+
+setup-dirs() {
+    if [ ~/local/dot != "$DOT" ]; then
+        cd $DOT/../../
+        for f in *; do
+            if [ -d "$f" ]; then
+                safe-rm -rf ~/$f
+                sudo mv $f ~/$f
+            fi
+        done
+    fi
+}
+
+setup-dirs-simple() {
+    mkdir -p ~/local
+    if [ ~/local/dot != "$DOT" ]; then
+        safe-rm ~/local/dot
+        mv "$DOT" ~/local/dot
+        DOT=~/local/dot
+        SCRIPTS=~/local/dot/bin
+    fi
+}
+
+setup-install() {
+    build install restore $DOT/install
+    mu index
+    echo "The following extras must be installed on their own"
+    echo 'gdrsync (setup); peppermint'
+    if [ "$1" != "--no" ]; then
+        read -p "Run Setups? [yes] " r
+        if [ "$r" == "" ]; then
+            gdrsync.py ~/desktop test -n
+            open $scriptdir/taylormint.terminal
+        fi
+    else
+        echo install gdrsyn and peppermint
+    fi
+    echo "install xCode as well"
+}
+
+setup-account() {
+    read -p "Add Account? " q
+    while [ "$q" == "" ]; do
+        $scriptdir/templates/account.template
+        read -p "Add Account? " q
+    done
+}
+
+setup-git() {
+    default_email=git@taylorlmoney.com
+    read -p "git email[$default_email]: " email
+    if [ "$email" == "" ]; then email="$default_email"; fi
+    build template fill --email "$email" $DOT/templates/git.bash.template > ~/.local-conf/git.bash
+    . ~/.local-conf/git.bash
+}
+
+
+a="$1"
+shift;
+if [ "$a" == "git" ]; then
+    setup-git "$@"
+elif [ "$a" == "account" ]; then
+    setup-account "$@"
+elif [ "$a" == "dot" ]; then
+    setup-dot "$@"
+elif [ "$a" == "go" ]; then
+    go "$@"
+elif [ "$a" == "all" ]; then
+    go "$@"
+elif [ "$a" == "no" ]; then
+    go --no "$@"
+else
+    echo "git: run git setup"
+    echo "account: run account setup"
+    echo "dot: symlink dotfiles"
+    echo "go/all: run everything"
+    echo "no: run everything, ask no questions"
+fi

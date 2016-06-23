@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+scriptdir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
+
+INVOICE=~/.invoice_tracking
+TRACKING="TRACKING"
+touch $INVOICE
+
+invoice_minute() {
+    add=$1
+    if [ "$add" == "" ]; then add=1; fi
+    who="`grep $TRACKING $INVOICE | awk -F ': ' '{ print $2 }'`"
+    if [ "$who" == "" ]; then exit; fi
+    now="`cat $INVOICE | grep $who:`"
+    invoice="`cat $INVOICE | grep -v $who:`"
+
+    mins="`echo $now | awk -F ': ' '{ print $2 }'`"
+    mins=$(($mins+$add))
+    echo "$invoice" > $INVOICE
+    echo "$who: $mins" >> $INVOICE
+
+}
+
+invoice_track() {
+    who="$1"
+    invoice="`cat $INVOICE | grep -v $TRACKING`"
+    echo "$invoice" > $INVOICE
+    if [ "$1" == "" ]; then
+        who="Stopped"
+    else
+        if [ "`echo $invoice | grep $who:`" == "" ]; then
+            read -p "$who is new, add to invoice list? [yes] " go
+            if [ "$go" != "" ] && [ "${go:0:1}" != "Y" ] && [ "${go:0:1}" != "y" ]; then
+                echo "Not Added"
+                exit;
+            fi
+            echo "$who: 0" >> $INVOICE
+        fi
+        echo "$TRACKING: $who" >> $INVOICE
+    fi
+
+    echo "`awk 'NF' $INVOICE`" > $INVOICE
+}
+
+invoice_stop() { invoice_track; }
+
+invoice_status() {
+    invoice="`cat $INVOICE | grep -v $TRACKING`"
+    echo "`cat $INVOICE | grep $TRACKING | awk -F ': ' '{ print $2 }'`"
+    echo "$invoice" | while read tracked
+    do
+        if [ "$tracked" != "" ]; then
+            who="`echo $tracked | awk -F ': ' '{ print $1 }'`"
+            mins="`echo $tracked | awk -F ': ' '{ print $2 }'`"
+            hours=$(($mins/60))
+            mins="`printf '%02d' $(($mins%60))`"
+            echo $who $hours:$mins
+        fi
+    done
+}
+
+track_time() {
+    build invoice minute $1;
+    tracking="`build invoice status | head -1`"
+    if [ "$tracking" != "" ]; then echo "$tracking" | build mac notify Tracking; fi
+    # tracking="`build invoice status | head -1`"
+    # if [ "$tracking" != "" ]; then s="$s #[fg=red]$tracking"; fi
+}
+
+arg=$1
+shift
+if [ "$arg" == "minute" ]; then
+    invoice_minute $@
+elif [ "$arg" == "track" ]; then
+    invoice_track $@
+elif [ "$arg" == "stop" ]; then
+    invoice_stop $@
+elif [ "$arg" == "status" ]; then
+    invoice_status $@
+else
+    echo "track [Context]: add minutes to Context, or stop if no Context"
+    echo "stop: same as track without any arguments"
+    echo "minute [mins]: call this from cron every 'mins' minutes"
+    echo "status: first line is current trackee, then hour:minute for each"
+    echo
+
+    echo "It is super important to have the cron job running"
+    echo "that is what does the actual tracking/minute counting"
+    echo "* * * * * invoice minute"
+    echo "or"
+    echo "/5 * * * * invoice minute 5"
+fi

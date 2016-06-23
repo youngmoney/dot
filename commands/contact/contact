@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+scriptdir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
+
+exists() { build etc exists $@; }
+
+mac_add_contact() {
+    "$scriptdir/mac_add_contact" $@
+}
+
+add_contact() {
+    mac_add_contact $@
+}
+
+search-email() {
+    name="$@"
+    echo "search"
+    search-khard $name
+    search-mac $name
+    search-google $name
+    search-notmuch $name
+    search-mu $name
+}
+
+search-google() {
+    name="$@"
+    if exists goobook; then
+        goobook query $name
+    fi
+}
+
+search-mac() {
+    name="$@"
+    if exists contacts; then
+        contacts -Sf '%eTOKEN%n' "$name" | sed -e 's/TOKEN/	/g' | grep -v "error:"
+    fi
+}
+
+
+search-notmuch() {
+    name="$@"
+    if exists notmuch; then
+        notmuch address date:1996..now | grep "$name" | sed -e 's/ </TOKEN/g' |  awk -F 'TOKEN' ' { t = $1; $1 = $2; $2 = t; print; } ' | sed -e 's/> /	/g'
+    fi
+}
+
+search-mu() {
+    name="$@"
+    if exists mu; then
+        mu cfind --format=mutt-ab "$name" 2>/dev/null | grep -v "Matching"
+    fi
+}
+
+search-khard() {
+    name="$@"
+    if exists khard; then
+        khard email -p "$name" | awk -F '    ' '{print $1 "	" $2}' | grep -v "E-Mail" | grep -v "Found no"
+    fi
+}
+
+    # /usr/local/bin/contacts -lsS -f '%n  %hp     %wp     %mp     %Mp     %op     %ha     %wa     %oa     %he     %we     %oe     %g      %w      %b      "%N"' > archives/contacts.backup
+
+arg=$1
+shift
+if [ "$arg" == "search-email" ]; then
+    search-email $@
+# elif [ "$arg" == "search" ]; then
+#     mac_notify "$@"
+elif [ "$arg" == "add" ]; then
+    add_contact "$@"
+else
+    echo "search-email: search for emails using notmuch, contacts, and goobook"
+    echo "add: add to one of (in order) goobook, contacts"
+fi
