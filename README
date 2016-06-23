@@ -1,5 +1,5 @@
 ```
 sudo apt-get install -qq git
 git clone https://github.com/youngmoney/dot
-cd dot && . setup --no
+cd dot && . setup no
 ```

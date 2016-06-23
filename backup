@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 export PATH=/usr/bin:/usr/local/bin:~/local/dot:~/local/build:$PATH
+export LOCALCONF=~/.local-conf
 
 backup_status() {
-    WAVE=`echo $(( $(date +%s) - $(stat -f%c ~/.lastwavebackup) ))`
-    GOOG=`echo $(( $(date +%s) - $(stat -f%c ~/.lastgooglebackup) ))`
-    ICLO=`echo $(( $(date +%s) - $(stat -f%c ~/.lasticloudbackup) ))`
+    WAVE=`echo $(( $(date +%s) - $(stat -f%c $LOCALCONF/wave.lastbackup) ))`
+    GOOG=`echo $(( $(date +%s) - $(stat -f%c $LOCALCONF/google.lastbackup) ))`
+    ICLO=`echo $(( $(date +%s) - $(stat -f%c $LOCALCONF/icloud.lastbackup) ))`
     DAY="86400"
     DAYTwo="172800"
     DAYThree="259200"
@@ -33,7 +34,7 @@ backup-wave() {
         if [ "$?" != "0" ]; then completed="no"; fi
     done
     if [ "$completed" == "" ]; then
-        date > ~/.last${name}backup
+        date > $LOCALCONF/${name}.lastbackup
     fi
 }
 backup-icloud() {
@@ -44,7 +45,7 @@ backup-icloud() {
         if [ "$?" != "0" ]; then completed="no"; fi
     done
     if [ "$completed" == "" ]; then
-        date > ~/.last${name}backup
+        date > $LOCALCONF/${name}.lastbackup
     fi
 }
 
@@ -56,12 +57,12 @@ backup-google() {
         if [ "$?" != "0" ]; then completed="no"; fi
     done
     if [ "$completed" == "" ]; then
-        date > ~/.last${name}backup
+        date > $LOCALCONF/${name}.lastbackup
     fi
 }
 
 
-if [ -f ~/.nobackup ]; then
+if [ ! -f $LOCALCONF/backup.me ]; then
     exit
 fi
 

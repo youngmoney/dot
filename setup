@@ -6,22 +6,25 @@ else
     scriptdir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 fi
 PATH=../build:$PATH
+LOCALCONF=~/.local-conf
 
 go() {
+    mkdir -p ~/.local-conf
     if [ "$1" == "--no" ]; then
-        touch ~/.nobackup
-        touch ~/.nosync
+        rm -f $LOCALCONF/backup.me
+        rm -f $LOCALCONF/sync.me
+        rm -f $LOCALCONF/home.me
         no="--no"
     else
         read -p "make home?[Y/n]" q
-        if [ "$q" == "" ]; then touch ~/.myhome;
-        else rm -f ~/.myhome; fi
+        if [ "$q" == "" ]; then touch $LOCALCONF/home.me;
+        else rm -f $LOCALCONF/home.me; fi
         read -p "allow backups?[Y/n]" q
-        if [ "$q" != "" ]; then touch ~/.nobackup;
-        else rm -f ~/.nobackup; fi
+        if [ "$q" == "" ]; then touch $LOCALCONF/backup.me;
+        else rm -f $LOCALCONF/backup.me; fi
         read -p "allow sync?[Y/n]" q
-        if [ "$q" != "" ]; then touch ~/.nosync;
-        else rm -f ~/.nosync; fi
+        if [ "$q" == "" ]; then touch $LOCALCONF/sync.me;
+        else rm -f $LOCALCONF/sync.me; fi
     fi
 
     if [ $(uname -s) == "Darwin" ]; then bash $scriptdir/osx; fi
@@ -118,8 +121,8 @@ setup-git() {
     default_email=git@taylorlmoney.com
     read -p "git email[$default_email]: " email
     if [ "$email" == "" ]; then email="$default_email"; fi
-    build template fill --email "$email" $scriptdir/templates/git.bash.template > ~/.secret/git.bash
-    . ~/.secret/git.bash
+    build template fill --email "$email" $scriptdir/templates/git.bash.template > ~/.local-conf/git.bash
+    . ~/.local-conf/git.bash
 }
 
 
@@ -131,6 +134,16 @@ elif [ "$a" == "account" ]; then
     setup-account "$@"
 elif [ "$a" == "dot" ]; then
     setup-dot "$@"
+elif [ "$a" == "go" ]; then
+    go "$@"
+elif [ "$a" == "all" ]; then
+    go "$@"
+elif [ "$a" == "no" ]; then
+    go --no "$@"
 else
-    go $a $@
+    echo "git: run git setup"
+    echo "account: run account setup"
+    echo "dot: symlink dotfiles"
+    echo "go/all: run everything"
+    echo "no: run everything, ask no questions"
 fi

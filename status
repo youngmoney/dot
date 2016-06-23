@@ -3,6 +3,7 @@ export PATH=/usr/bin:/usr/local/bin:~/local/dot:~/local/build:$PATH
 export MAILDIR=~/.mail
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
+export LOCALCONF=~/.local-conf
 
 fetch_mail() {
     for c in ~/.accounts/account.*.offlineimap; do
@@ -19,7 +20,7 @@ fetch_vdir() {
 }
 next_event() { khal-up | notify "Coming Up"; }
 fetch_all() {
-    if [ -f ~/.nosync ]; then
+    if [ ! -f $LOCALCONF/sync.me ]; then
         exit
     fi
     if [ "`build etc online`" != "" ]; then

@@ -54,20 +54,20 @@ new-email() {
         build mail gmail-auth --generate_oauth2_token "--client_id=$clientid" "--client_secret=$secret"
         read -p "refresh token: " refresh
 
-        config="$OUT/account.$account.offlineimap"
+        config_off="$OUT/account.$account.offlineimap"
+        config_send="$OUT/account.$account.send"
+        config_mutt="$OUT/account.$account.mutt"
         build template fill --name "$account" --username "$username"\
                             --clientid "$clientid" --secret "$secret" --refresh "$refresh"\
-                            "$SCRIPTS/account.offlineimap.template" > "$config"
+                            "$SCRIPTS/account.offlineimap.template" > "$config_off"
 
-        config="$OUT/account.$account.send"
         build template fill --name "$account" --username "$username"\
                             --clientid "$clientid" --secret "$secret" --refresh "$refresh"\
-                            "$SCRIPTS/account.send.template" > "$config"
+                            "$SCRIPTS/account.send.template" > "$config_send"
 
-        config="$OUT/account.$account.mutt"
         build template fill --name "$account" --username "$username"\
-                            --domain "$domain" --sendconfig "$config" --short "$short"\
-                            "$SCRIPTS/account.mutt.template" > "$config"
+                            --domain "$domain" --sendconfig "$config_send" --short "$short"\
+                            "$SCRIPTS/account.mutt.template" > "$config_mutt"
 }
 
 new-account() {
