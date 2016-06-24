@@ -34,9 +34,7 @@ os() {
 }
 
 is_mac() {
-    if [ "$(uname)" == "Darwin" ]; then
-        echo Mac
-    fi
+    [ "$(uname -s)" == "Darwin" ] && exit 0 || exit 1
 }
 
 # Credit: http://nparikh.org/notes/zshrc.txt
@@ -75,7 +73,7 @@ elif [ "$a" == "exists" ]; then
 elif [ "$a" == "extract" ]; then
     extracts "$@"
 elif [ "$a" == "is-mac" ]; then
-    exists "$@"
+    is_mac "$@"
 else
     echo "online: echos online if can reach google.com"
     echo "timeout: finds the appropriate timeout command and runs it"

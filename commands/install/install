@@ -4,121 +4,217 @@ exists() {
     command -v $@ >/dev/null 2>&1
 }
 
+error() {
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+    echo -e ${RED}${@}${NC}
+}
+
+run-quiet() {
+    title="$1"
+    shift
+    echo -n $title...
+    err=$( { $@ >/dev/null; } 2>&1) && echo ok || error error
+    [ "$err" ] && error "$err"
+}
+
+listdiff() {
+    comm -23 <(sort "$1") <(sort "$2")
+}
+
 restore-all() {
     if [ "$1" != "" ]; then cd $1; fi
-    if [ "`build etc is-mac`" != "" ]; then
-        "xcode-select --install"
+    if build etc is-mac; then
+        [[ "$(type -P gcc)" ]] || xcode-select --install
+        restore-brew-tap
         restore-brew
         restore-brew-cask
         restore-safari
-        restore-python
+        restore-pip2
+        restore-pip3
     else
         restore-brew --apt
-        restore-python --apt
+        restore-pip2 --apt
+        restore-pip3 --apt
     fi
     # restore-gem
-    # restore-cron
 }
 
 store-all() {
     if [ "$1" != "" ]; then cd $1; fi
-    if [ "`build etc is-mac`" != "" ]; then
-        "xcode-select --install"
+    if build etc is-mac; then
         store-brew
+        store-brew-tap
         store-brew-cask
         store-safari
     fi
-    store-python
+    store-pip2
+    store-pip3
     # store-gem
-    # store-cron
+}
+
+store-abstract() {
+    default_out="$1"
+    list_command="$2"
+    shift; shift;
+
+    [ "$1" ] && out="$1" || out="$default_out"
+    [ "$out" == "-" ] || rm -f "$out"
+    while read item; do
+        if [ "$out" == "-" ]; then
+            echo "$item"
+        else
+            echo "$item" >> "$out"
+        fi
+    done < <($list_command)
+    [ "$out" == "-" ] || sort -o "$out" "$out"
+}
+
+restore-abstract() {
+    default_in="$1"
+    install="$2"
+    shift; shift;
+
+    via=" (via $default_in)"
+
+    [ "$1" ] && in="$1" || in="$default_in"
+    listdiff "$in" <(store-$default_in -) | while read item; do
+        run-quiet "Installing $item$via" $install "$item"
+    done
 }
 
 store-brew() {
-    echo "" > brew
-    brew tap | while read tap; do echo "brew tap $tap" >> brew; done
-    brew leaves | while read item; do echo "brew install $item $(brew info $item | /usr/bin/grep 'Built from source with:' | /usr/bin/sed 's/^[ \t]*Built from source with:/ /g; s/\,/ /g')" >> brew; done
-    sort -o brew brew
+    [ "$1" ] && out="$1" || out="brew"
+    [ "$out" == "-" ] || rm -f "$out"
+    while read item; do
+        extras="$(brew info $item | \
+            /usr/bin/grep 'Built from source with:' | \
+            /usr/bin/sed 's/^[ \t]*Built from source with:/ /g; s/\,/ /g')"
+        [ "$extras" ] && extras=" $extras"
+        if [ "$out" == "-" ]; then
+            echo "$item$extras"
+        else
+            echo "$item$extras" >> "$out"
+        fi
+    done < <(brew leaves)
+    [ "$out" == "-" ] || sort -o "$out" "$out"
 }
 
 restore-brew() {
     if [ "$1" != "--apt" ]; then
-        ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-        bash brew
+        [ "$1" ] && in="$1" || in="brew"
+        command -v brew >/dev/null || \
+         run-quiet "Installing homebrew" ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+        listdiff "$in" <(store-brew -) | while read item; do
+            run-quiet "Installing $item (via brew)" brew install "$item"
+        done
     else
-        echo
+        shift
+        [ "$1" ] && in="$1" || in="brew"
         echo You are using linux! attempting apt-get installs
-        echo
-        sudo apt-get update -qq
+        run-quiet "Updating apt-get" sudo apt-get update -qq
         patch brew apt.patch -o brew.patched
-        cat brew.patched | grep -v 'brew tap' | sed 's/brew install //' | xargs -L 1 -n 1 sudo DEBIAN_FRONTEND=noninteractive apt-get install -qq
+        listdiff "$in".patched <(list-apt -) | while read item; do
+            DEBIAN_FRONTEND=noninteractive
+            run-quiet "Installing $item (via apt)" sudo apt-get install -qq $item
+        done
         rm -f brew.patched
     fi
 }
 
+list-apt() {
+    [ "$1" ] && out="$1" || out="apt"
+    [ "$out" == "-" ] || rm -f "$out"
+    dpkg --get-selections | grep -v deinstall | awk '{print $1}'
+}
+
+store-brew-tap() {
+    store-abstract brew-tap "brew tap" "$1"
+}
+
+restore-brew-tap() {
+    command -v brew >/dev/null || \
+     run-quiet "Installing homebrew" ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    restore-abstract brew-tap "brew tap" "$1"
+}
+
 store-brew-cask() {
-    brew cask list -1 > cask
+    store-abstract brew-cask "brew cask list -1" "$1"
 }
 
 restore-brew-cask() {
-    while read c; do brew cask install $c; done < cask
+    restore-abstract brew-cask "brew cask install" "$1"
 }
 
-store-python() {
-    list-python 2 > pip
-    echo "pipdeptree" >> pip
-    if exists python3; then
-        list-python 3 > pip3
-        echo "pipdeptree" >> pip3
-    fi
+list-python() {
+    python$1 -m pipdeptree -f -w silence 2>/dev/null | grep -v '^ ' | sort || pip$1 freeze
+    echo pipdeptree
 }
 
-restore-python() {
+store-pip2() {
+    store-abstract pip2 "list-python 2" "$1"
+}
+
+restore-pip2() {
     if [ "$1" == "--apt" ]; then
-        sudo apt-get -qq install python-pip
-        sudo apt-get -qq install python3-pip
+        shift
+        run-quiet "Installing pip2" sudo apt-get -qq install python-pip
+        sudo="sudo "
     fi
-    pip install -r pip
-    if [ -f pip3 ]; then
-        pip3 install -r pip3
+    restore-abstract pip2 "${sudo}pip2 install" "$1"
+}
+
+store-pip3() {
+    store-abstract pip3 "list-python 3" "$1"
+}
+
+restore-pip3() {
+    if [ "$1" == "--apt" ]; then
+        shift
+        run-quiet "Installing pip3" sudo apt-get -qq install python3-pip
+        sudo="sudo "
     fi
+    restore-abstract pip3 "${sudo}pip3 install" "$1"
+}
+
+list-gem() {
+    gem list |sed 's/(//'|sed 's/)//'|awk '{print $1 " --version=" $2}'
 }
 
 store-gem() {
-    gem list |sed 's/(//'|sed 's/)//'|awk '{print "gem install " $1 " --version=" $2}' > gem
+    store-abstract gem "list-gem" "$1"
 }
 
 restore-gem() {
-    sudo bash gem
+    restore-abstract gem "gem install" "$1"
 }
-
-store-cron() {
-    crontab -l > cron
-}
-
-restore-cron() {
-    (crontab -l 2>/dev/null; cat cron)| crontab -
-}
+#
+# store-cron() {
+#     crontab -l > cron
+# }
+#
+# restore-cron() {
+#     (crontab -l 2>/dev/null; cat cron)| crontab -
+# }
 
 store-safari() {
     mkdir -p safari
     rm -rf safari/*
     find ~/library/Safari/Extensions -name '*.safari*' | xargs -I % cp % safari
 }
+install-safari-ext() {
+    find "$1" -name '*.safari*' | xargs open -a Safari
+}
 restore-safari() {
-    find safari -name '*.safari*' | xargs open -a Safari
+    run-quiet "Installing safari extensions" install-safari-ext safari
 }
-
-list-python() {
-    python$1 -m pipdeptree -f -w silence 2>/dev/null | grep -v '^ ' | sort || pip$1 freeze
-}
-
-list-python3() { list-python 3; }
 
 edit-apt() {
     if [ "$1" ]; then cd "$1"; fi
-    patch brew apt.patch -o apt.tmp
+    patch brew apt.patch -o apt.tmp || cp brew apt.tmp
     vim apt.tmp
     diff brew apt.tmp > apt.patch
+    rm apt.tmp
 }
 
 a="$1"
@@ -127,17 +223,22 @@ if [ "$a" == "store" ]; then
     store-all $@
 elif [ "$a" == "restore" ]; then
     restore-all $@
-elif [ "$a" == "list-python" ]; then
-    list-python
-elif [ "$a" == "list-python3" ]; then
-    list-python3
-elif [ "$a" == "list-python3" ]; then
-    list-python3
+elif [[ "$a" == list-* ]]; then
+    $a "$@"
+elif [[ "$a" == store-* ]]; then
+    $a "$@"
+elif [[ "$a" == restore-* ]]; then
+    $a "$@"
 elif [ "$a" == "edit-apt" ]; then
     edit-apt "$@"
+elif [ "$a" == "run" ]; then
+    run-quiet "$@"
 else
     echo "store directory: store all installed packages in directory"
     echo "restore directory: restore from directory"
-    echo "list-python[3]: list the top level installs"
+    echo "list-*: list the top level installs"
+    echo "store-*: store individual"
+    echo "restore-*: restore individual"
     echo "edit-apt: edit the apt.patch for brew"
+    echo "supports: brew (cask/tap, apt), pip2, pip3, gem, safari"
 fi

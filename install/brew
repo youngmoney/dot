@@ -1,27 +1,22 @@
-
-brew install bash-completion 
-brew install binutils 
-brew install contacts 
-brew install coreutils 
-brew install ctags 
-brew install duti 
-brew install gcc 
-brew install gdb 
-brew install git 
-brew install gnupg 
-brew install llvm 
-brew install lynx 
-brew install mpv 
-brew install msmtp 
-brew install mu 
-brew install mutt 
-brew install offlineimap 
-brew install python 
-brew install python3 
-brew install reattach-to-user-namespace 
-brew install tmux 
-brew install vim 
-brew tap caskroom/cask
-brew tap homebrew/core
-brew tap homebrew/dupes
-brew tap homebrew/science
+bash-completion
+binutils
+contacts
+coreutils
+ctags
+duti
+gcc
+gdb
+git
+gnupg
+llvm
+lynx
+mpv
+msmtp
+mu
+mutt
+offlineimap
+python
+python3
+reattach-to-user-namespace
+tmux
+vim
