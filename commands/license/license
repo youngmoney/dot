@@ -7,11 +7,24 @@ function license() {
     license_dir="$builddir/licenses"
     license_file="$license_dir/$license"
     if [ -f "$license_file" ]; then
-        cat "$license_file" > LICENSE.txt
+        year=$(date +%Y)
+        name="$(git config user.name)"
+        if [ "$name" ]; then
+            namevar="--name"
+        fi
+        build template fill ${namevar} "${name}" --year ${year} "$license_file" > LICENSE
     else
         echo "Licenses (default MIT):"
         ls -1 "$license_dir"
     fi
+}
+
+ar() {
+    echo $1
+    echo $2
+    echo $3
+    echo $4
+    echo $5
 }
 
 if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
