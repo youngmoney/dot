@@ -60,6 +60,7 @@ fi
 if [ ! -f $LOCALCONF/home.me ]; then COMPNAME=" \e[31m$(id -un)@$(hostname)\e[0m "; fi
 export PS1="\[\033[36m\]\u\[\033[m\]:\[\033[33;1m\]\w\[\033[m\]\[\e[1;35m\]\$(build git state)\[\e[0;39m\]$COMPNAME$ "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
+. build --completion
 
 ssh-setup() {
     ssh-share $1;

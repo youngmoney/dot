@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 if command -v realpath >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(realpath "${BASH_SOURCE[0]}" 2>/dev/null))"
 elif command -v readlink >/dev/null 2>&1; then
@@ -7,4 +8,6 @@ else
     SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
     if [ "$SCRIPTS" == "${HOME}" ]; then SCRIPTS=~/local/dot/bin; fi
 fi
-$SCRIPTS/../commands/build/build "$@"
+
+[ "$0" = "$BASH_SOURCE" ] || start="."
+$start $SCRIPTS/../commands/build/build "$@"

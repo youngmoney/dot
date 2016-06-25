@@ -3,7 +3,6 @@ arg="$1"
 shift
 
 [ "$arg" == "--help" ] && echo "this command, try build help" && exit
-
 if command -v realpath >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(realpath "${BASH_SOURCE[0]}" 2>/dev/null))"
 elif command -v readlink >/dev/null 2>&1; then
@@ -17,6 +16,42 @@ fi
 command -v build >/dev/null 2>&1 || PATH=$PATH:$SCRIPTS
 
 BUILD_PATH=${BUILD_PATH}:$(cd ${SCRIPTS}/..; pwd -P)
+
+_completion()
+{
+    _script_commands=$(build | tr '\n' ' ')
+
+    local cur prev
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    if [ "${prev}" == "" ] || [ "${prev}" == "build" ]; then
+        COMPREPLY=( $(compgen -W "${_script_commands}" -- ${cur}) )
+    else
+        _script_commands=$(build ${prev} --help | sed 's/[ :].*//' | tr '\n' ' ')
+        echo $_script_commands > ~/desktop/testing
+        if [[ "$_script_commands" == usage* ]]; then
+            _script_commands=$(build ${prev} --help 2>&1 | grep '{' | sed 's/.*{//g; s/}.*//; s/,/ /g')
+        fi
+        COMPREPLY=( $(compgen -W "${_script_commands}" -- ${cur}) )
+    fi
+
+
+  return 0
+}
+
+if [ "$arg" == "--completion" ]; then
+    if [ "$0" = "$BASH_SOURCE" ]; then
+        echo "warning, not being sourced"
+    fi
+    # [ "$2" ] && scriptname="$2" || scriptname="${SCRIPTS}/build"
+    if command -v complete >/dev/null 2>&1; then
+        complete -o nospace -F _completion build
+    fi
+
+    [ "$0" = "$BASH_SOURCE" ] && exit || return
+fi
+
 IFS=: read -r -d '' -a path_array < <(printf '%s:\0' "$BUILD_PATH")
 for p in "${path_array[@]}"; do
     if [ "$p" != "" ]; then
@@ -32,14 +67,14 @@ done
 if [ -f "$commandsh" ]; then
     "$commandsh" "$@"
 else
-    echo "Available Commands"
+    # echo "Available Commands"
     for p in "${path_array[@]}"; do
         if [ "$p" != "" ]; then
             commanddir="$p"
             for c in $commanddir/*; do
-                echo
-                basename "$c" | sed 's/^/  /'
-                $c/`basename "$c"` --help  | sed 's/^/    /'
+                # echo
+                basename "$c" #| sed 's/^/  /'
+                # $c/`basename "$c"` --help  | sed 's/^/    /'
             done
         fi
     done
