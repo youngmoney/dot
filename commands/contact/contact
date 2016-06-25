@@ -64,8 +64,6 @@ arg=$1
 shift
 if [ "$arg" == "search-email" ]; then
     search-email $@
-# elif [ "$arg" == "search" ]; then
-#     mac_notify "$@"
 elif [ "$arg" == "add" ]; then
     add_contact "$@"
 else

@@ -11,19 +11,6 @@ mac_ssh() {
     fi
 }
 
-mac_add_contact() {
-    "$scriptdir/addcontact" $@
-}
-
-mac_notify() {
-    in=`cat`
-    if [ -f ~/.silent ]; then
-        echo "$in" | xargs -I % /usr/local/bin/tmux -S /tmp/tmux-global display-message "$1: %"
-    else
-        echo "$in" | build etc timeout 3 xargs -I % osascript -e "display notification \"`echo % | sed 's/\"//g'`\" with title \"$1\""
-    fi
-}
-
 mac_battery() {
     ioreg -l | grep -i capacity | tr '\n' ' | ' | awk '{printf("%d", $10/$5 * 100)}'
 }

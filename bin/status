@@ -34,7 +34,7 @@ fetch_all() {
 }
 do_ctag() { build ctag $@; }
 
-function notify() { if [ ! -f ~/.silent ]; then build mac notify $1; fi }
+function notify() { if [ ! -f ~/.silent ]; then build notify notify $1; fi }
 
 the_status() {
     if [ "$1" == "--color" ]; then

@@ -62,7 +62,7 @@ invoice_status() {
 track_time() {
     build invoice minute $1;
     tracking="`build invoice status | head -1`"
-    if [ "$tracking" != "" ]; then echo "$tracking" | build mac notify Tracking; fi
+    if [ "$tracking" != "" ]; then echo "$tracking" | build notify notify Tracking; fi
     # tracking="`build invoice status | head -1`"
     # if [ "$tracking" != "" ]; then s="$s #[fg=red]$tracking"; fi
 }
