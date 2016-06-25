@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-function ssh-share {
+ssh::share {
     REMOTE="$1"
     PUB="$2"
     if [ "$REMOTE" == "" ]; then echo "Specify a remote"; exit; fi
@@ -18,7 +18,7 @@ function ssh-share {
     cat "$PUB".pub | ssh $REMOTE 'cat - > .tempKey; mkdir -p ~/.ssh; cat .tempKey >> ~/.ssh/authorized_keys; rm .tempKey';
 }
 
-ssh-with-agent() {
+ssh::with-agent() {
     sshINFO=`ssh-agent -s`
     eval "$sshINFO" > /dev/null
     ssh-add ~/.ssh/*_rsa > /dev/null 2>&1
@@ -26,7 +26,7 @@ ssh-with-agent() {
     kill $SSH_AGENT_PID
 }
 
-ssh-store() {
+ssh::store() {
     d="$1"
     cd ~/
     zip -r "$d/keys.zip" .ssh
@@ -37,7 +37,7 @@ ssh-store() {
 
 }
 
-ssh-restore() {
+ssh::restore() {
     d="$1"
     if [ "$SSH_STORE_PASSPHRASE" != "" ]; then
         gpg --passphrase "$SSH_STORE_PASSPHRASE" "$d/keys.zip.gpg"
@@ -48,13 +48,13 @@ ssh-restore() {
 arg=$1
 shift
 if [ "$arg" == "share" ]; then
-    ssh-share $@
+    ssh::share $@
 elif [ "$arg" == "with-agent" ]; then
-    ssh-with-agent "$@"
+    ssh::with-agent "$@"
 elif [ "$arg" == "store" ]; then
-    ssh-store $@
+    ssh::store $@
 elif [ "$arg" == "restore" ]; then
-    ssh-restore $@
+    ssh::restore $@
 else
     echo "share <remote> [<key.pub>]: sends the key to the remote"
 fi
