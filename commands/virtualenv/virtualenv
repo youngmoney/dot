@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+virtualenv_create() {
+    virtualenv -p python$1 venv
+}
+
+virtualenv_setup_prompt() {
+    echo 'PROMPT_COMMAND=". build virtualenv auto-activate; $PROMPT_COMMAND"'
+}
+
+virtualenv_auto_activate() {
+    if [ "$VIRTUAL_ENV" != "" ]; then
+        if [[ ! $(pwd) == "${VIRTUAL_ENV%/venv}"* ]]; then
+            deactivate
+        fi
+    fi
+
+    if [ -e "venv" ]; then
+        # Check to see if already activated to avoid redundant activating
+        v="$(pwd -P)/venv"
+        if [ "$VIRTUAL_ENV" != "$v" ]; then
+            echo Activating virtualenv...
+            . venv/bin/activate
+            # bash --rcfile <(echo '. ~/.bashrc; . venv/bin/activate')
+        fi
+    fi
+}
+
+a="$1"
+shift
+
+if [ "$a" == "create" ]; then
+    virtualenv_create "$@"
+elif [ "$a" == "prompt" ]; then
+    virtualenv_setup_prompt "$@"
+elif [ "$a" == "auto-activate" ]; then
+    virtualenv_auto_activate "$@"
+else
+    echo "create [2/3]: create a virtualenv"
+    echo "prompt: echo the prompt command"
+    echo "auto-active: call this in the prompt command"
+fi

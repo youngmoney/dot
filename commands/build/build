@@ -65,7 +65,8 @@ for p in "${path_array[@]}"; do
 done
 
 if [ -f "$commandsh" ]; then
-    "$commandsh" "$@"
+    [ "$0" = "$BASH_SOURCE" ] || start="."
+    $start "$commandsh" "$@"
 else
     # echo "Available Commands"
     for p in "${path_array[@]}"; do

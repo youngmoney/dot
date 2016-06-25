@@ -61,6 +61,7 @@ if [ ! -f $LOCALCONF/home.me ]; then COMPNAME=" \e[31m$(id -un)@$(hostname)\e[0m
 export PS1="\[\033[36m\]\u\[\033[m\]:\[\033[33;1m\]\w\[\033[m\]\[\e[1;35m\]\$(build git state)\[\e[0;39m\]$COMPNAME$ "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
 . build --completion
+PROMPT_COMMAND=". build virtualenv auto-activate; $PROMPT_COMMAND"
 
 ssh-setup() {
     ssh-share $1;
@@ -86,4 +87,3 @@ if command -v tmux>/dev/null && \
 fi
 
 for f in $LOCALCONF/*.bash; do [ -f "$f" ] && . "$f"; done
-PROMPT_COMMAND="build heroku auto-activate; $PROMPT_COMMAND"
