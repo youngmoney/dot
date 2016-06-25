@@ -13,6 +13,14 @@ export PATH
 DOT="$(cd $SCRIPTS/..; pwd -P)"
 LOCALCONF=~/.local-conf
 
+run-quiet() {
+    title="$1"
+    shift
+    echo -n $title...
+    err=$( { $@ >/dev/null; } 2>&1) && echo ok || error error
+    [ "$err" ] && error "$err"
+}
+
 go() {
     mkdir -p ~/.local-conf
     mkdir -p ~/.mail ~/.calendar ~/.contacts
@@ -96,19 +104,16 @@ setup-dirs-simple() {
 
 setup-install() {
     build install restore $DOT/install
+    command -v mu >/dev/null 2>&1 && run-quiet "Indexing with mu" mu index -m ~/.mail
     echo "The following extras must be installed on their own"
-    echo 'mu index; gdrsync (setup); peppermint'
+    echo 'gdrsync (setup); peppermint'
     if [ "$1" != "--no" ]; then
         read -p "Run Setups? [yes] " r
         if [ "$r" == "" ]; then
-            mu index -m ~/.mail
             gdrsync.py ~/desktop test -n
             open $scriptdir/taylormint.terminal
         fi
-    else
-        echo install gdrsyn and peppermint
     fi
-    echo "install xCode as well"
 }
 
 setup-account() {

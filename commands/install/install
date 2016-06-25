@@ -162,7 +162,7 @@ store-pip2() {
 restore-pip2() {
     if [ "$1" == "--apt" ]; then
         shift
-        run-quiet "Installing pip2" sudo apt-get -qq install python-pip
+        exists pip2 || run-quiet "Installing pip2" sudo apt-get -qq install python-pip
         sudo="sudo "
     fi
     restore-abstract pip2 "${sudo}pip2 install" "$1"
@@ -175,7 +175,7 @@ store-pip3() {
 restore-pip3() {
     if [ "$1" == "--apt" ]; then
         shift
-        run-quiet "Installing pip3" sudo apt-get -qq install python3-pip
+        exists pip3 || run-quiet "Installing pip3" sudo apt-get -qq install python3-pip
         sudo="sudo "
     fi
     restore-abstract pip3 "${sudo}pip3 install" "$1"
