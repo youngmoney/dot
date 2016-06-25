@@ -32,8 +32,8 @@ uninstall-pip3() {
     uninstall-generic "list-python3" "pip3 uninstall -y" "$@"
 }
 
-uninstall-pip() {
-    uninstall-generic "list-python" "pip uninstall -y" "$@"
+uninstall-pip2() {
+    uninstall-generic "list-python" "pip2 uninstall -y" "$@"
 }
 
 uninstall-brew() {
@@ -47,8 +47,8 @@ uninstall-cask() {
 a="$1"
 shift
 
-if [ "$a" == "pip" ]; then
-    uninstall-pip "$@"
+if [ "$a" == "pip2" ]; then
+    uninstall-pip2 "$@"
 elif [ "$a" == "pip3" ]; then
     uninstall-pip3 "$@"
 elif [ "$a" == "brew" ]; then
@@ -56,6 +56,8 @@ elif [ "$a" == "brew" ]; then
 elif [ "$a" == "cask" ]; then
     uninstall-cask "$@"
 else
-    echo "uninstall recursively (all unique dependecies)"
-    echo "pip, pip3, brew, cask"
+    echo "pip2: uninstall recursively (all unique dependecies)"
+    echo "pip3: uninstall recursively (all unique dependecies)"
+    echo "brew: uninstall recursively (all unique dependecies)"
+    echo "cask: uninstall recursively (all unique dependecies)"
 fi

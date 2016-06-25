@@ -5,7 +5,7 @@ notify() {
     if [ "$in" == "" ]; then return; fi
     while read line; do
         /usr/local/bin/tmux -S /tmp/tmux-global display-message "$1: $line"
-        if build etc is-mac; then
+        if build system is-mac; then
             echo "$line" | mac_notify "$1"
         else
             notify-send "$1" "$line"

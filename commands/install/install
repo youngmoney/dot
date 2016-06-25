@@ -24,7 +24,7 @@ listdiff() {
 
 restore-all() {
     if [ "$1" != "" ]; then cd $1; fi
-    if build etc is-mac; then
+    if build system is-mac; then
         [[ "$(type -P gcc)" ]] || xcode-select --install
         restore-brew-tap
         restore-brew
@@ -42,7 +42,7 @@ restore-all() {
 
 store-all() {
     if [ "$1" != "" ]; then cd $1; fi
-    if build etc is-mac; then
+    if build system is-mac; then
         store-brew
         store-brew-tap
         store-brew-cask

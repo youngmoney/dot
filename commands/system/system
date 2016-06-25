@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+system::online() {
+    echo -e "GET http://google.com HTTP/1.0\n\n" | build etc timeout --preserve-status 5 nc google.com 80 > /dev/null 2>&1 && exit 0 || exit 1
+}
+
+system::exists() {
+    command -v $@ >/dev/null 2>&1
+}
+
+system::is_mac() {
+    [ "$(system::os)" == "Mac" ] && exit 0 || exit 1
+}
+
+system::os() {
+    if [ "$(uname -s)" == "Darwin" ]; then
+        echo "Mac"
+    elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+        echo "Linux"
+    elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
+        echo "Windows"
+    fi
+}
+
+system::battery() {
+    if system::is-mac; then
+        ioreg -l | grep -i capacity | tr '\n' ' | ' | awk '{printf("%d", $10/$5 * 100)}'
+    else
+        echo -n $((100*$(sed -n "s/remaining capacity: *\(.*\) m[AW]h/\1/p" /proc/acpi/battery/BAT0/state)/$(sed -n "s/last full capacity: *\(.*\) m[AW]h/\1/p" /proc/acpi/battery/BAT0/info)))
+    fi
+}
+
+system::desktop() {
+    if system::is-mac; then
+        osascript -e 'tell application "System Events" to set picture of every desktop to ("'"$1"'" as POSIX file as alias)'
+    else
+        gsettings set org.gnome.desktop.background picture-uri file://"$1"
+
+    fi
+}
+
+a="$1"
+shift
+
+if [ "$a" == "battery" ]; then
+    system::battery $@
+elif [ "$a" == "os" ]; then
+    system::os "$@"
+elif [ "$a" == "is-mac" ]; then
+    system::is_mac "$@"
+elif [ "$a" == "desktop" ]; then
+    system::desktop "$@"
+elif [ "$a" == "online" ]; then
+    system::online "$@"
+elif [ "$a" == "exists" ]; then
+    system::exists "$@"
+else
+    echo "battery: battery percentage"
+    echo "os: get OS name"
+    echo "is-mac: bool"
+    echo "desktop: set desktop picture"
+    echo "exists: bool command exists"
+    echo "online: bool can reach google"
+fi

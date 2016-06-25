@@ -23,7 +23,7 @@ fetch_all() {
     if [ ! -f $LOCALCONF/sync.me ]; then
         exit
     fi
-    if [ "`build etc online`" != "" ]; then
+    if build system online; then
         if [ "$1" != "mail" ]; then
             fetch_vdir
         fi
@@ -44,7 +44,7 @@ the_status() {
     fi
     s=""
     #⚠︎
-    if [ "`build mac battery`" -le 20 ]; then s="$s ⚡︎ Low"; fi
+    if [ "`build system battery`" -le 20 ]; then s="$s ⚡︎ Low"; fi
     if [ "`backup status`" != "" ]; then s="$s ♼  Late"; fi
     mail="`build mail count`"; if [ "$mail" == "0" ]; then mail=""; fi
     curmail="(`build mail count -cur`)"; if [ "$curmail" == "(0)" ]; then curmail=""; fi
@@ -113,7 +113,7 @@ khal-agenda() {
 }
 
 do-run() {
-    if build etc exists reattach-to-user-namespace; then
+    if build system exists reattach-to-user-namespace; then
         reattach-to-user-namespace "$@"
     else
         if [ "$1" == "-l" ]; then shift; fi

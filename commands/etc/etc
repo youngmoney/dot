@@ -1,44 +1,19 @@
 #!/usr/bin/env bash
 
-offline() {
-    echo -e "GET http://google.com HTTP/1.0\n\n" | do-timeout 5 nc google.com 80 > /dev/null 2>&1
-    if [[ $? -eq 0 ]]; then
-            echo "Online"
-    fi
-}
-
-exists() {
-    command -v $@ >/dev/null 2>&1
-}
-
-do-timeout() {
-    if exists timeout; then
+etc::timeout() {
+    if build system exists timeout; then
         timeout "$@"
-    elif exists gtimeout; then
+    elif build system exists gtimeout; then
         gtimeout "$@"
-    elif exits /usr/local/bin/gtimeout; then
+    elif build system exits /usr/local/bin/gtimeout; then
         /usr/local/bin/gtimeout "$@"
     else
         echo "No Timeout Commands Available"
     fi
 }
 
-os() {
-    if [ "$(uname)" == "Darwin" ]; then
-        echo "Mac"
-    elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-        echo "Linux"
-    elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
-        echo "Windows"
-    fi
-}
-
-is_mac() {
-    [ "$(uname -s)" == "Darwin" ] && exit 0 || exit 1
-}
-
 # Credit: http://nparikh.org/notes/zshrc.txt
-extract() {
+etc::extract() {
   if [ -f "$1" ]; then
     case "$1" in
       *.tar.bz2)  tar -jxvf "$1"                        ;;
@@ -64,19 +39,11 @@ extract() {
 a="$1"
 shift
 
-if [ "$a" == "online" ]; then
-    offline $@
-elif [ "$a" == "timeout" ]; then
-    do-timeout "$@"
-elif [ "$a" == "exists" ]; then
-    exists "$@"
+if [ "$a" == "timeout" ]; then
+    etc::timeout "$@"
 elif [ "$a" == "extract" ]; then
-    extracts "$@"
-elif [ "$a" == "is-mac" ]; then
-    is_mac "$@"
+    etc::extract "$@"
 else
-    echo "online: echos online if can reach google.com"
     echo "timeout: finds the appropriate timeout command and runs it"
-    echo "exists: exits as bool if command exists"
     echo "extract: unzip anything"
 fi
