@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export PATH=/usr/bin:/usr/local/bin:~/local/dot:~/local/build:$PATH
+export PATH=/usr/bin:/usr/local/bin:~/local/dot/bin:$PATH
 export LOCALCONF=~/.local-conf
 
 backup_status() {

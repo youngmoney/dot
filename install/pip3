@@ -1,4 +1,4 @@
 -e git://github.com/pimutils/khal@8ac595a394ea1f2f70c49d6763dbf0396fc1a73b#egg=khal
 pipdeptree
-requests-oauthlib==0.6.1
-wheel==0.29.0
+requests-oauthlib
+wheel

@@ -147,8 +147,12 @@ restore-brew-cask() {
 }
 
 list-python() {
-    python$1 -m pipdeptree -f -w silence 2>/dev/null | grep -v '^ ' | sort || pip$1 freeze
-    echo pipdeptree
+    if python$1 -m pipdeptree -f -w silence >/dev/null 2>&1; then
+        python$1 -m pipdeptree -f -w silence 2>/dev/null | grep -v '^ ' | sed 's/==.*//' | sort
+        echo pipdeptree
+    else
+        pip$1 freeze | sed 's/==.*//'
+    fi
 }
 
 store-pip2() {

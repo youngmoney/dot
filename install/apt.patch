@@ -10,3 +10,6 @@
 > maildir-utils
 20d16
 < reattach-to-user-namespace
+22a19,20
+> pandoc
+> texlive
