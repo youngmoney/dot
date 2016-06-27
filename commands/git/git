@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 branch-name () {
-    state=`git branch 2>/dev/null | grep '^*' | colrm 1 2`
+state=`git branch 2>/dev/null | sed -e '/^\*/!d' -e 's/[()]//g' -e 's/no branch, //g' -e 's/^..//' -e 's/rebasing \(.*\)/rebasing \1/'`
     if [ -n $"$state" ]; then echo "$state"; fi
 }
 
 branch-relationship () {
-    state=`git branch -v 2>/dev/null | sed -e '/^\*.*\[/!d' -e 's/.*\[\(.*\)\].*/\1/g' -e 's/ahead/►/' -e 's/behind/◄/'`
+    state=`git branch -v 2>/dev/null | sed -e '/^\*.*\[/!d' -e 's/.*\[\(.*\)\].*/\1/g' -e 's/ahead [0-9]*/↑/' -e 's/behind [0-9]*/↓/' -e 's/, //g'`
     if [ -n $"$state" ]; then echo "$state"; fi
 }
 
@@ -15,12 +15,21 @@ branch-file-status() {
     local stage=$(git diff --name-only --cached 2>/dev/null | grep -c '')
     local modified=$(git ls-files --modified 2>/dev/null | grep -c '')
     local untracked=$(git ls-files --exclude-standard --others 2>/dev/null | grep -c '')
+    # local untracked=$(git diff --no-ext-diff --quiet 2>dev/null && exit 1 || exit 0)
+    local unmerged=$(git ls-files --unmerged 2>/dev/null | grep -c '')
     local out=""
     if [ "$stage" ] && [ "$stage" != "0" ]; then
         if [ "$number" ]; then
             out="${out}●${stage}"
         else
             out="${out}●"
+        fi
+    fi
+    if [ "$unmerged" ] && [ "$unmerged" != "0" ]; then
+        if [ "$number" ]; then
+            out="${out}☓${unmerged}"
+        else
+            out="${out}⚘" # ☌☍
         fi
     fi
     if [ "$modified" ] && [ "$modified" != "0" ]; then
@@ -37,15 +46,18 @@ branch-file-status() {
             out="${out}·"
         fi
     fi
+    if git rev-parse --verify --quiet refs/stash >/dev/null; then
+        out="${out}⍊"
+    fi
     echo $out
 }
 
 state () {
     state=""
     name=`branch-name`
-    if [ "$name" != "" ]; then state="$state $name"; fi
+    if [ "$name" != "" ]; then state="$state $name"; else exit; fi
     rela=`branch-relationship`
-    if [ "$rela" != "" ]; then state="$state ($rela)"; fi
+    if [ "$rela" != "" ]; then state="$state $rela"; fi
     cur=$(branch-file-status)
     if [ "$cur" ]; then state="$state $cur"; fi
     #if [ "$1" == "-c" ]; then state="\e[1;35m\]\$state\[\e[0;39m\]"; fi
