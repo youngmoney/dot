@@ -4,66 +4,63 @@ scriptdir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
 
 
 if [ "$MAILDIR" == "" ]; then MAILDIR=~/.mail; fi
-if [ "$MAIL" == "" ]; then MAIL="$MAILDIR"; fi
 
-mail_count() {
-    s='new/'
+mail::mail_count() {
+    local s='new/'
     if [ "$1" == "-cur" ]; then s='cur/'; fi
-    find $MAIL -path '*/INBOX/'"$s"'*' | wc -l | sed -e 's/^[ \t]*//g'
+    find $MAILDIR -path '*/INBOX/'"$s"'*' | wc -l | sed -e 's/^[ \t]*//g'
 }
 
-unread_mail() {
-   TIME=1
+mail::unread_mail() {
+   local TIME=1
    if [ "$1" != "" ]; then TIME=$1; shift; fi
-   find $MAIL -mmin -$TIME -path '*/INBOX/new/*' | xargs sort -r | awk '/^From|^Subject/ { print }' | awk '!(NR%2){print$0p}{p=$0}' | sed -e 's/Subject//g' | sed -e 's/From: //g' | sed -e 's/\<[^][]*\>//g' | sed -e 's/ : /: /g'
+   find $MAILDIR -mmin -$TIME -path '*/INBOX/new/*' | xargs sort -r | awk '/^From|^Subject/ { print }' | awk '!(NR%2){print$0p}{p=$0}' | sed -e 's/Subject//g' -e 's/From: //g' -e 's/\<[^][]*\>//g' -e 's/ : /: /g'
 }
 
-mail_attachment() {
+mail::mail_attachment() {
     "$scriptdir/view_attachment" $@
 }
 
-mail_with_subject() {
-   # USES mu COMMAND
-   SEARCH="$@"
-   #mu find --fields 'l' s:${SEARCH} | grep 'INBOX'| xargs cat | awk '/^Subject/ { print }' | sed 's/Subject: //' | sed 's/'"${SEARCH}"': //'
-   #mu find -f 's        l' s:"${SEARCH}" | grep 'INBOX' | awk -F '      ' '{print $1}' | sed 's/^'"${SEARCH}"'[ ]*//' 
-   find $MAIL  -path '*/INBOX/*/*' -print0 | xargs -0 grep -H "$SEARCH" # xargs cat | awk '/^Subject: '"${SEARCH}"'/ { print }' | sed 's/Subject: //' | sed 's/'"${SEARCH}"': //'
+mail::mail_with_subject() {
+   local SEARCH="$@"
+   find $MAILDIR  -path '*/INBOX/*/*' -print0 | xargs -0 grep -H "$SEARCH"
 
 }
 
-mail_link() {
+mail::mail_link() {
     rm -f ~/.mailcap
     ln -s $scriptdir/mailcap ~/.mailcap
 }
 
-gmail-auth() {
+mail::gmail-auth() {
     $scriptdir/oauth2.py "$@"
 }
 
-send-auth() {
+mail::send-auth() {
     $scriptdir/send.py "$@"
 }
 
 arg=$1
 shift
 if [ "$arg" == "count" ]; then
-    mail_count $@
+    mail::mail_count $@
 elif [ "$arg" == "unread" ]; then
-    unread_mail $@
+    mail::unread_mail $@
 elif [ "$arg" == "open-attachment" ]; then
-    mail_attachment "$@"
+    mail::mail_attachment "$@"
 elif [ "$arg" == "link-mailcap" ]; then
-    mail_link $@
+    mail::mail_link $@
 elif [ "$arg" == "with-subject" ]; then
-    mail_with_subject "$@"
+    mail::mail_with_subject "$@"
 elif [ "$arg" == "gmail-auth" ]; then
-    gmail-auth "$@"
+    mail::gmail-auth "$@"
 elif [ "$arg" == "send-auth" ]; then
-    send-auth "$@"
+    mail::send-auth "$@"
 else
-    echo "count: count of mail in \$MAIL or ~/mail maildir INBOX directories"
+    echo "count: count of mail in \$MAILDIR or ~/.mail maildir INBOX directories"
     echo "unread: print FROM:SUBJECT for new messages (same as count)"
     echo "open-attachment: decode type and open appropriately"
+    echo "with-subject: grep all mails subject lines"
     echo "link-mailcap: link the mailcap file to ~/.mailcap"
     echo "gmail-auth: run the gmail oauth setup script"
     echo "send-auth: send email using send.py for oauth"
