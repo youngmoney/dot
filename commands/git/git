@@ -6,8 +6,38 @@ branch-name () {
 }
 
 branch-relationship () {
-    state=`git branch -v 2>/dev/null | grep '^*' | awk -F '[' '{print $2}' - | awk -F ']' '{print $1}'`
+    state=`git branch -v 2>/dev/null | sed -e '/^\*.*\[/!d' -e 's/.*\[\(.*\)\].*/\1/g' -e 's/ahead/►/' -e 's/behind/◄/'`
     if [ -n $"$state" ]; then echo "$state"; fi
+}
+
+branch-file-status() {
+    if [ "$1" == "--numbered" ]; then local number="number"; fi
+    local stage=$(git diff --name-only --cached 2>/dev/null | grep -c '')
+    local modified=$(git ls-files --modified 2>/dev/null | grep -c '')
+    local untracked=$(git ls-files --exclude-standard --others 2>/dev/null | grep -c '')
+    local out=""
+    if [ "$stage" ] && [ "$stage" != "0" ]; then
+        if [ "$number" ]; then
+            out="${out}●${stage}"
+        else
+            out="${out}●"
+        fi
+    fi
+    if [ "$modified" ] && [ "$modified" != "0" ]; then
+        if [ "$number" ]; then
+            out="${out}○${modified}"
+        else
+            out="${out}○"
+        fi
+    fi
+    if [ "$untracked" ] && [ "$untracked" != "0" ]; then
+        if [ "$number" ]; then
+            out="${out}·${untracked}"
+        else
+            out="${out}·"
+        fi
+    fi
+    echo $out
 }
 
 state () {
@@ -16,6 +46,8 @@ state () {
     if [ "$name" != "" ]; then state="$state $name"; fi
     rela=`branch-relationship`
     if [ "$rela" != "" ]; then state="$state ($rela)"; fi
+    cur=$(branch-file-status)
+    if [ "$cur" ]; then state="$state $cur"; fi
     #if [ "$1" == "-c" ]; then state="\e[1;35m\]\$state\[\e[0;39m\]"; fi
     echo "$state"
 }
@@ -65,7 +97,7 @@ ls-branch-relations() {
             cd ..
             state="`branch-relationship`"
             if [ "$state" != "" ]; then
-                d="`echo $line | sed 's/\.\///' | sed 's/\/.git//'`"
+                d="`echo $line | sed -e 's/\.\///' -e 's/\/.git//'`"
                 echo "$d" "$state"
             fi
         fi
@@ -133,10 +165,13 @@ elif [ "$a" == "ls-all" ]; then
     ls-all $@
 elif [ "$a" == "cat" ]; then
     cat-last "$@"
+elif [ "$a" == "branch-status" ]; then
+    branch-file-status "$@"
 else
     echo "branch-name: active branch name"
     echo "branch-relationship: branch upstream relationship (ahead)"
-    echo "state: 'name (relationship)'"
+    echo "branch-status: branch file status (staged etc)"
+    echo "state: 'name (relationship) status'"
     echo "pretty-log: show git log in a nice colorful format"
     echo "ls-relations: shows branch-relationships for all gits"
     echo "autocommit: autocommits all git repos"
