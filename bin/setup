@@ -25,9 +25,9 @@ go() {
     mkdir -p ~/.local-conf
     mkdir -p ~/.mail ~/.calendar ~/.contacts
     if [ "$1" == "--no" ]; then
-        rm -f $LOCALCONF/backup.me
-        rm -f $LOCALCONF/sync.me
-        rm -f $LOCALCONF/home.me
+        # rm -f $LOCALCONF/backup.me
+        # rm -f $LOCALCONF/sync.me
+        # rm -f $LOCALCONF/home.me
         no="--no"
     else
         read -p "make home?[Y/n]" q
