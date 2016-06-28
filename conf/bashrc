@@ -21,26 +21,31 @@ export KHARD_CONFIG=~/.khard
 export LOCALCONF=~/.local-conf
 
 alias todo="build todo";
-alias t="build todo"
+
 alias today="status today -l 20";
 alias muttr="status mail"
+
 alias gh="build github";
 alias gt="build gitolite"
-alias s="build search content";
-alias f="build search file"
-alias ssh-share="build ssh share"
-alias dc="cd";
-alias ls="ls -1F"
 alias gs="git status";
 alias gd="git diff"
 alias gc="git commit";
 alias gl='build git pretty-log'
+alias gr="git rebase"
+
+alias s="build search content";
+alias f="build search file"
+
+alias ssh-share="build ssh share"
 alias sup="build vagrant sup";
+
+alias dc="cd";
+alias ls="ls -1F"
+
 alias refresh=". ~/.bash_profile"
+
 alias n="vim ~/documents/scratch.md '+cd ~/documents'" #+'CtrlP'"
 alias vess="vim -R -";
-alias vore="vess";
-alias vimmd="vess"
 
 ssh-add ~/.ssh/*_rsa > /dev/null 2>&1
 command -v launchctl >/dev/null 2>&1 && launchctl unload -w /System/Library/LaunchAgents/com.apple.rcd.plist  > /dev/null 2>&1
@@ -61,7 +66,8 @@ if [ ! -f $LOCALCONF/home.me ]; then COMPNAME="\e[31m@$(hostname | cut -c 1-10)\
 export PS1="\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\w\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\]$ "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
 . build --completion
-PROMPT_COMMAND=". build virtualenv auto-activate; $PROMPT_COMMAND"
+commandadd() { grep "$1" <<< "$PROMPT_COMMAND" >/dev/null || PROMPT_COMMAND="$1; $PROMPT_COMMAND"; }
+commandadd ". build virtualenv auto-activate"
 
 ssh-setup() {
     ssh-share $1;
