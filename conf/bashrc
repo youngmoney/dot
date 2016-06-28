@@ -58,7 +58,7 @@ fi
 
 # Pretty
 if [ ! -f $LOCALCONF/home.me ]; then COMPNAME="\e[31m@$(hostname | cut -c 1-10)\e[0m"; fi
-export PS1="\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\w\[\033[m\]\[\e[1;35m\]\$(build git state)\[\e[0;39m\]$ "
+export PS1="\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\w\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\]$ "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
 . build --completion
 PROMPT_COMMAND=". build virtualenv auto-activate; $PROMPT_COMMAND"

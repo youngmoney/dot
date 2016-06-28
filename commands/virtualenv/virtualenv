@@ -1,27 +1,35 @@
 #!/usr/bin/env bash
 
+mkdir -p ~/.virtualenv
+
+cur=~/.virtualenv"$(pwd -P)"
+
 virtualenv_create() {
-    virtualenv -p python$1 venv
+    virtualenv -p python$1 "${cur}"
 }
 
 virtualenv_setup_prompt() {
     echo 'PROMPT_COMMAND=". build virtualenv auto-activate; $PROMPT_COMMAND"'
 }
 
+virtualenv_prompt() {
+    if [ "$VIRTUAL_ENV" ]; then echo " [py$(python -c 'import sys; print(sys.version_info[0])')]"; fi
+}
+
 virtualenv_auto_activate() {
     if [ "$VIRTUAL_ENV" != "" ]; then
-        if [[ ! $(pwd) == "${VIRTUAL_ENV%/venv}"* ]]; then
+        if [[ ! $(pwd) == "${VIRTUAL_ENV#~/.virtualenv}"* ]]; then
             deactivate
         fi
     fi
 
-    if [ -e "venv" ]; then
-        # Check to see if already activated to avoid redundant activating
-        v="$(pwd -P)/venv"
-        if [ "$VIRTUAL_ENV" != "$v" ]; then
-            echo Activating virtualenv...
-            . venv/bin/activate
-            # bash --rcfile <(echo '. ~/.bashrc; . venv/bin/activate')
+    if [ -e $(pwd -P)/venv ]; then
+        echo "old style venv detected, ignored"
+    fi
+    if [ -e "${cur}/bin" ]; then
+        VIRTUAL_ENV_DISABLE_PROMPT=1
+        if [ "$VIRTUAL_ENV" != "${cur}" ]; then
+            . "${cur}/bin/activate"
         fi
     fi
 }
@@ -33,10 +41,13 @@ if [ "$a" == "create" ]; then
     virtualenv_create "$@"
 elif [ "$a" == "prompt" ]; then
     virtualenv_setup_prompt "$@"
+elif [ "$a" == "prompt-str" ]; then
+    virtualenv_prompt "$@"
 elif [ "$a" == "auto-activate" ]; then
     virtualenv_auto_activate "$@"
 else
     echo "create [2/3]: create a virtualenv"
     echo "prompt: echo the prompt command"
+    echo "prompt-str: prompt string"
     echo "auto-active: call this in the prompt command"
 fi
