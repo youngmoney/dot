@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-OUT="$SCRIPTS"
-mkdir -p ~/.accounts
 OUT=~/.accounts
+mkdir -p $OUT
+mkdir -p ~/.vdirsyncer/tokens
 
 new-contact() {
         account="$1"
@@ -54,11 +54,17 @@ new-email() {
         build mail gmail-auth --generate_oauth2_token "--client_id=$clientid" "--client_secret=$secret"
         read -p "refresh token: " refresh
 
+        ssl="/etc/ssl/certs/ca-certificates.crt"
+        if build system is-mac; then
+            ssl="/usr/local/etc/openssl/cert.pem"
+        fi
+
         config_off="$OUT/account.$account.offlineimap"
         config_send="$OUT/account.$account.send"
         config_mutt="$OUT/account.$account.mutt"
         build template fill --name "$account" --username "$username"\
                             --clientid "$clientid" --secret "$secret" --refresh "$refresh"\
+                            --sslcert "$ssl"\
                             "$SCRIPTS/account.offlineimap.template" > "$config_off"
 
         build template fill --name "$account" --username "$username"\

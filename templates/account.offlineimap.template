@@ -3,6 +3,7 @@ username
 clientid
 secret
 refresh
+sslcert
 
 [general]
 ui = ttyui
@@ -26,4 +27,4 @@ oauth2_client_secret = $secret$
 oauth2_refresh_token = $refresh$
 realdelete = no
 maxconnections = 3
-sslcacertfile = /usr/local/etc/openssl/cert.pem
+sslcacertfile = $sslcert$

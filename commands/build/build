@@ -3,17 +3,20 @@ arg="$1"
 shift
 
 [ "$arg" == "--help" ] && echo "this command, try build help" && exit
+
 if command -v realpath >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(realpath "${BASH_SOURCE[0]}" 2>/dev/null))"
-elif command -v readlink >/dev/null 2>&1; then
+elif command -v readlink >/dev/null 2>&1 \
+    && readlink --canonicalize-existing ~ >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(readlink --canonicalize-existing ${BASH_SOURCE[0]}))"
 else
-    SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-    if [ "$SCRIPTS" == "${HOME}" ]; then SCRIPTS=~/local/dot/commands/build; fi
+    SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)
+    if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; exit 1; fi
 fi
+pathadd() { [[ ":$PATH:" != *":$1:"* ]] && export PATH="${PATH:+"$PATH:"}$1"; }
 
 
-command -v build >/dev/null 2>&1 || PATH=$PATH:$SCRIPTS
+command -v build >/dev/null 2>&1 || pathadd "$SCRIPTS"
 
 BUILD_PATH=${BUILD_PATH}:$(cd ${SCRIPTS}/..; pwd -P)
 

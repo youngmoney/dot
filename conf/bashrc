@@ -1,24 +1,31 @@
 #!/usr/bin/env bash
 if command -v realpath >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(realpath "${BASH_SOURCE[0]}" 2>/dev/null))"
-elif command -v readlink >/dev/null 2>&1; then
+elif command -v readlink >/dev/null 2>&1 \
+    && readlink --canonicalize-existing ~ >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(readlink --canonicalize-existing ${BASH_SOURCE[0]}))"
 else
-    SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-    if [ "$SCRIPTS" == "${HOME}" ]; then SCRIPTS=~/local/dot; fi
+    SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)
+    if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; exit 1; fi
 fi
-
-pathadd() { [[ ":$PATH:" != *":$1:"* ]] && PATH="${PATH:+"$PATH:"}$1"; }
-pathaddfirst() { [[ ":$PATH:" != *":$1:"* ]] && PATH="$1${PATH:+":$PATH"}"; }
+DOT="$(cd $SCRIPTS/..; pwd -P)"
+pathadd() { [[ ":$PATH:" != *":$1:"* ]] && export PATH="${PATH:+"$PATH:"}$1"; }
+pathaddfirst() { [[ ":$PATH:" != *":$1:"* ]] && export PATH="$1${PATH:+":$PATH"}"; }
 
 pathaddfirst $(cd $SCRIPTS/../bin; pwd -P)
 pathaddfirst /usr/local/bin
 pathadd /usr/texbin
+pathadd /usr/bin
 
 export EDITOR=`which vim`; export VISUAL=$EDITOR
 export MAILDIR=~/.mail
 export KHARD_CONFIG=~/.khard
-export LOCALCONF=~/.local-conf
+export LOCALDOT=~/.local-dot
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+export ACCOUNTS=$LOCALDOT/accounts
+
+if [ "$1" == "--short" ]; then return 0; fi
 
 alias todo="build todo";
 
@@ -62,7 +69,7 @@ else
 fi
 
 # Pretty
-if [ ! -f $LOCALCONF/home.me ]; then COMPNAME="\e[31m@$(hostname | cut -c 1-10)\e[0m"; fi
+if [ ! -f $LOCALDOT/status/home.me ]; then COMPNAME="\e[31m@$(hostname | cut -c 1-10)\e[0m"; fi
 export PS1="\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\w\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\]$ "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
 . build --completion
@@ -71,19 +78,19 @@ commandadd ". build virtualenv auto-activate"
 
 ssh-setup() {
     ssh-share $1;
-    ssh $1 "mkdir -p ~/local/dot";
-    scp -r $SCRIPTS/../* $1:~/local/dot/;
+    ssh $1 "mkdir -p $DOT";
+    scp -r $SCRIPTS/../* $1:$DOT;
     ssh $1 "
-        echo '. ~/local/dot/conf/bashrc'>>.bash_profile;
-        echo 'source ~/local/dot/conf/vimrc'>>.vimrc;
-        echo 'source-file ~/local/dot/conf/tmux'>>.tmux.conf;
+        echo '. "$DOT"/conf/bashrc'>>.bash_profile;
+        echo 'source "$DOT"/conf/vimrc'>>.vimrc;
+        echo 'source-file "$DOT"/conf/tmux'>>.tmux.conf;
     ";
 }
 
 # tmux
 alias tmux='tmux -2'; export TERM="xterm-256color"; HISTCONTROL=ignoreboth; SERVE='/tmp/tmux-global'
 if command -v tmux>/dev/null && \
-   [ -f $LOCALCONF/home.me ] && \
+   [ -f $LOCALDOT/status/home.me ] && \
    [[ ! $TERM =~ screen ]] && \
    [ -z "$TMUX" ] && \
    [ "$USER" != "root" ]; then
@@ -92,4 +99,4 @@ if command -v tmux>/dev/null && \
        || exec tmux -S $SERVE new -s Global
 fi
 
-for f in $LOCALCONF/*.bash; do [ -f "$f" ] && . "$f"; done
+for f in $LOCALDOT/conf/*.bash; do [ -f "$f" ] && . "$f"; done

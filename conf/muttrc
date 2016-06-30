@@ -1,14 +1,14 @@
 set mbox_type=Maildir
-set folder = ~/.mail
+set folder = "$MAILDIR"
 set header_cache=~/.cache/mutt
-set record="$HOME/.mail/sent"
+set record="$MAILDIR/sent"
 set record=""
 
 set signature="~/.signature"
 set sig_dashes=no
 set sig_on_top=yes
 
-source " cat ~/.accounts/account.*.mutt|"
+source " cat $ACCOUNTS/account.*.mutt|"
 
 set reverse_name
 set use_from=yes

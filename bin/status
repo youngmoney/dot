@@ -1,26 +1,31 @@
 #!/bin/bash
-export PATH=/usr/bin:/usr/local/bin:~/local/dot/bin:$PATH
-export MAILDIR=~/.mail
-export LANG="en_US.UTF-8"
-export LC_ALL="en_US.UTF-8"
-export LOCALCONF=~/.local-conf
+if command -v realpath >/dev/null 2>&1; then
+    SCRIPTS="$(dirname $(realpath "${BASH_SOURCE[0]}" 2>/dev/null))"
+elif command -v readlink >/dev/null 2>&1 \
+    && readlink --canonicalize-existing ~ >/dev/null 2>&1; then
+    SCRIPTS="$(dirname $(readlink --canonicalize-existing ${BASH_SOURCE[0]}))"
+else
+    SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)
+    if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; exit 1; fi
+fi
+. $SCRIPTS/../conf/bashrc --short
 
 fetch_mail() {
-    for c in ~/.accounts/account.*.offlineimap; do
-        build etc timeout -k 30  60 /usr/local/bin/offlineimap -o -c "$c"
+    for c in $ACCOUNTS/account.*.offlineimap; do
+        build etc timeout -k 30  60 offlineimap -o -c "$c"
         #-u quiet
     done
     build mail unread | notify Mail
     mu index -q
 }
 fetch_vdir() {
-    for c in ~/.accounts/account.*.vdirsyncer; do
+    for c in $ACCOUNTS/account.*.vdirsyncer; do
         build etc timeout -k 20 30 vdirsyncer -c "$c" sync --max-workers=1
     done
 }
 next_event() { khal-up | notify "Coming Up"; }
 fetch_all() {
-    if [ ! -f $LOCALCONF/sync.me ]; then
+    if [ ! -f $LOCALDOT/status/sync.me ]; then
         exit
     fi
     if build system online; then
@@ -81,7 +86,9 @@ dashboard() {
 
         clear
         date '+%b %d %l:%M'
+        printf '\033[?7l'
         echo "$events"
+        printf '\033[?7l'
         echo -en "\033[0m"
         for i in `seq 0 $after_events`; do echo; done
         echo "$todos"
@@ -90,15 +97,6 @@ dashboard() {
 }
 do_mail() { while [ "" == "" ]; do mutt; done; }
 
-khal-fake() {
-    (
-        if [ -d ~/local/khal ]; then
-            cd ~/local/khal;
-            . venv/bin/activate;
-            khal -c ~/.khal "$@"
-        fi
-    )
-}
 khal-up() {
     O="$1"
     if [ "$O" == "" ]; then O=10; fi

@@ -39,12 +39,12 @@ Bundle 'vim-pandoc/vim-pandoc-syntax'
 "Bundle 'junegunn/goyo.vim'
 "Bundle 'vim-scripts/DrawIt'
 Bundle 'dhruvasagar/vim-table-mode'
+runtime $LOCALDOT/conf/plugin.vim
 
 "So Crucial
 filetype on
 filetype plugin indent on
 syntax on
-set ft=pandoc
 set shellcmdflag=-ic
 silent !mkdir -p ~/.vim/backup ~/.vim/swap >/dev/null 2>&1
 set backupdir=~/.vim/backup//
@@ -270,7 +270,10 @@ if g:projectType == "Fake For XVim"
   map ® :run
 endif
 
-for fpath in split(globpath('~/.local-conf/', '*.vim'), '\n')
+let localconf=$LOCALDOT . '/conf'
+for fpath in split(globpath(localconf, '*.vim'), '\n')
+  if fpath != $LOCALDOT . '/conf/plugin.vim'
     exe 'source' fpath
+  endif
 endfor
 

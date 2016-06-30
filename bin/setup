@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 if command -v realpath >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(realpath "${BASH_SOURCE[0]}" 2>/dev/null))"
-elif command -v readlink >/dev/null 2>&1; then
+elif command -v readlink >/dev/null 2>&1 \
+    && readlink --canonicalize-existing ~ >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(readlink --canonicalize-existing ${BASH_SOURCE[0]}))"
 else
-    SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-    if [ "$SCRIPTS" == "${HOME}" ]; then SCRIPTS=~/local/dot; fi
+    SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)
+    if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; exit 1; fi
 fi
-pathadd() { [[ ":$PATH:" != *":$1:"* ]] && PATH="${PATH:+"$PATH:"}$1"; }
+pathadd() { [[ ":$PATH:" != *":$1:"* ]] && export PATH="${PATH:+"$PATH:"}$1"; }
 pathadd "$SCRIPTS"
-export PATH
 DOT="$(cd $SCRIPTS/..; pwd -P)"
-LOCALCONF=~/.local-conf
+DOT_DEST=~/local/dot
+LOCALDOT=~/.local-dot
 
 run-quiet() {
     title="$1"
@@ -22,28 +23,26 @@ run-quiet() {
 }
 
 go() {
-    mkdir -p ~/.local-conf
+    mkdir -p $LOCALDOT
     mkdir -p ~/.mail ~/.calendar ~/.contacts
     if [ "$1" == "--no" ]; then
-        # rm -f $LOCALCONF/backup.me
-        # rm -f $LOCALCONF/sync.me
-        # rm -f $LOCALCONF/home.me
         no="--no"
     else
         read -p "make home?[Y/n]" q
-        if [ "$q" == "" ]; then touch $LOCALCONF/home.me;
-        else rm -f $LOCALCONF/home.me; fi
+        if [ "$q" == "" ]; then touch $LOCALDOT/status/home.me;
+        else rm -f $LOCALDOT/status/home.me; fi
         read -p "allow backups?[Y/n]" q
-        if [ "$q" == "" ]; then touch $LOCALCONF/backup.me;
-        else rm -f $LOCALCONF/backup.me; fi
+        if [ "$q" == "" ]; then touch $LOCALDOT/status/backup.me;
+        else rm -f $LOCALDOT/status/backup.me; fi
         read -p "allow sync?[Y/n]" q
-        if [ "$q" == "" ]; then touch $LOCALCONF/sync.me;
-        else rm -f $LOCALCONF/sync.me; fi
+        if [ "$q" == "" ]; then touch $LOCALDOT/status/sync.me;
+        else rm -f $LOCALDOT/status/sync.me; fi
     fi
 
     if [ $(uname -s) == "Darwin" ]; then bash $DOT/conf/osx; fi
 
     [ -d $DOT/../archives ] && setup-dirs || setup-dirs-simple
+    pathadd $DOT/bin
 
     setup-install $no
 
@@ -75,13 +74,13 @@ safe-rm() {
 }
 
 setup-dot() {
-    build dot --no-backup -f ~/local/dot/conf
+    build dot --no-backup -f $DOT/conf
     . ~/.bashrc
     build mail link-mailcap
 }
 
 setup-dirs() {
-    if [ ~/local/dot != "$DOT" ]; then
+    if [ "$DOT_DEST" != "$DOT" ]; then
         cd $DOT/../../
         for f in *; do
             if [ -d "$f" ]; then
@@ -93,12 +92,12 @@ setup-dirs() {
 }
 
 setup-dirs-simple() {
-    mkdir -p ~/local
-    if [ ~/local/dot != "$DOT" ]; then
-        safe-rm ~/local/dot
-        mv "$DOT" ~/local/dot
-        DOT=~/local/dot
-        SCRIPTS=~/local/dot/bin
+    mkdir -p "$DOT_DEST"
+    if [ "$DOT_DEST" != "$DOT" ]; then
+        safe-rm "$DOT_DEST"
+        mv "$DOT" "$DOT_DEST"
+        DOT="$DOT_DEST"
+        SCRIPTS="$DOT/bin"
     fi
 }
 
@@ -111,7 +110,7 @@ setup-install() {
         read -p "Run Setups? [yes] " r
         if [ "$r" == "" ]; then
             gdrsync.py ~/desktop test -n
-            open $scriptdir/taylormint.terminal
+            open $DOT/taylormint.terminal
         fi
     fi
 }
@@ -119,7 +118,7 @@ setup-install() {
 setup-account() {
     read -p "Add Account? " q
     while [ "$q" == "" ]; do
-        $scriptdir/templates/account.template
+        $DOT/templates/account.template
         read -p "Add Account? " q
     done
 }
@@ -128,8 +127,8 @@ setup-git() {
     default_email=git@taylorlmoney.com
     read -p "git email[$default_email]: " email
     if [ "$email" == "" ]; then email="$default_email"; fi
-    build template fill --email "$email" $DOT/templates/git.bash.template > ~/.local-conf/git.bash
-    . ~/.local-conf/git.bash
+    build template fill --email "$email" $DOT/templates/git.bash.template > $LOCALDOT/conf/git.bash
+    . $LOCALDOT/conf/git.bash
 }
 
 

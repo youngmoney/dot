@@ -3,5 +3,5 @@
 */10 * * * * ~/local/dot/bin/backup important > /dev/null 2>&1
 
 * * * * * ~/local/dot/bin/status ctag ~/local
-* * * * * ~/local/dot/bin/status fetch > /dev/null 2>&1
+* * * * * ~/local/dot/bin/status fetch >/dev/null 2>&1
 */5 * * * * ~/local/dot/bin/status next-event
