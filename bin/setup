@@ -14,6 +14,12 @@ DOT="$(cd $SCRIPTS/..; pwd -P)"
 DOT_DEST=~/local/dot
 LOCALDOT=~/.local-dot
 
+error() {
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+    echo -e ${RED}${@}${NC}
+}
+
 run-quiet() {
     title="$1"
     shift
@@ -23,23 +29,14 @@ run-quiet() {
 }
 
 go() {
+    [ "$1" == "--no" ] && local no="--no" || local no=""
+
+
     mkdir -p $LOCALDOT
     mkdir -p ~/.mail ~/.calendar ~/.contacts
-    if [ "$1" == "--no" ]; then
-        no="--no"
-    else
-        read -p "make home?[Y/n]" q
-        if [ "$q" == "" ]; then touch $LOCALDOT/status/home.me;
-        else rm -f $LOCALDOT/status/home.me; fi
-        read -p "allow backups?[Y/n]" q
-        if [ "$q" == "" ]; then touch $LOCALDOT/status/backup.me;
-        else rm -f $LOCALDOT/status/backup.me; fi
-        read -p "allow sync?[Y/n]" q
-        if [ "$q" == "" ]; then touch $LOCALDOT/status/sync.me;
-        else rm -f $LOCALDOT/status/sync.me; fi
-    fi
+    pathadd $DOT/bin
 
-    if [ $(uname -s) == "Darwin" ]; then bash $DOT/conf/osx; fi
+    [ "$no" ] || setup-me
 
     [ -d $DOT/../archives ] && setup-dirs || setup-dirs-simple
     pathadd $DOT/bin
@@ -47,11 +44,17 @@ go() {
     setup-install $no
 
     setup-dot
+    build cron install ~/.cron
     if [ -d ~/local/archives ] && [ "$no" == "" ]; then
         read -p "restore ssh?[Y/n]" q
         if [ "$q" == "" ]; then build ssh restore ~/local/archives; fi
     fi
-    build cron install ~/.cron
+
+    if [ $(uname -s) == "Darwin" ]; then
+        build mac dud mail
+        bash $DOT/conf/osx;
+    fi
+
     if [ "$no" == "" ]; then
         setup-git
         setup-account
@@ -59,43 +62,39 @@ go() {
         echo "run setup git"
         echo "run setup account"
     fi
-    if [ $(uname -s) == "Darwin" ]; then build mac dud mail; fi
 }
 
-safe-rm() {
-    if [ -e "$@" ]; then
-        if [ "$(ls -A "$@" | grep -v .DS_Store)" ]; then
-            file=$(basename "$@")
-            sudo mv "$@" ~/desktop/${file}.$(date +%s)
-        else
-            sudo rm -rf "$@"
-        fi
-    fi
+setup-me() {
+    read -p "make home?[Y/n]" q
+    if [ "$q" == "" ]; then touch $LOCALDOT/status/home.me;
+    else rm -f $LOCALDOT/status/home.me; fi
+    read -p "allow backups?[Y/n]" q
+    if [ "$q" == "" ]; then touch $LOCALDOT/status/backup.me;
+    else rm -f $LOCALDOT/status/backup.me; fi
+    read -p "allow sync?[Y/n]" q
+    if [ "$q" == "" ]; then touch $LOCALDOT/status/sync.me;
+    else rm -f $LOCALDOT/status/sync.me; fi
 }
 
 setup-dot() {
-    build dot --no-backup -f $DOT/conf
+    build symc clean ~/
+    build symc link-dir $DOT/conf ~/.
     . ~/.bashrc
     build mail link-mailcap
 }
 
 setup-dirs() {
     if [ "$DOT_DEST" != "$DOT" ]; then
-        cd $DOT/../../
-        for f in *; do
-            if [ -d "$f" ]; then
-                safe-rm -rf ~/$f
-                sudo mv $f ~/$f
-            fi
-        done
+        build symc mv-dir "$DOT/../../" ~/
+        DOT="$DOT_DEST"
+        SCRIPTS="$DOT/bin"
     fi
 }
 
 setup-dirs-simple() {
     mkdir -p "$DOT_DEST"
     if [ "$DOT_DEST" != "$DOT" ]; then
-        safe-rm "$DOT_DEST"
-        mv "$DOT" "$DOT_DEST"
+        build symc safe-mv "$DOT" "$DOT_DEST"
         DOT="$DOT_DEST"
         SCRIPTS="$DOT/bin"
     fi

@@ -6,23 +6,22 @@
 #sudo pmset -a standbydelay 86400
 #sudo systemsetup -setcomputersleep Off > /dev/null
 
-computer_name="`sudo scutil --get ComputerName`"
-computer_name="Typewriter"
+osx::name-computer() {
+    local computer_name="`sudo scutil --get ComputerName`"
+    computer_name="Typewriter"
 
-# read -p "Computer Name? [$computer_name] " cname
-if [ "$cname" != "" ]; then computer_name="$cname"; fi
-sudo scutil --set ComputerName "$computer_name"
-sudo scutil --set HostName "$computer_name"
-sudo scutil --set LocalHostName "$computer_name"
-sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "$computer_name"
+    # read -p "Computer Name? [$computer_name] " cname
+    if [ "$cname" != "" ]; then computer_name="$cname"; fi
+    sudo scutil --set ComputerName "$computer_name"
+    sudo scutil --set HostName "$computer_name"
+    sudo scutil --set LocalHostName "$computer_name"
+    sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "$computer_name"
+}
 
-defaults write com.apple.desktop Background '{default = {ImageFilePath = "~/pictures/roll.iPhone/IMG_5524.JPG"; };}'
+# defaults write com.apple.desktop Background '{default = {ImageFilePath = "~/pictures/roll.iPhone/IMG_5524.JPG"; };}'
 
-sudo pmset displaysleep 5
-sudo pmset -c displaysleep 15
-
-sudo pmset sleep 5
-sudo pmset -c sleep 20
+sudo pmset -a displaysleep 5 sleep 5
+sudo pmset -c displaysleep 15 sleep 20
 
 # Expand save panel by default
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
@@ -96,7 +95,7 @@ defaults write com.apple.TextEdit RichText -int 0
 
 # find . -path "$scriptdir/\*" -name '*.safari*' | xargs open -a Safari 
 add_app() {
-    app="$@"
+    local app="$@"
     defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/${app}.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
 }
 
@@ -109,22 +108,25 @@ add_app Utilities/Terminal
 add_app Preview
 killall Dock
 
-for f in ~/*; do
-    if [ -d "$f" ]; then
-        a="$f"
-        xpath=${a%/*}
-        xbase=${a##*/}
-        xfext=${xbase##*.}
-        xpref=${xbase%.*}
-        newbase="`echo ${xbase} | tr '[:upper:]' '[:lower:]'`"
-        a="${xpath}/${newbase}"
-        if [ "$f" != "$a" ]; then
-            mv "$f" "$a"
+osx::clean-home() {
+    local f
+    for f in ~/*; do
+        if [ -d "$f" ]; then
+            local a="$f"
+            local xpath=${a%/*}
+            local xbase=${a##*/}
+            local xfext=${xbase##*.}
+            local xpref=${xbase%.*}
+            local newbase="`echo ${xbase} | tr '[:upper:]' '[:lower:]'`"
+            a="${xpath}/${newbase}"
+            if [ "$f" != "$a" ]; then
+                mv "$f" "$a"
+            fi
         fi
-    fi
-done
-d="`date +%s`"
-if [ -d ~/public ]; then sudo mv ~/public ~/desktop/public.$d; fi
-if [ -d ~/sites ]; then sudo mv ~/sites ~/desktop/sites.$d; fi
-if [ -d ~/downloads ]; then sudo mv ~/downloads ~/desktop/downloads.$d; fi
+    done
+}
+
+[ -d ~/public ] && sudo build symc safe-rm ~/public
+[ -d ~/sites ] && sudo build symc safe-rm ~/sites
+[ -e ~/downloads ] && sudo build symc safe-rm ~/downloads
 sudo ln -s ~/desktop ~/downloads
