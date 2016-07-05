@@ -204,10 +204,10 @@ restore-gem() {
 store-safari() {
     mkdir -p safari
     rm -rf safari/*
-    find ~/library/Safari/Extensions -name '*.safari*' | xargs -I % cp % safari
+    find ~/library/Safari/Extensions -name '*.safari*' -print0 | xargs -0 -L 1 -n 1 -I % cp % safari
 }
 install-safari-ext() {
-    find "$1" -name '*.safari*' | xargs open -a Safari
+    find "$1" -name '*.safari*' -print0 | xargs -0 -n 1 -L 1 open -a Safari
 }
 restore-safari() {
     run-quiet "Installing safari extensions" install-safari-ext safari
