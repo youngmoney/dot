@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-OUT=~/.accounts
+OUT=$LOCALDOT/accounts
 mkdir -p $OUT
 mkdir -p ~/.vdirsyncer/tokens
 

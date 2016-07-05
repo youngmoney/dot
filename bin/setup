@@ -9,6 +9,7 @@ else
     if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; exit 1; fi
 fi
 pathadd() { [[ ":$PATH:" != *":$1:"* ]] && export PATH="${PATH:+"$PATH:"}$1"; }
+pathaddfirst() { [[ ":$PATH:" != *":$1:"* ]] && export PATH="$1${PATH:+":$PATH"}"; }
 pathadd "$SCRIPTS"
 DOT="$(cd $SCRIPTS/..; pwd -P)"
 DOT_DEST=~/local/dot
@@ -31,15 +32,13 @@ run-quiet() {
 go() {
     [ "$1" == "--no" ] && local no="--no" || local no=""
 
-
     mkdir -p $LOCALDOT
     mkdir -p ~/.mail ~/.calendar ~/.contacts
-    pathadd $DOT/bin
 
     [ "$no" ] || setup-me
 
     [ -d $DOT/../archives ] && setup-dirs || setup-dirs-simple
-    pathadd $DOT/bin
+    hash -r; pathaddfirst $SCRIPTS
 
     setup-install $no
 

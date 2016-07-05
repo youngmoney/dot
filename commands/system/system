@@ -8,7 +8,7 @@ system::exists() {
     command -v $@ >/dev/null 2>&1
 }
 
-system::is_mac() {
+system::is-mac() {
     [ "$(system::os)" == "Mac" ] && exit 0 || exit 1
 }
 
@@ -47,7 +47,7 @@ if [ "$a" == "battery" ]; then
 elif [ "$a" == "os" ]; then
     system::os "$@"
 elif [ "$a" == "is-mac" ]; then
-    system::is_mac "$@"
+    system::is-mac "$@"
 elif [ "$a" == "desktop" ]; then
     system::desktop "$@"
 elif [ "$a" == "online" ]; then
