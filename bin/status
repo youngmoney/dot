@@ -23,6 +23,12 @@ fetch_vdir() {
         build etc timeout -k 20 30 vdirsyncer -c "$c" sync --max-workers=1
     done
 }
+fetch_discover() {
+    for c in $ACCOUNTS/account.*.vdirsyncer; do
+        build etc timeout -k 20 30 vdirsyncer -c "$c" discover --max-workers=1
+        build etc timeout -k 20 30 vdirsyncer -c "$c" metasync --max-workers=1
+    done
+}
 next_event() { khal-up | notify "Coming Up"; }
 fetch_all() {
     if [ ! -f $LOCALDOT/status/sync.me ]; then
@@ -92,7 +98,8 @@ dashboard() {
         echo -en "\033[0m"
         for i in `seq 0 $after_events`; do echo; done
         echo "$todos"
-        read -s -e -t 5 i
+        # read -s -e -t 5 i
+        sleep 5
     done
 }
 do_mail() { while [ "" == "" ]; do mutt; done; }
@@ -107,7 +114,7 @@ khal-next() {
 }
 khal-agenda() {
     echo
-    khal -c ~/.khal --color list --day-format '{yellow}{name}{reset}' --format "            {blue}{start-end-time-style:<16}{reset} {magenta}{title:<.50}{reset} {recurse} {cyan}{location:<.25}{reset}" `date '+%Y-%m-%d %I:%M%p'` 6d
+    khal -c ~/.khal --color list --day-format '{yellow}{name}{reset}' --format "            {blue}{start-end-time-style:<16}{reset} {magenta}{title:<.50}{reset} {recurse} {cyan}{location:<.25}{reset}" `date '+%Y-%m-%d %I:%M%p'` 6d | sed 's/⟳/\&/'
 }
 
 do-run() {
@@ -127,6 +134,10 @@ elif [ "$a" == "today" ]; then
     dashboard $@
 elif [ "$a" == "fetch" ]; then
     fetch_all $@
+elif [ "$a" == "sync" ]; then
+    fetch_all $@
+elif [ "$a" == "discover" ]; then
+    fetch_discover $@
 elif [ "$a" == "next-event" ]; then
     next_event $@
 elif [ "$a" == "ctag" ]; then

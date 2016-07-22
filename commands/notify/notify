@@ -4,7 +4,7 @@ notify() {
     in=`cat`
     if [ "$in" == "" ]; then return; fi
     while read line; do
-        /usr/local/bin/tmux -S /tmp/tmux-global display-message "$1: $line"
+        tmux -S "$TMUX_SOCKET" display-message "$1: $line"
         if build system is-mac; then
             echo "$line" | mac_notify "$1"
         else

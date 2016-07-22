@@ -39,7 +39,10 @@ Bundle 'vim-pandoc/vim-pandoc-syntax'
 "Bundle 'junegunn/goyo.vim'
 "Bundle 'vim-scripts/DrawIt'
 Bundle 'dhruvasagar/vim-table-mode'
-runtime $LOCALDOT/conf/plugin.vim
+let pluginrc=$LOCALDOT . '/conf/plugin.vim'
+if filereadable(pluginrc)
+  exe 'source' . pluginrc
+endif
 
 "So Crucial
 filetype on
@@ -272,7 +275,7 @@ endif
 
 let localconf=$LOCALDOT . '/conf'
 for fpath in split(globpath(localconf, '*.vim'), '\n')
-  if fpath != $LOCALDOT . '/conf/plugin.vim'
+  if fpath != pluginrc
     exe 'source' fpath
   endif
 endfor

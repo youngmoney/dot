@@ -14,7 +14,7 @@ mail::mail_count() {
 mail::unread_mail() {
    local TIME=1
    if [ "$1" != "" ]; then TIME=$1; shift; fi
-   find $MAILDIR -mmin -$TIME -path '*/INBOX/new/*' | xargs sort -r | awk '/^From|^Subject/ { print }' | awk '!(NR%2){print$0p}{p=$0}' | sed -e 's/Subject//g' -e 's/From: //g' -e 's/\<[^][]*\>//g' -e 's/ : /: /g'
+   find $MAILDIR -mmin -$TIME -path '*/INBOX/new/*' | xargs sort -r | awk '/^From|^Subject/ { print }' | awk '!(NR%2){print$0p}{p=$0}' | sed -e 's/Subject//g' -e 's/From: //g' -e 's/ : /: /g'
 }
 
 mail::mail_attachment() {

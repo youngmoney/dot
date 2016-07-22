@@ -4,6 +4,7 @@ khard
 matplotlib
 notebook
 oauthlib
+offlineimap
 parsedatetime
 pipdeptree
 pylint

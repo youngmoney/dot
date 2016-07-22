@@ -9,6 +9,7 @@ else
     if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; exit 1; fi
 fi
 . $SCRIPTS/../conf/bashrc --short
+. $LOCALDOT/conf/tokens.backup
 
 backup_status() {
     WAVE=`echo $(( $(date +%s) - $(stat -f%c $LOCALDOT/status/wave.lastbackup) ))`
@@ -26,11 +27,16 @@ backup_status() {
 backup_important() {
     cd ~/
     build ssh with-agent build git autocommit
+
+    if [ "$BACKUP_PASSPHRASE" ]; then
+        cd ~/
+        gpg-zip --symmetric --gpg-args --passphrase --gpg-args "$BACKUP_PASSPHRASE" --gpg-args --yes --output ~/local/archives/word .password-store
+        gpg-zip --symmetric --gpg-args --passphrase --gpg-args "$BACKUP_PASSPHRASE" --gpg-args --yes --output ~/local/archives/local .local-dot
+    fi
 }
 
 backup_installs() {
     build install store $DOT/install
-    build ssh store ~/local/archives
 }
 
 FOLDERS='documents local pictures'

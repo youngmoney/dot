@@ -44,10 +44,7 @@ go() {
 
     setup-dot
     build cron install ~/.cron
-    if [ -d ~/local/archives ] && [ "$no" == "" ]; then
-        read -p "restore ssh?[Y/n]" q
-        if [ "$q" == "" ]; then build ssh restore ~/local/archives; fi
-    fi
+    [ -d ~/local/archives ] && [ "$no" == "" ] && setup-decrypt
 
     if [ $(uname -s) == "Darwin" ]; then
         build mac dud mail
@@ -73,6 +70,16 @@ setup-me() {
     read -p "allow sync?[Y/n]" q
     if [ "$q" == "" ]; then touch $LOCALDOT/status/sync.me;
     else rm -f $LOCALDOT/status/sync.me; fi
+}
+
+setup-decrypt() {
+    echo "decrypting"
+    cd ~/
+    build symc safe-rm ~/.local-dot
+    build symc safe-rm ~/.password-store
+
+    gpg-zip -d ~/local/archives/local
+    gpg-zip -d ~/local/archives/word
 }
 
 setup-dot() {
@@ -138,6 +145,8 @@ elif [ "$a" == "account" ]; then
     setup-account "$@"
 elif [ "$a" == "dot" ]; then
     setup-dot "$@"
+elif [ "$a" == "decrypt" ]; then
+    setup-decrypt "$@"
 elif [ "$a" == "go" ]; then
     go "$@"
 elif [ "$a" == "all" ]; then

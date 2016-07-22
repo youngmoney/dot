@@ -24,6 +24,11 @@ export LOCALDOT=~/.local-dot
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 export ACCOUNTS=$LOCALDOT/accounts
+export TMUX_SOCKET=~/.local-dot/status/tmux-global
+alias khal="khal -c ~/.khal"
+
+SHORT_BASH_IMPORT="$LOCALDOT/conf/short.bash"
+[ -f "$SHORT_BASH_IMPORT" ] && . "$SHORT_BASH_IMPORT"
 
 if [ "$1" == "--short" ]; then return 0; fi
 
@@ -70,7 +75,8 @@ fi
 
 # Pretty
 if [ ! -f $LOCALDOT/status/home.me ]; then COMPNAME="\e[31m@$(hostname | cut -c 1-10)\e[0m"; fi
-export PS1="\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\w\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\]$ "
+current_path() { pwd | sed 's:^'${HOME}':~:'; }; get_current_path() { current_path; }
+export PS1="\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\$(get_current_path)\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\]$ "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
 . build --completion
 commandadd() { grep "$1" <<< "$PROMPT_COMMAND" >/dev/null || PROMPT_COMMAND="$1; $PROMPT_COMMAND"; }
@@ -88,15 +94,17 @@ ssh-setup() {
 }
 
 # tmux
-alias tmux='tmux -2'; export TERM="xterm-256color"; HISTCONTROL=ignoreboth; SERVE='/tmp/tmux-global'
+alias tmux='tmux -2'; export TERM="xterm-256color"; HISTCONTROL=ignoreboth;
 if command -v tmux>/dev/null && \
    [ -f $LOCALDOT/status/home.me ] && \
    [[ ! $TERM =~ screen ]] && \
    [ -z "$TMUX" ] && \
    [ "$USER" != "root" ]; then
-       tmux -S $SERVE has-session \
-       && exec tmux -S $SERVE attach \
-       || exec tmux -S $SERVE new -s Global
+       tmux -S "$TMUX_SOCKET" has-session \
+       && exec tmux -S "$TMUX_SOCKET" attach \
+       || (command -v exec_new_tmux > /dev/null 2>&1 \
+       && exec_new_tmux "$TMUX_SOCKET" \
+       || exec tmux -S "$TMUX_SOCKET" new -s Global)
 fi
 
-for f in $LOCALDOT/conf/*.bash; do [ -f "$f" ] && . "$f"; done
+for f in $LOCALDOT/conf/*.bash; do [ -f "$f" ] && [ "$f" != "$SHORT_BASH_IMPORT" ] && . "$f"; done

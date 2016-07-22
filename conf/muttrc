@@ -8,7 +8,7 @@ set signature="~/.signature"
 set sig_dashes=no
 set sig_on_top=yes
 
-source " cat $ACCOUNTS/account.*.mutt|"
+source " cat $ACCOUNTS/account.*.mutt 2>/dev/null|"
 
 set reverse_name
 set use_from=yes
@@ -106,6 +106,8 @@ set pgp_autosign=no
 set pgp_replyencrypt=yes
 set pgp_timeout=1800
 set pgp_good_sign="^gpg: Good signature from"
+
+source " cat $LOCALDOT/conf/*.mutt 2>/dev/null|"
 
 
 #
