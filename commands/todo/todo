@@ -259,7 +259,15 @@ class Todo:
         l = self.list+"/" if len(self.list) > 0 else ""
         d = str(self.getDue())
         if len(d) > 0: d = " @"+d
-        return (l.lower()+""+self.name.title()+d)
+        def titleize(s):
+            parts = s.split('://')
+            title = parts[0].title()
+            if len(parts) > 1:
+                other = '://'.join(parts[1:])
+                title = title+'://'+other
+            return title
+
+        return (l.lower()+""+titleize(self.name)+d)
 
     def is_done(self):
         return self.done
