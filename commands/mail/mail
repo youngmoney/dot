@@ -18,7 +18,11 @@ mail::unread_mail() {
 }
 
 mail::mail_attachment() {
-    "$scriptdir/view_attachment" $@
+    if build system is-mac; then
+        "$scriptdir/view_attachment" $@
+    else
+        xdg-open "$1"
+    fi
 }
 
 mail::mail_with_subject() {
