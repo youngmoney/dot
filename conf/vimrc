@@ -21,10 +21,10 @@ Bundle 'epeli/slimux'
 Bundle 'christoomey/vim-tmux-navigator'
 
 "Completion
-"Bundle 'Valloric/YouCompleteMe'
 Bundle 'SirVer/ultisnips'
 Bundle 'honza/vim-snippets'
 Bundle 'nvie/vim-flake8'
+"Bundle 'Valloric/YouCompleteMe'
 "Bundle 'sheerun/vim-polyglot'
 
 "Whitespace and Characters
@@ -36,9 +36,10 @@ Bundle 'tomtom/tcomment_vim'
 
 "Text
 Bundle 'vim-pandoc/vim-pandoc-syntax'
+Bundle 'dhruvasagar/vim-table-mode'
 "Bundle 'junegunn/goyo.vim'
 "Bundle 'vim-scripts/DrawIt'
-Bundle 'dhruvasagar/vim-table-mode'
+
 let pluginrc=$LOCALDOT . '/conf/plugin.vim'
 if filereadable(pluginrc)
   exe 'source' . pluginrc
@@ -48,7 +49,7 @@ endif
 filetype on
 filetype plugin indent on
 syntax on
-set shellcmdflag=-ic
+" set shellcmdflag=-ic
 silent !mkdir -p ~/.vim/backup ~/.vim/swap >/dev/null 2>&1
 set backupdir=~/.vim/backup//
 set directory=~/.vim/swap//
@@ -61,7 +62,7 @@ set statusline=%<\ %f\ %m%r%y%=%-35.(line:\ %l\ of\ %L,\ col:\ %c%V\ (%P)%)
 
 map <leader>r :source ~/.vimrc <Return>
 map <leader>i :source ~/.vimrc <Return> :BundleInstall<Return>:q<Return>
-map <leader>u :source ~/.vimrc <Return> :BundleClean<Return>:BundleInstall<Return>:q<Return>
+map <leader>u :source ~/.vimrc <Return> :BundleClean<Return>:BundleInstall!<Return>:q<Return>
 
 let g:ctrlp_extensions = ['tag']
 autocmd Filetype crontab set backupcopy=yes
@@ -104,13 +105,15 @@ vmap <Leader>. :SlimuxREPLSendSelection<CR>
 inoremap kj <Esc>
 noremap kj <Esc>
 map π :set paste<Return>i
+map <A-p> :set paste<Return>i
 map ¬ :set nu!<Return>
-map ø :Obsession<Return>
-map Ø :Obsession!<Return>
+map <A-l> :set nu!<Return>
 autocmd InsertLeave * set nopaste
 map <Bslash> :noh<Return>
 map ˙ :e %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
+map <A-h> :e %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
 map Ó :sp %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
+map <A-H> :sp %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
 set updatetime=5
 
 let g:tagbar_autoclose = 1
@@ -151,13 +154,10 @@ let g:languagetool_jar='/usr/local/Cellar/languagetool/2.8/libexec/languagetool-
 
 autocmd Filetype markdown set updatetime=50
 autocmd Filetype markdown map ß :set spell!<Return>
-autocmd Filetype markdown map © call ToggleGrammer()
-"autocmd Filetype markdown Goyo
-map ƒ :Goyo<return>
+autocmd Filetype markdown map <A-s> :set spell!<Return>
+
 let autoreadargs={'autoread':1}
 autocmd Filetype markdown execute WatchForChanges("*",autoreadargs)
-"autocmd Filetype markdown map Ó yypVr=
-"autocmd Filetype markdown map ˙ yypVr-
 autocmd Filetype markdown syntax match mdReminder "<!--+.*-->"
 autocmd Filetype markdown highlight link mdReminder Todo
 autocmd Filetype markdown syntax match mdTodo "<!---.*-->"
@@ -187,8 +187,11 @@ endfunction
 
 
 map ∫ :make<Return>:call ShowErrors()<Return>
+map <A-f> :make<Return>:call ShowErrors()<Return>
 map ® :make run -s<Return>:call ShowErrors()<Return>
+map <A-r> :make run -s<Return>:call ShowErrors()<Return>
 map ç :make check -s<Return>:call ShowErrors()<Return>
+map <A-c> :make check -s<Return>:call ShowErrors()<Return>
 map <S-Left> :cprevious<Return>
 map <S-Right> :cnext<Return>
 
