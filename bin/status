@@ -57,8 +57,8 @@ the_status() {
     #⚠︎
     if [ "`build system battery`" -le 20 ]; then s="$s ⚡︎ Low"; fi
     if [ "`backup status`" != "" ]; then s="$s ♼  Late"; fi
-    mail="`build mail count`"; if [ "$mail" == "0" ]; then mail=""; fi
-    curmail="(`build mail count -cur`)"; if [ "$curmail" == "(0)" ]; then curmail=""; fi
+    mail="`build mail unread-count`"; if [ "$mail" == "0" ]; then mail=""; fi
+    curmail="(`build mail read-count`)"; if [ "$curmail" == "(0)" ]; then curmail=""; fi
     mail="${high}$mail${reset}${curmail}"
     if [ "$mail" != "" ]; then s="$s ✉︎ $mail"; fi
     rem="`build todo count`"

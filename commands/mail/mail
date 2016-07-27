@@ -5,16 +5,32 @@ scriptdir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
 
 if [ "$MAILDIR" == "" ]; then MAILDIR=~/.mail; fi
 
-mail::mail_count() {
-    local s='new/'
-    if [ "$1" == "-cur" ]; then s='cur/'; fi
-    find $MAILDIR -path '*/INBOX/'"$s"'*' | wc -l | sed -e 's/^[ \t]*//g'
-}
-
 mail::unread_mail() {
    local TIME=1
    if [ "$1" != "" ]; then TIME=$1; shift; fi
    find $MAILDIR -mmin -$TIME -path '*/INBOX/new/*' | xargs sort -r | awk '/^From|^Subject/ { print }' | awk '!(NR%2){print$0p}{p=$0}' | sed -e 's/Subject//g' -e 's/From: //g' -e 's/ : /: /g'
+}
+
+mail::unread_count() {
+    n=0
+    for m in $MAILDIR/*; do
+        p=$(echo "$m" | sed 's:^'${MAILDIR}'::')
+        num=$(mu find "m:${p}/INBOX" flag:unread 2>/dev/null | grep -c '')
+        [ "$num" ] || num=0
+        n=$(($n + $num))
+    done
+    echo $n
+}
+
+mail::read_count() {
+    n=0
+    for m in $MAILDIR/*; do
+        p=$(echo "$m" | sed 's:^'${MAILDIR}'::')
+        num=$(mu find "m:${p}/INBOX" flag:seen 2>/dev/null | grep -c '')
+        [ "$num" ] || num=0
+        n=$(($n + $num))
+    done
+    echo $n
 }
 
 mail::mail_attachment() {
@@ -50,6 +66,10 @@ if [ "$arg" == "count" ]; then
     mail::mail_count $@
 elif [ "$arg" == "unread" ]; then
     mail::unread_mail $@
+elif [ "$arg" == "unread-count" ]; then
+    mail::unread_count $@
+elif [ "$arg" == "read-count" ]; then
+    mail::read_count $@
 elif [ "$arg" == "open-attachment" ]; then
     mail::mail_attachment "$@"
 elif [ "$arg" == "link-mailcap" ]; then
