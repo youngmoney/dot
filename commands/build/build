@@ -32,7 +32,6 @@ _completion()
         COMPREPLY=( $(compgen -W "${_script_commands}" -- ${cur}) )
     else
         _script_commands=$(build ${prev} --help | sed 's/[ :].*//' | tr '\n' ' ')
-        echo $_script_commands > ~/desktop/testing
         if [[ "$_script_commands" == usage* ]]; then
             _script_commands=$(build ${prev} --help 2>&1 | grep '{' | sed 's/.*{//g; s/}.*//; s/,/ /g')
         fi

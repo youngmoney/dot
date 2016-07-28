@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ssh::share {
+ssh::share() {
     REMOTE="$1"
     PUB="$2"
     if [ "$REMOTE" == "" ]; then echo "Specify a remote"; exit; fi
