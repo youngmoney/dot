@@ -120,7 +120,7 @@ osx::clean-home() {
             local newbase="`echo ${xbase} | tr '[:upper:]' '[:lower:]'`"
             a="${xpath}/${newbase}"
             if [ "$f" != "$a" ]; then
-                mv "$f" "$a"
+                sudo mv "$f" "$a"
             fi
         fi
     done
@@ -130,3 +130,4 @@ osx::clean-home() {
 [ -d ~/sites ] && sudo build symc safe-rm ~/sites
 [ -e ~/downloads ] && sudo build symc safe-rm ~/downloads
 sudo ln -s ~/desktop ~/downloads
+osx::clean-home

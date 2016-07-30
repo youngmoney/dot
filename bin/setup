@@ -46,10 +46,7 @@ go() {
     build cron install ~/.cron
     [ -d ~/local/archives ] && [ "$no" == "" ] && setup-decrypt
 
-    if [ $(uname -s) == "Darwin" ]; then
-        build mac dud mail
-        bash $DOT/conf/osx;
-    fi
+    build system is-mac && setup-osx
 
     if [ "$no" == "" ]; then
         setup-git
@@ -58,6 +55,11 @@ go() {
         echo "run setup git"
         echo "run setup account"
     fi
+}
+
+setup-osx() {
+    build mac dud mail
+    bash $DOT/conf/osx;
 }
 
 setup-me() {
@@ -147,6 +149,8 @@ elif [ "$a" == "dot" ]; then
     setup-dot "$@"
 elif [ "$a" == "decrypt" ]; then
     setup-decrypt "$@"
+elif [ "$a" == "osx" ]; then
+    setup-osx "$@"
 elif [ "$a" == "go" ]; then
     go "$@"
 elif [ "$a" == "all" ]; then

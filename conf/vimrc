@@ -138,24 +138,9 @@ set smartindent
 set smarttab
 
 "Markdown
-let g:grammerOn = 0
-function! ToggleGrammer()
-  if g:grammerOn
-    g:grammerOn = 0
-    LanguageToolClear
-  else
-    g:grammerOn = 1
-    LanguageToolCheck
-  endif
-endfunction
-let g:languagetool_jar='/usr/local/Cellar/languagetool/2.8/libexec/languagetool-commandline.jar'
-
-"autocmd Filetype mail exe "normal iThanks,Taylorkjgg"
-
 autocmd Filetype markdown set updatetime=50
 autocmd Filetype markdown map ß :set spell!<Return>
 autocmd Filetype markdown map <A-s> :set spell!<Return>
-
 let autoreadargs={'autoread':1}
 autocmd Filetype markdown execute WatchForChanges("*",autoreadargs)
 autocmd Filetype markdown syntax match mdReminder "<!--+.*-->"
@@ -185,7 +170,6 @@ function! ShowErrors()
   endif
 endfunction
 
-
 map ∫ :make<Return>:call ShowErrors()<Return>
 map <A-f> :make<Return>:call ShowErrors()<Return>
 map ® :make run -s<Return>:call ShowErrors()<Return>
@@ -195,86 +179,20 @@ map <A-c> :make check -s<Return>:call ShowErrors()<Return>
 map <S-Left> :cprevious<Return>
 map <S-Right> :cnext<Return>
 
-let g:projectType = ""
-if filereadable(".classpath")
-  let g:projectType = "Java"
-endif
-
-if filereadable("AndroidManifest.xml")
-  let g:projectType = "Android"
-endif
-
-if filereadable("Procfile")
-  let g:projectType = "Heroku"
-endif
-
-if len(glob("*.xcworkspace")) || len(glob("*.xcodeproj"))
-  let g:projectType = "xCode"
-endif
 autocmd BufRead,BufNewFile .cron set ft=crontab
-
-autocmd Filetype java set errorformat=%A%f:%l:\ %m,%-Z%p^,%-C%.%#
-
-if g:projectType == ""
-  autocmd Filetype java set makeprg=javac\ %
-  autocmd Filetype python map ∫ :w<Return>:!python %<Return>
-  autocmd Filetype python map ® :w<Return>:!python %<Return>
-  autocmd FileType python map ƒ :w<Return>:call Flake8()<CR>
-  autocmd Filetype ruby map ∫ :w<Return>:!ruby %<Return>
-  autocmd Filetype ruby map ® :w<Return>:!ruby %<Return>
-  autocmd Filetype markdown map ® :w<Return>:execute "!build markdown -o %"<Return><Return>
-  autocmd Filetype markdown map ∫ :w<Return>:execute "!build markdown -o %"<Return>
-  autocmd Filetype rmd map ® :w<Return>:execute "!R -e \"rmarkdown::render('%','pdf_document')\""<Return><Return>
-  autocmd Filetype rmd map ∫ :w<Return>:execute "!R -e \"rmarkdown::render('%')\""<Return><Return>
-  autocmd Filetype r map ® :w<Return>:execute "!R -e \"library(knitr); knitr::stitch('%')\""<Return><Return>
-  autocmd Filetype r map ∫ :w<Return>:execute "!R -e \"library(knitr); knitr::stitch('%')\""<Return><Return>
-endif
-
-if g:projectType == "xCode"
-  map ∫ :w<Return>:!build xcode<Return>
-  map ® :w<Return>:!build xcode<Return>
-
-  let g:ycm_semantic_triggers = {
- \ 'objc' : ['re!\@"\.*"\s',
- \ 're!\@\w+\.*\w*\s',
- \ 're!\@\(\w+\.*\w*\)\s',
- \ 're!\@\(\s*',
- \ 're!\@\[.*\]\s',
- \ 're!\@\[\s*',
- \ 're!\@\{.*\}\s',
- \ 're!\@\{\s*',
- \ "re!\@\’.*\’\s",
- \ '#ifdef ',
- \ 're!:\s*',
- \ 're!=\s*',
- \ 're!,\s*', ],
- \ }
-"let tlist_objc_settings    = 'objc;i:interface;c:class;m:method;p:property'
-let g:ycm_filetype_specific_completion_to_disable = {
-      \ 'objc': 1
-      \}
-endif
-
-if g:projectType == "Android"
-  map ∫ :w<Return>:!build droid debug $ACTIVITY<Return>
-  map ® :w<Return>:!build droid log $ACTIVITY<Return>
-endif
-
-if g:projectType == "Java"
-  map ∫ :w<Return>:Java<Return>
-  map ® :w<Return>:Java<Return>
-endif
-
-if g:projectType == "Heroku"
-"  map ∫ :w<Return>:!foreman start<Return>
-  map ® :w<Return>:!foreman start<Return>
-  let g:projectType = ""
-endif
-
-if g:projectType == "Fake For XVim"
-  map ∫ :make
-  map ® :run
-endif
+autocmd Filetype java set errorformat+=%A%f:%l:\ %m,%-Z%p^,%-C%.%#
+autocmd Filetype java set makeprg=javac\ %
+autocmd Filetype python map ∫ :w<Return>:!python %<Return>
+autocmd Filetype python map ® :w<Return>:!python %<Return>
+autocmd FileType python map ƒ :w<Return>:call Flake8()<CR>
+autocmd Filetype ruby map ∫ :w<Return>:!ruby %<Return>
+autocmd Filetype ruby map ® :w<Return>:!ruby %<Return>
+autocmd Filetype markdown map ® :w<Return>:execute "!build markdown -o %"<Return><Return>
+autocmd Filetype markdown map ∫ :w<Return>:execute "!build markdown -o %"<Return>
+autocmd Filetype rmd map ® :w<Return>:execute "!R -e \"rmarkdown::render('%','pdf_document')\""<Return><Return>
+autocmd Filetype rmd map ∫ :w<Return>:execute "!R -e \"rmarkdown::render('%')\""<Return><Return>
+autocmd Filetype r map ® :w<Return>:execute "!R -e \"library(knitr); knitr::stitch('%')\""<Return><Return>
+autocmd Filetype r map ∫ :w<Return>:execute "!R -e \"library(knitr); knitr::stitch('%')\""<Return><Return>
 
 let localconf=$LOCALDOT . '/conf'
 for fpath in split(globpath(localconf, '*.vim'), '\n')

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-branch-name () {
+branch-name() {
 state=`git branch 2>/dev/null | sed -e '/^\*/!d' -e 's/[()]//g' -e 's/no branch, //g' -e 's/^..//' -e 's/rebasing \(.*\)/rebasing \1/'`
     if [ -n $"$state" ]; then echo "$state"; fi
 }
 
-branch-relationship () {
+branch-relationship() {
     state=`git branch -v 2>/dev/null | sed -e '/^\*.*\[/!d' -e 's/.*\[\(.*\)\].*/\1/g' -e 's/ahead [0-9]*/↑/' -e 's/behind [0-9]*/↓/' -e 's/, //g'`
     if [ -n $"$state" ]; then echo "$state"; fi
 }
@@ -52,7 +52,7 @@ branch-file-status() {
     echo $out
 }
 
-state () {
+state() {
     state=""
     name=`branch-name`
     if [ "$name" != "" ]; then state="$state $name"; else exit; fi
@@ -68,7 +68,7 @@ search() {
     git log -S "$@"
 }
 
-find() {
+git::find() {
     git rev-list --all | (
         while read revision; do
             git grep -F "${@}" $revision
@@ -172,7 +172,7 @@ elif [ "$a" == "autocommit" ]; then
 elif [ "$a" == "search" ]; then
     search $@
 elif [ "$a" == "find" ]; then
-    find $@
+    git::find $@
 elif [ "$a" == "ls-all" ]; then
     ls-all $@
 elif [ "$a" == "cat" ]; then
