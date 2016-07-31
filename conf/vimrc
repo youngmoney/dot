@@ -25,7 +25,6 @@ Bundle 'SirVer/ultisnips'
 Bundle 'honza/vim-snippets'
 Bundle 'nvie/vim-flake8'
 "Bundle 'Valloric/YouCompleteMe'
-"Bundle 'sheerun/vim-polyglot'
 
 "Whitespace and Characters
 Bundle 'ntpeters/vim-better-whitespace'
@@ -37,8 +36,6 @@ Bundle 'tomtom/tcomment_vim'
 "Text
 Bundle 'vim-pandoc/vim-pandoc-syntax'
 Bundle 'dhruvasagar/vim-table-mode'
-"Bundle 'junegunn/goyo.vim'
-"Bundle 'vim-scripts/DrawIt'
 
 let pluginrc=$LOCALDOT . '/conf/plugin.vim'
 if filereadable(pluginrc)
@@ -49,51 +46,43 @@ endif
 filetype on
 filetype plugin indent on
 syntax on
-" set shellcmdflag=-ic
+
 silent !mkdir -p ~/.vim/backup ~/.vim/swap >/dev/null 2>&1
+set wildignore+=*.so,*.swp,*.zip,*.d,*.o,*.class,build/*,*.pdf
 set backupdir=~/.vim/backup//
 set directory=~/.vim/swap//
 set backspace=2
 set tags=.tags;/ 
 let mapleader=","
 set laststatus=2
+set updatetime=5
+let autoreadargs={'autoread':1}
 
-set statusline=%<\ %f\ %m%r%y%=%-35.(line:\ %l\ of\ %L,\ col:\ %c%V\ (%P)%)
+map <leader><leader>r :source ~/.vimrc <Return>
+map <leader><leader>i :source ~/.vimrc <Return> :BundleInstall<Return>:q<Return>
+map <leader><leader>u :source ~/.vimrc <Return> :BundleClean<Return>:BundleInstall!<Return>:q<Return>
 
-map <leader>r :source ~/.vimrc <Return>
-map <leader>i :source ~/.vimrc <Return> :BundleInstall<Return>:q<Return>
-map <leader>u :source ~/.vimrc <Return> :BundleClean<Return>:BundleInstall!<Return>:q<Return>
-
-let g:ctrlp_extensions = ['tag']
 autocmd Filetype crontab set backupcopy=yes
 
-map <leader>b :execute "!git blame -L".line('.').",+3 ".expand("%")<return>
-
+"YCM
 let g:ycm_path_to_python_interpreter = '/usr/bin/python'
 let g:clang_exec = '/usr/local/bin/clang'
 let g:clang_library_path = '/usr/local/lib/libclang.dylib'
 let g:clang_library_path = '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libclang.dylib'
 let g:ycm_collect_identifiers_from_tags_files = 1
-" let ycm_global_ycm_extra_conf = '~/local/scripts/~ycm_extra_conf.py'
-let g:ycm_key_invoke_completion = '<C-Space>'
 let g:ycm_error_symbol = '!'
 let g:ycm_warning_symbol = '?'
-let g:ycm_extra_conf_globlist = ['~/local/*','!~/*']
 let g:ycm_filepath_completion_use_working_dir = 1
-"let g:ycm_filetype_blacklist = { "tagbar": 1, "qf": 1,  "unite": 1, "text": 1, "vimwiki": 1, "infolog": 1 }
-let g:EclimCompletionMethod = 'omnifunc'
 
+"UltiSnips
 let g:UltiSnipsExpandTrigger="<c-j>"
 let g:UltiSnipsJumpForwardTrigger = g:UltiSnipsExpandTrigger
 let g:UltiSnipsJumpBackwardTrigger = "<c-n>"
-let g:ulti_expand_or_jump_res = 0 "default value, just set once
-function! Ulti_ExpandOrJump_and_getRes()
-    call UltiSnips#ExpandSnippetOrJump()
-    return g:ulti_expand_or_jump_res
-endfunction
-inoremap <c-a> <C-R>=(Ulti_ExpandOrJump_and_getRes() > 0)?"":"\n"<CR>
-set wildignore+=*.so,*.swp,*.zip,*.d,*.o,*.class,build/*,*.pdf
+let g:ulti_expand_or_jump_res = 0
 
+"CtrlP
+let g:ctrlp_extensions = ['tag']
+let g:ctrlp_open_new_file = 'r'
 
 "Slime
 let g:slimux_select_from_current_window = 1
@@ -101,24 +90,12 @@ map <Leader>. :SlimuxREPLSendLine<CR>
 map <Leader>> :SlimuxREPLSendBuffer<CR>
 vmap <Leader>. :SlimuxREPLSendSelection<CR>
 
-"Shortcuts
-inoremap kj <Esc>
-noremap kj <Esc>
-map π :set paste<Return>i
-map <A-p> :set paste<Return>i
-map ¬ :set nu!<Return>
-map <A-l> :set nu!<Return>
-autocmd InsertLeave * set nopaste
-map <Bslash> :noh<Return>
-map ˙ :e %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
-map <A-h> :e %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
-map Ó :sp %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
-map <A-H> :sp %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
-set updatetime=5
-
-let g:tagbar_autoclose = 1
+"Table
+let g:table_mode_corner_corner='+'
+let g:table_mode_corner='+'
 
 "Colors
+set statusline=%<\ %f\ %m%r%y%=%-20.(%l/%L-%c%V\ (%P)%)
 set vb "t_vb
 colo slate
 set cursorline
@@ -128,8 +105,6 @@ autocmd Filetype pandoc set cursorline!
 autocmd WinEnter * setlocal cursorline
 autocmd WinLeave * setlocal nocursorline
 set fillchars+=vert:\ 
-set titlestring=%t%(\ %M%)%(\ (%{expand(\"%:p:h\")})%)%(\ %a%)\ -\ %{v:servername}
-set title
 
 "Tabs
 set expandtab
@@ -139,10 +114,6 @@ set smarttab
 
 "Markdown
 autocmd Filetype markdown set updatetime=50
-autocmd Filetype markdown map ß :set spell!<Return>
-autocmd Filetype markdown map <A-s> :set spell!<Return>
-let autoreadargs={'autoread':1}
-autocmd Filetype markdown execute WatchForChanges("*",autoreadargs)
 autocmd Filetype markdown syntax match mdReminder "<!--+.*-->"
 autocmd Filetype markdown highlight link mdReminder Todo
 autocmd Filetype markdown syntax match mdTodo "<!---.*-->"
@@ -156,44 +127,76 @@ autocmd Filetype markdown syntax match mdBudget "^\(in\|tx\|bg\|ex\) .*$"
 autocmd Filetype markdown highlight link mdBudget Ignore
 highlight nonascii guibg=Red ctermbg=1 term=standout
 au BufReadPost * syntax match nonascii "[^\u0000-\u007F]"
-map <leader>s ]s
-map <leader>z 1z=
 
-let g:table_mode_corner_corner='+'
-let g:table_mode_corner='+'
+"Shortcuts
+inoremap kj <Esc>
+noremap kj <Esc>
+autocmd InsertLeave * set nopaste
+map <leader>p :set paste<Return>i
+map <leader>n :set nu!<Return>
+map <leader>s :set spell!<Return>
+map <leader>z ]s
+map <leader>zz 1z=
+map <Bslash> :noh<Return>
+map <leader>h :e %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
+map <leader>hh :sp %:p:s,.h$,.X123X,:s,.cc$,.h,:s,.X123X$,.cc,<CR>
 
-"Building
-function! ShowErrors()
-  :cclose
-  if len(getqflist()) > 0 && g:projectType == ""
-    :copen
-  endif
-endfunction
 
-map ∫ :make<Return>:call ShowErrors()<Return>
-map <A-f> :make<Return>:call ShowErrors()<Return>
-map ® :make run -s<Return>:call ShowErrors()<Return>
-map <A-r> :make run -s<Return>:call ShowErrors()<Return>
-map ç :make check -s<Return>:call ShowErrors()<Return>
-map <A-c> :make check -s<Return>:call ShowErrors()<Return>
-map <S-Left> :cprevious<Return>
-map <S-Right> :cnext<Return>
+map <leader>gb :execute "!git blame -L".line('.').",+3 ".expand("%")<return>
+
+map <leader>b :make<Return>:call ShowErrors()<Return>
+map <leader>r :make run -s<Return>:call ShowErrors()<Return>
+map <leader>c :make check -s<Return>:call ShowErrors()<Return>
+
+map <leader>k :cprevious<Return>
+map <leader>j :cnext<Return>
+map <leader>cc :cclose<Return>
 
 autocmd BufRead,BufNewFile .cron set ft=crontab
 autocmd Filetype java set errorformat+=%A%f:%l:\ %m,%-Z%p^,%-C%.%#
 autocmd Filetype java set makeprg=javac\ %
-autocmd Filetype python map ∫ :w<Return>:!python %<Return>
-autocmd Filetype python map ® :w<Return>:!python %<Return>
-autocmd FileType python map ƒ :w<Return>:call Flake8()<CR>
-autocmd Filetype ruby map ∫ :w<Return>:!ruby %<Return>
-autocmd Filetype ruby map ® :w<Return>:!ruby %<Return>
-autocmd Filetype markdown map ® :w<Return>:execute "!build markdown -o %"<Return><Return>
-autocmd Filetype markdown map ∫ :w<Return>:execute "!build markdown -o %"<Return>
-autocmd Filetype rmd map ® :w<Return>:execute "!R -e \"rmarkdown::render('%','pdf_document')\""<Return><Return>
-autocmd Filetype rmd map ∫ :w<Return>:execute "!R -e \"rmarkdown::render('%')\""<Return><Return>
-autocmd Filetype r map ® :w<Return>:execute "!R -e \"library(knitr); knitr::stitch('%')\""<Return><Return>
-autocmd Filetype r map ∫ :w<Return>:execute "!R -e \"library(knitr); knitr::stitch('%')\""<Return><Return>
+autocmd Filetype python map <leader>b :w<Return>:!python %<Return>
+autocmd Filetype python map <leader>r :w<Return>:!python %<Return>
+autocmd FileType python map <leader>f :w<Return>:call Flake8()<CR>
+autocmd Filetype ruby map <leader>b :w<Return>:!ruby %<Return>
+autocmd Filetype ruby map <leader>r :w<Return>:!ruby %<Return>
+autocmd Filetype markdown map <leader>r :w<Return>:execute "!build markdown -o %"<Return><Return>
+autocmd Filetype markdown map <leader>b :w<Return>:execute "!build markdown -o %"<Return>
+autocmd Filetype rmd map <leader>r :w<Return>:execute "!R -e \"rmarkdown::render('%','pdf_document')\""<Return><Return>
+autocmd Filetype rmd map <leader>b :w<Return>:execute "!R -e \"rmarkdown::render('%')\""<Return><Return>
+autocmd Filetype r map <leader>r :w<Return>:execute "!R -e \"library(knitr); knitr::stitch('%')\""<Return><Return>
+autocmd Filetype r map <leader>b :w<Return>:execute "!R -e \"library(knitr); knitr::stitch('%')\""<Return><Return>
 
+"Building
+function! ShowErrors()
+  :cclose
+  if len(getqflist()) > 0
+    :copen
+  endif
+endfunction
+
+"Fullscreen
+function! Zoom()
+    if (tabpagenr() == 1)
+        :tab split
+    else
+        :tabc
+    endif
+endfunction
+nmap <C-w>z :call Zoom()<return>
+
+"QuickSearch
+function! QuickSearchFunc(args)
+    return 'grep -rn ' . a:args . ' .'
+endfunction
+function! QuickSearch(args)
+    cexpr system(QuickSearchFunc(a:args)) | copen
+endfunction
+command! -nargs=1 QuickSearch call QuickSearch("<args>")
+nmap ; :tab new<return>:QuickSearch 
+nmap <leader>; :QuickSearch 
+
+"Load Local Settings
 let localconf=$LOCALDOT . '/conf'
 for fpath in split(globpath(localconf, '*.vim'), '\n')
   if fpath != pluginrc
