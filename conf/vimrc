@@ -193,7 +193,7 @@ function! QuickSearch(args)
     cexpr system(QuickSearchFunc(a:args)) | copen
 endfunction
 command! -nargs=1 QuickSearch call QuickSearch("<args>")
-nmap ; :tab new<return>:QuickSearch 
+nmap ;; :tab new<return>:QuickSearch 
 nmap <leader>; :QuickSearch 
 
 "Load Local Settings
