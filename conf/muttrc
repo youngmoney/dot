@@ -121,6 +121,7 @@ source " cat $LOCALDOT/conf/*.mutt 2>/dev/null|"
 
 
 set status_format       = " %f %m%?n? [+%n]?%?d? [-%d]?%?t? [*%t]? %?p?[ %p ] draft? %>  %P   "
+set mark_old=no
 
 # vim: filetype=muttrc
 

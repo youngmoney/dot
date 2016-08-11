@@ -10,11 +10,11 @@ set sendmail='build mail send-auth -c $sendconfig$ --readfrommsg'
 
 set from='Taylor Money <$username$>'
 send-hook '~t $domain$' 'set from="Taylor Money <$username$>"'
-send2-hook '~f $domain$' 'set sendmail ="build mail send-auth -c $sendconfig$ --readfrommsg"'
 send2-hook '~f $domain$' 'set sendmail="build mail send-auth -c $sendconfig$ --readfrommsg"'
 
 macro index i$short$ "<change-folder>+$name$/INBOX<enter>"
-macro index ,m$short$ '<tag-pattern>!~(!~hReferences|~F|~sfwd|~C$username$)<enter>' 'tag muted threads'
-macro index ,M$short$ '<tag-pattern>!~(!~hReferences|~F|~sfwd|~C$username$)<enter><tag-prefix-cond><delete-message><end-cond>' 'delete muted threads'
+
+folder-hook =$name$ 'macro index ,m "<tag-pattern>!~(!~hReferences|~F|~sfwd|~C$username$)<enter><tag-prefix-cond><delete-message><end-cond>" "delete muted threads"'
+macro index ,m "<tag-pattern>!~(!~hReferences|~F|~sfwd|~C$username$)<enter><tag-prefix-cond><delete-message><end-cond>" "delete muted threads"
 
 #set set pgp_sign_as=

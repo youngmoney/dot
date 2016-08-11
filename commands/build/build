@@ -13,12 +13,12 @@ else
     SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)
     if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; exit 1; fi
 fi
-pathadd() { [[ ":$PATH:" != *":$1:"* ]] && export PATH="${PATH:+"$PATH:"}$1"; }
+buildpathadd() { [[ ":$BUILD_PATH:" != *":$1:"* ]] && export BUILD_PATH="${BUILD_PATH:+"$BUILD_PATH:"}$1"; }
 
 
 command -v build >/dev/null 2>&1 || pathadd "$SCRIPTS"
 
-BUILD_PATH=${BUILD_PATH}:$(cd ${SCRIPTS}/..; pwd -P)
+buildpathadd $(cd ${SCRIPTS}/..; pwd -P)
 
 _completion()
 {
