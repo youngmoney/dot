@@ -2,7 +2,7 @@
 
 function ctagger {
     LC_COLLATE=C
-    /usr/local/bin/ctags -f .tags --sort=yes --exclude=.git --exclude='*.log' -R . >/dev/null 2>/dev/null
+    ctags -f .tags --sort=yes --exclude=.git --exclude='*.log' -R . >/dev/null 2>/dev/null
 }
 
 function code_tags() {

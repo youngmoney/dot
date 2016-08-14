@@ -196,6 +196,22 @@ command! -nargs=1 QuickSearch call QuickSearch("<args>")
 nmap ;; :tab new<return>:QuickSearch 
 nmap <leader>; :QuickSearch 
 
+"Highlight Long Lines
+let g:highlight_long_lines=1
+function! HighlightTooLongLines()
+  highlight def link RightMargin Error
+  if &textwidth != 0
+    if g:highlight_long_lines != 0
+      call matchadd('ErrorMsg', '\%>' . &l:textwidth . 'v.\+', -1)
+    endif
+  endif
+endfunction
+augroup highlight_toolong3
+  au!
+  au FileType,BufEnter * call HighlightTooLongLines()
+augroup END
+
+
 "Load Local Settings
 let localconf=$LOCALDOT . '/conf'
 for fpath in split(globpath(localconf, '*.vim'), '\n')
