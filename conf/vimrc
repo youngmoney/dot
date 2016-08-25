@@ -112,6 +112,16 @@ set shiftwidth=4
 set smartindent
 set smarttab
 
+"Diff
+hi diffAdded ctermfg=green
+hi diffRemoved ctermfg=red
+hi link diffFile String
+hi link DiffNewFile String
+hi link diffIndexLine String
+map ,w :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name")
+  \ . '> trans<' . synIDattr(synID(line("."),col("."),0),"name") . "> lo<"
+  \ . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
+
 "Markdown
 autocmd Filetype markdown set updatetime=50
 autocmd Filetype markdown syntax match mdReminder "<!--+.*-->"
@@ -139,7 +149,7 @@ map <leader>z ]s
 map <leader>zz 1z=
 map <Bslash> :noh<Return>
 map <leader>h :e %:p:s,.h$,.X123X,:s,.c$,.h,:s,.X123X$,.c,<CR>
-map <leader>hh :sp %:p:s,.h$,.X123X,:s,.cc$,.h,:s,.X123X$,.cc,<CR>
+map <leader>hh :e %:p:s,.h$,.X123X,:s,.cc$,.h,:s,.X123X$,.cc,<CR>
 
 
 map <leader>gb :execute "!git blame -L".line('.').",+3 ".expand("%")<return>
