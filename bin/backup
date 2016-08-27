@@ -11,6 +11,7 @@ fi
 . $SCRIPTS/../conf/bashrc --short
 . $LOCALDOT/conf/tokens.backup
 
+FOLDERS='documents local pictures'
 backup_status() {
     WAVE=`echo $(( $(date +%s) - $(stat -f%c $LOCALDOT/status/wave.lastbackup) ))`
     GOOG=`echo $(( $(date +%s) - $(stat -f%c $LOCALDOT/status/google.lastbackup) ))`
@@ -25,8 +26,10 @@ backup_status() {
 
 
 backup_important() {
-    cd ~/
-    build ssh with-agent build git autocommit
+    for f in $FOLDERS; do
+        cd ~/$f
+        build ssh with-agent build git autocommit
+    done
 
     if [ "$BACKUP_PASSPHRASE" ]; then
         cd ~/
@@ -39,7 +42,6 @@ backup_installs() {
     build install store $DOT/install
 }
 
-FOLDERS='documents local pictures'
 backup-wave() {
     name="wave"
     completed=""

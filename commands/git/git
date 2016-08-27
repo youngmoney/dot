@@ -131,7 +131,7 @@ autocommit() {
             add="`git config autocommit.add`"
             if [ "$add" == "" ]; then add='*'; fi
             pushforce="`git config autocommit.force`"
-            if [ "$pushforce" != "" ]; then pushforce="-f"; fi
+            if [ "$pushforce" != "" ]; then pushargs="-f"; fi
             add=$add
 
             commited=""
@@ -147,7 +147,7 @@ autocommit() {
                     git commit -a -m "`date`" -q
                     commited="commited"
                 fi
-                git push $f "$remote" "$branch" -q
+                git push $pushargs "$remote" "$branch" -q
             fi
 
         fi
