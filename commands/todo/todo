@@ -524,8 +524,25 @@ def Run(args, directory):
     if args.verb == "list" or args.verb == "today" or args.verb == "count":
         items = directory.find(item)
         if args.verb == "count":
-            items = filter(lambda i: i.is_today() or i.getDue().is_late(), items)
-            print len(items)
+            totals = {}
+            for item in items:
+                l = item.getList()
+                if not l in totals:
+                    totals[l] = 0
+                if item.getName() != "":
+                    if item.is_today() or item.getDue().is_late():
+                        if totals[l] == -1:
+                            totals[l] = 0
+                        totals[l] += 1
+                    elif totals[l] == 0:
+                        totals[l] = -1
+            total = 0
+            for t in totals:
+                if totals[t] > 0:
+                    total += totals[t]
+                elif totals[t] == 0:
+                    total += 1
+            print total
         elif args.verb == "today":
             # items = filter(lambda i: i.is_today(), items)
             PrettyToday().pretty_print(items)

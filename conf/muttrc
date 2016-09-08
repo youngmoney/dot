@@ -151,6 +151,7 @@ color index         brightmagenta   default         "~Q"                        
 color index         brightgreen     default         "~R"                        # read messages
 color index         blue            default         "~U"                        # unread messages
 color index         brightyellow    default         "~P"                        # messages from me
+color index         black           cyan            "~F"                        # flagged
 color index         black           red             "~D"                        # deleted messages
 color index         green           default         "~v"                        # collapsed thread
 color index         blue            default         "~v~(~N)"                   # collapsed thread with some unread

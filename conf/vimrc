@@ -25,6 +25,7 @@ Bundle 'SirVer/ultisnips'
 Bundle 'honza/vim-snippets'
 Bundle 'nvie/vim-flake8'
 "Bundle 'Valloric/YouCompleteMe'
+Bundle 'mhinz/vim-signify'
 
 "Whitespace and Characters
 Bundle 'ntpeters/vim-better-whitespace'
@@ -113,8 +114,14 @@ set smartindent
 set smarttab
 
 "Diff
+let g:signify_sign_show_count = 0
+let g:signify_sign_change = '*'
 hi diffAdded ctermfg=green
+hi diffAdd ctermbg=none ctermfg=green
 hi diffRemoved ctermfg=red
+hi diffDelete ctermbg=none ctermfg=red
+hi diffChanged ctermfg=yellow
+hi diffChange ctermbg=none ctermfg=yellow
 hi link diffFile String
 hi link DiffNewFile String
 hi link diffIndexLine String

@@ -6,9 +6,19 @@ scriptdir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
 if [ "$MAILDIR" == "" ]; then MAILDIR=~/.mail; fi
 
 mail::unread_mail() {
-   local TIME=1
-   if [ "$1" != "" ]; then TIME=$1; shift; fi
-   find $MAILDIR -mmin -$TIME -path '*/INBOX/new/*' | xargs sort -r | awk '/^From|^Subject/ { print }' | awk '!(NR%2){print$0p}{p=$0}' | sed -e 's/Subject//g' -e 's/From: //g' -e 's/ : /: /g'
+   local TIME=$1
+   [ "$TIME" ] || TIME=1;
+   local d
+   if build system is-mac; then
+       d=$(date -v-"$TIME"M +%Y%m%d%H%M)
+    else
+       d=$(date --date="$TIME minutes ago" +%Y%m%d%H%M)
+   fi
+    for m in $MAILDIR/*; do
+        local p
+        p=$(echo "$m" | sed 's:^'${MAILDIR}'::')
+        mu find --fields='f: s' "m:${p}/INBOX" "date:$d..now" 2>/dev/null | sed 's/ <.*>:/:/'
+    done
 }
 
 mail::unread_count() {
@@ -16,6 +26,17 @@ mail::unread_count() {
     for m in $MAILDIR/*; do
         p=$(echo "$m" | sed 's:^'${MAILDIR}'::')
         num=$(mu find "m:${p}/INBOX" flag:unread 2>/dev/null | grep -c '')
+        [ "$num" ] || num=0
+        n=$(($n + $num))
+    done
+    echo $n
+}
+
+mail::flag_count() {
+    n=0
+    for m in $MAILDIR/*; do
+        p=$(echo "$m" | sed 's:^'${MAILDIR}'::')
+        num=$(mu find "m:${p}/INBOX" flag:flagged 2>/dev/null | grep -c '')
         [ "$num" ] || num=0
         n=$(($n + $num))
     done
@@ -70,6 +91,8 @@ elif [ "$arg" == "unread-count" ]; then
     mail::unread_count $@
 elif [ "$arg" == "read-count" ]; then
     mail::read_count $@
+elif [ "$arg" == "flag-count" ]; then
+    mail::flag_count $@
 elif [ "$arg" == "open-attachment" ]; then
     mail::mail_attachment "$@"
 elif [ "$arg" == "link-mailcap" ]; then

@@ -75,13 +75,14 @@ setup-me() {
 }
 
 setup-decrypt() {
+    #tail-c+
     echo "decrypting"
     cd ~/
     build symc safe-rm ~/.local-dot
     build symc safe-rm ~/.password-store
 
-    gpg-zip -d ~/local/archives/local
-    gpg-zip -d ~/local/archives/word
+    build archive restore ~/local/archive/word
+    build archive restore ~/local/archive/local
 }
 
 setup-dot() {

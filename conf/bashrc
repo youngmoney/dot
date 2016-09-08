@@ -80,7 +80,8 @@ check_end() { [[ $(($(date +%s) - $command_timer)) -ge 10 ]] && tput bel; unset 
 trap 'check_start' DEBUG;
 if [ ! -f $LOCALDOT/status/home.me ]; then COMPNAME="\e[31m@$(hostname | cut -c 1-10)\e[0m"; fi
 current_path() { pwd | sed 's:^'${HOME}':~:'; }; get_current_path() { current_path; }
-export PS1="\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\$(get_current_path)\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\]\$(check_end)$ "
+export PS1="\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\$(get_current_path)\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\]\$(check_end)
+$ "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
 . build --completion
 commandadd() { grep "$1" <<< "$PROMPT_COMMAND" >/dev/null || PROMPT_COMMAND="$1; $PROMPT_COMMAND"; }

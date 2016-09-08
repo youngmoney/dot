@@ -28,7 +28,9 @@ _completion()
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    if [ "${prev}" == "" ] || [ "${prev}" == "build" ]; then
+    if [[ $COMP_CWORD -ge 3 ]]; then
+        _filedir
+    elif [ "${prev}" == "" ] || [ "${prev}" == "build" ]; then
         COMPREPLY=( $(compgen -W "${_script_commands}" -- ${cur}) )
     else
         _script_commands=$(build ${prev} --help | sed 's/[ :].*//' | tr '\n' ' ')
