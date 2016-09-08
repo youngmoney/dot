@@ -9,7 +9,6 @@ else
     if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; exit 1; fi
 fi
 . $SCRIPTS/../conf/bashrc --short
-. $LOCALDOT/conf/tokens.backup
 
 FOLDERS='documents local pictures'
 backup_status() {
@@ -31,10 +30,10 @@ backup_important() {
         build ssh with-agent build git autocommit
     done
 
-    if [ "$BACKUP_PASSPHRASE" ]; then
-        cd ~/
-        gpg-zip --symmetric --gpg-args --passphrase --gpg-args "$BACKUP_PASSPHRASE" --gpg-args --yes --output ~/local/archives/word .password-store
-        gpg-zip --symmetric --gpg-args --passphrase --gpg-args "$BACKUP_PASSPHRASE" --gpg-args --yes --output ~/local/archives/local .local-dot
+    cd ~/
+    if [ "$ARCHIVE_RECIPIENT" ]; then
+        build archive archive -f word .password-store ~/local/archive
+        build archive archive -f local .local-dot ~/local/archive
     fi
 }
 

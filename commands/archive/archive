@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+exit_return() {
+    echo "$@"
+    exit 1
+}
+
+archive() {
+    if [ "$ARCHIVE_RECIPIENT" == "" ]; then
+        echo "no gpg recipient";
+        return
+    fi
+    force=""
+    outname=""
+    if [ "$1" == "-f" ]; then
+        force="force"
+        shift
+        if [ $# -eq 3 ]; then
+            outname="$1"
+            shift
+        fi
+    fi
+    file="$1"
+    archive="$2"
+    help="archive <object> <archive dir> (must end in /archive)"
+    [ "$file" ] && \
+        [ -e "$file" ] && \
+        [ "$archive" ] && \
+        [ -d "$archive" ] && \
+        [ $(basename "$archive") == "archive" ] || \
+        exit_return "$help"
+    archive=$(cd "$archive"; pwd -P)
+    obj=$(basename "$file")
+    [ "$outname" ] || outname="$obj"
+    cd $(dirname "$file")
+    outdir="$archive/$outname"
+    backup="$outdir.backup."$(date +%s)
+    delete_backup=""
+    if [ -e "$outdir" ]; then
+        if [ "$force" ]; then
+            num=0
+            while [ -e "$backup.$num" ]; do
+                num=$((num+1))
+            done
+            backup="$backup.$num"
+            delete_backup="$backup"
+        else
+            exit_return "already exists"
+        fi
+    fi
+    mkdir -p "$outdir" && \
+        tar -cz "$obj" | \
+        gpg -e -r "$ARCHIVE_RECIPIENT" | \
+        split -b 100m - "$outdir/$outname." && [ "$delete_backup" ] && rm -rf "$delete_backup"
+}
+
+unarchive() {
+    dir="$1"
+    [ -d "$dir" ] || \
+        exit_return "not an archive"
+    cat "$dir"/* | gpg -d | tar -xzk
+}
+
+a="$1"
+shift
+
+if [ "$a" == "archive" ]; then
+    archive "$@"
+elif [ "$a" == "restore" ]; then
+    unarchive "$@"
+else
+    echo "archive: save the file or directory tar zip encrypted split"
+    echo "restore: restore the file or directory"
+fi
