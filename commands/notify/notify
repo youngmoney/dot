@@ -8,7 +8,8 @@ notify() {
         if build system is-mac; then
             echo "$line" | mac_notify "$1"
         else
-            notify-send "$1" "$line"
+            [ "$DISPLAY" ] || export DISPLAY=$(who -u | awk '/\s:[0-9]\s/ {print $2}')
+            notify-send -t 50 "$1" "$line"
         fi
         sleep 1;
     done < <(echo "$in")
@@ -23,7 +24,7 @@ a="$1"
 shift
 
 if [ "$a" == "notify" ]; then
-    notify $@
+    notify "$@"
 elif [ "$a" == "" ]; then
     notify "$@"
 else

@@ -16,6 +16,7 @@ Bundle 'djoshea/vim-autoread'
 Bundle 'tpope/vim-eunuch'
 Bundle 'kshenoy/vim-signature'
 Bundle 'Valloric/ListToggle'
+Bundle 'easymotion/vim-easymotion'
 
 Bundle 'epeli/slimux'
 Bundle 'christoomey/vim-tmux-navigator'
@@ -168,6 +169,10 @@ map <leader>c :make check -s<Return>:call ShowErrors()<Return>
 map <leader>k :cprevious<Return>
 map <leader>j :cnext<Return>
 map <leader>cc :cclose<Return>
+
+nmap ss <Plug>(easymotion-overwin-f)
+nmap jj <Plug>(easymotion-j)
+nmap kk <Plug>(easymotion-k)
 
 autocmd BufRead,BufNewFile .cron set ft=crontab
 autocmd Filetype java set errorformat+=%A%f:%l:\ %m,%-Z%p^,%-C%.%#

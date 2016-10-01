@@ -9,7 +9,11 @@ system::exists() {
 }
 
 system::is-mac() {
-    [ "$(system::os)" == "Mac" ] && exit 0 || exit 1
+    if [ "$1" ]; then
+        [ "$(system::os)" == "Mac" ] && exit 0 || exit 1
+    else
+        [ "$(system::os)" == "Mac" ] && return 0 || return 1
+    fi
 }
 
 system::os() {
@@ -24,9 +28,13 @@ system::os() {
 
 system::battery() {
     if system::is-mac; then
-        ioreg -l | grep -i capacity | tr '\n' ' | ' | awk '{printf("%d", $10/$5 * 100)}'
+        ioreg -l | grep -i capacity | tr '\n' ' | ' | awk '{printf("%d\n", $10/$5 * 100)}'
     else
-        echo -n $((100*$(sed -n "s/remaining capacity: *\(.*\) m[AW]h/\1/p" /proc/acpi/battery/BAT0/state)/$(sed -n "s/last full capacity: *\(.*\) m[AW]h/\1/p" /proc/acpi/battery/BAT0/info)))
+        if [ -e /proc/acpi/battery/BAT0 ]; then
+            echo -n $((100*$(sed -n "s/remaining capacity: *\(.*\) m[AW]h/\1/p" /proc/acpi/battery/BAT0/state)/$(sed -n "s/last full capacity: *\(.*\) m[AW]h/\1/p" /proc/acpi/battery/BAT0/info)))
+        else
+            echo 100
+        fi
     fi
 }
 
@@ -47,7 +55,7 @@ if [ "$a" == "battery" ]; then
 elif [ "$a" == "os" ]; then
     system::os "$@"
 elif [ "$a" == "is-mac" ]; then
-    system::is-mac "$@"
+    system::is-mac "$@" --exit
 elif [ "$a" == "desktop" ]; then
     system::desktop "$@"
 elif [ "$a" == "online" ]; then

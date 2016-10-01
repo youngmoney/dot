@@ -1,4 +1,5 @@
--e git://github.com/pimutils/khal@d34049f9024124efb6d91fd7275c7ebb49791e50#egg=khal
+khal
 pipdeptree
 requests-oauthlib
+vdirsyncer
 wheel

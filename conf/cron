@@ -1,5 +1,5 @@
 1 * * * * ~/local/dot/bin/backup installs icloud wave > /dev/null 2>&1
-10 */2 * * * ~/local/dot/bin/backup google > /dev/null 2>&1
+10 * * * * ~/local/dot/bin/backup google > /dev/null 2>&1
 */10 * * * * ~/local/dot/bin/backup important > /dev/null 2>&1
 
 * * * * * ~/local/dot/bin/status ctag ~/local
