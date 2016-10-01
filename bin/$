@@ -1,0 +1,6 @@
+#!/bin/sh
+echo "seriously...do you know how dangerous it is to copy and paste"
+sleep 1
+echo "...whatever"
+sleep 1
+exec "$@"
