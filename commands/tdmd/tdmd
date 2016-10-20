@@ -263,7 +263,10 @@ class Todo:
         return str(self.list)+"/"+str(self.name)
 
     def getDescription(self):
-        return self.description + '\n'
+        if self.description:
+            return self.description + '\n'
+        else:
+            return ''
 
     def match(self, name, l=None, prefix=True, case_sensitive=False):
         self_name = self.name if case_sensitive else self.name.lower()
@@ -297,7 +300,7 @@ class Todo:
         return (l.lower()+""+titleize(self.name)+d)
 
     def __repr__(self):
-        return '#'*self.level + ' ' + str(self) + '\n' + self.getDescription()
+        return '#'*self.level + ' ' + str(self) +'\n'+ self.getDescription()
 
 
     def is_done(self):
