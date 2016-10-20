@@ -1,0 +1,693 @@
+#!/usr/bin/env python2.7
+import json, base64
+
+
+def confirm(prompt):
+    while True:
+        try:
+            i = raw_input(prompt+" ")
+        except KeyboardInterrupt:
+            return False
+        if i.lower() in ('yes','y', ''): return True
+        elif i.lower() in ('no','n'): return False
+
+def prompt(prompt):
+    try:
+        return raw_input(prompt+" ")
+    except KeyboardInterrupt:
+        return ""
+
+import datetime
+
+class Due:
+    Never = 0xDEADBEAF
+
+    @staticmethod
+    def str2due(s):
+        s = s.lower()
+
+        human = {"today":0, "tomorrow":1}
+        days = None
+        if s in human:
+            days = human[s]
+        elif s in DueWeekly.Days:
+            days = DueWeekly.days_until_weekday(DueWeekly.Days.index(s))
+        # elif s in DueWeekly.Short:
+        #     days = DueWeekly.days_until_weekday(DueWeekly.Short.index(s))
+        if not days is None:
+            return DueDate.days2due(days)
+
+
+        # Otherwise Normal
+        try:
+            return DueWeekly.str2due(s)
+        except:
+            try:
+                return DueDate.str2due(s)
+            except:
+                return Due()
+
+
+    def __init__(self):
+        pass
+
+    def has_passed(self):
+        return False
+
+    def days_until(self):
+        return Due.Never
+
+    def __repr__(self):
+        return ""
+
+class DueDate(Due):
+    @staticmethod
+    def str2due(s):
+        m, d, y = s.split("/")
+        m = int(m)
+        d = int(d)
+        y = int(y)
+        return DueDate(d, m, y)
+
+    @staticmethod
+    def days2due(d):
+        return DueDate.date2due(datetime.date.today()+datetime.timedelta(d))
+
+    @staticmethod
+    def date2due(date):
+        return DueDate(date.day, date.month, date.year)
+
+    def __init__(self, day, month, year):
+        self.month = month
+        self.day = day
+        self.year = year
+
+    def date(self):
+        return datetime.date(self.year, self.month, self.day)
+
+    def is_late(self):
+        return self.days_until() < 0
+
+    def is_today(self):
+        return self.days_until() == 0
+
+    def days_until(self, date = None):
+        if date is None:
+            date = datetime.date.today()
+        delta = datetime.date(self.year, self.month, self.day) - date
+        return delta.days
+
+    def __repr__(self):
+        return str(self.month)+"/"+str(self.day)+"/"+str(self.year)
+
+class DueWeekly(Due):
+    Monday = "monday"
+    Tuesday = "tuesday"
+    Wednesday = "wednesday"
+    Thursday = "thursday"
+    Friday = "friday"
+    Saturday = "saturday"
+    Sunday = "sunday"
+    Days = [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+    Short = ["m", "t", "w", "r", "f", "s", "d"]
+
+
+    @staticmethod
+    def str2due(s):
+        date_string = ""
+        day_string = s.lower()
+        if "|" in s:
+            date_string, day_string = s.lower().split("|")
+
+        days = [False] * 7
+        for c in day_string:
+            if c in DueWeekly.Short:
+                days[DueWeekly.Short.index(c)] = True
+            else:
+                raise ValueError
+
+        due = DueDate.str2due(date_string) if date_string != "" else None
+        return DueWeekly(days, due)
+
+    def __init__(self, days, due=None):
+        self.days = days
+        self.due = due
+        if due is None: self.reset_due()
+
+    def __repr__(self):
+        s = ""
+        i = 0
+        for day in self.days:
+            if day:
+                s += DueWeekly.Short[i]
+            i += 1
+
+        if len(s) > 0: return str(self.due)+"|"+s.upper()
+        return ""
+
+    def getDue(self):
+        return self.due
+
+    def get_next(self, date=None):
+        if date is None:
+            if self.due is None:
+                date = datetime.date.today()
+            else:
+                date = self.due.date() + datetime.timedelta(1)
+        if self.days[date.weekday()]:
+            return DueDate.date2due(date)
+        return self.get_next(date+datetime.timedelta(1))
+
+    @staticmethod
+    def days_until_weekday(week, date=None):
+        if date is None:
+            date = datetime.date.today()
+        if date.weekday() == week:
+            return 0 #DueDate.date2due(date)
+        return DueWeekly.days_until_weekday(week, date+datetime.timedelta(1)) + 1
+
+    def reset_due(self, all=False):
+        if all:
+            self.due = None
+        self.due = self.get_next()
+
+    def next_due(self):
+        self.due = self.get_next()
+
+    def is_late(self):
+        return self.due.is_late()
+
+    def is_today(self):
+        return self.due.is_today()
+
+    def days_until(self):
+        return self.due.days_until()
+
+class Todo:
+    @staticmethod
+    def str2todo(s):
+        if s.startswith('#'):
+            lines = s.split('\n')
+            todo = Todo.firstline2todo(lines[0])
+            description_lines = lines[1:]
+            while len(description_lines[-1]) == 0 and len(description_lines) > 0:
+                description_lines = description_lines[:-1]
+            todo.description = '\n'.join(description_lines)
+            return todo
+        return Todo.firstline2todo(s)
+
+    @staticmethod
+    def firstline2todo(s):
+        level = None
+        if s.startswith('#'):
+            spaces = s.split(' ')
+            level = len(spaces[0])
+            s = ' '.join(spaces[1:])
+        name = ""
+        due_string = ""
+        l = ""
+        first = True
+        found_due = False
+        for w in s.split():
+            if first:
+                n = w.split("/")
+                name += n[-1] + " "
+                l = "/".join(n[:-1])
+                first = False
+                continue
+            if len(w) > 0 and w[0] == "@":
+                found_due = True
+                due_string = w[1:]
+            else:
+                name += w+" "
+
+        if len(name) > 0: name = name[:-1]
+        due = None
+        if found_due: due = Due.str2due(due_string)
+        return Todo(name, due, list=l, level=level)
+
+    def __init__(self, name, due, list=None, description=None, level=None):
+        self.name = name
+        self.due = due
+        self.list = list if not list is None else ''
+        self.done = False
+        self.description = description if not description is None else ''
+        if level is not None:
+            self.level = level
+        elif self.name == '':
+            self.level = 1
+        else:
+            self.level = 2
+
+    def getName(self):
+        return self.name
+
+    def setName(self, name):
+        self.name = name
+
+    def getDue(self):
+        if self.due is None:
+            return Due()
+        return self.due
+
+    def setDue(self, due):
+        self.due = due
+
+    def setList(self, l):
+        self.list = l
+
+    def getList(self):
+        return self.list
+
+    def getListAndName(self):
+        return str(self.list)+"/"+str(self.name)
+
+    def getDescription(self):
+        return self.description + '\n'
+
+    def match(self, name, l=None, prefix=True, case_sensitive=False):
+        self_name = self.name if case_sensitive else self.name.lower()
+        self_list = self.list if case_sensitive else self.list.lower()
+        if not case_sensitive:
+            name = name.lower()
+            l = l.lower()
+        if prefix:
+            if l is None or \
+               (len(l) <= len(self_list) and self_list[:len(l)] == l):
+                if len(name) <= len(self_name) and self_name[:len(name)] == name:
+                    return True
+        else:
+            if l is None or l in self_list:
+                if name in self_name:
+                    return True
+        return False
+
+    def __str__(self):
+        l = self.list+"/" if len(self.list) > 0 else ""
+        d = str(self.getDue())
+        if len(d) > 0: d = " @"+d
+        def titleize(s):
+            parts = s.split('://')
+            title = parts[0].title()
+            if len(parts) > 1:
+                other = '://'.join(parts[1:])
+                title = title+'://'+other
+            return title
+
+        return (l.lower()+""+titleize(self.name)+d)
+
+    def __repr__(self):
+        return '#'*self.level + ' ' + str(self) + '\n' + self.getDescription()
+
+
+    def is_done(self):
+        return self.done
+
+    def is_today(self):
+        if isinstance(self.due, DueDate) or isinstance(self.due, DueWeekly):
+            return self.due.is_today()
+        return True
+
+    def mark_done(self):
+        if isinstance(self.due, DueWeekly):
+            self.due.next_due()
+        else:
+            self.done = True
+
+    def remove(self):
+        self.due = Due()
+        self.mark_done()
+
+    def __lt__(self, other):
+        return str(self) < str(other)
+
+class TodoSet:
+    @staticmethod
+    def str2set(s, name=""):
+        todos = TodoSet(name)
+        lines = []
+        for line in s.split('\n'):
+            if line.startswith('#') or not lines:
+                if len(lines) > 0:
+                    t = Todo.str2todo('\n'.join(lines))
+                    todos.addItem(t)
+                lines = [line]
+            else:
+                lines.append(line)
+        if len(lines) > 0 and ''.join(lines) != '':
+            todos.addItem(Todo.str2todo('\n'.join(lines)))
+        return todos
+
+
+    @staticmethod
+    def simplestr2set(s, name= ""):
+        todos = TodoSet(name)
+        for line in s.split("\n"):
+            if len(line) > 0:
+                todos.addItem(Todo.str2todo(line))
+        return todos
+
+    def __init__(self, name="", items = None):
+        self.name = name
+        self.name = "" # FOR NOW
+        self.items = []
+        if not items is None: self.addItems(items)
+
+    def addItem(self, item):
+        self.items.append(item)
+
+    def addItems(self, items):
+        for item in items:
+            self.addItem(item)
+
+    def getItems(self):
+        return sorted(filter(lambda i: not i.is_done(), self.items))
+
+    def __str__(self):
+        name = self.name+"/" if len(self.name) > 0 else ""
+        s = "\n".join([name+str(i) for i in self.getItems()])
+        return s
+
+    def __repr__(self):
+        s = '\n'.join([repr(i) for i in self.getItems()])
+        return s
+
+
+
+from os import path
+class TodoDirectory:
+    def __init__(self, directory=None, filename="TODO.td"):
+        self.directory = "./" if directory is None else directory
+        self.sets = {}
+        self.filename = filename
+
+        # Find Files
+        new_path = path.realpath(self.directory)
+        bottom =  None
+        while bottom != new_path:
+            bottom = new_path
+            self.directory = bottom
+            # try:
+            self.addFile()
+            break
+            # except:
+            #     new_path = path.realpath(path.join(bottom, '..'))
+        if len(self.sets) == 0:
+            raise EnvironmentError
+
+        # self.addFile()
+
+    def addFile(self, filepath=""):
+        p = filepath
+        if p == "": p = "./"
+        fullpath = path.realpath(path.join(path.join(self.directory, p),self.filename))
+        with open(fullpath) as f:
+            r = f.read()
+            s = TodoSet.str2set(r, filepath)
+            self.sets[filepath] = s
+
+    def __repr__(self):
+        s = "\n".join([str(self.sets[s]) for s in self.sets])
+        s = "\n".join(sorted(s.splitlines()))
+        return s
+
+    def save(self, files=None):
+        if files is None: files = self.sets.keys()
+        for f in files:
+            with open(path.join(path.join(self.directory, f),self.filename), "w") as t:
+                t.write(repr(self.sets[f])+"\n")
+                t.flush()
+
+    def getall(self):
+        all = []
+        for s in self.sets:
+            all.extend(self.sets[s].getItems())
+        return all
+
+    def findall(self, name, l=None):
+        match = []
+        for k in self.sets:
+            for t in self.sets[k].getItems():
+                if t.match(name, l):
+                    match.append(t)
+
+        return match
+
+    def find(self, s, create=False):
+        if s == "":
+            return self.getall()
+        parts = s.split("/")
+        name = parts[-1]
+        l = "/".join(parts[:-1])
+        matched = self.findall(name, l)
+
+        if create and "" in self.sets:
+            t = Todo.str2todo(s)
+            self.sets[""].addItem(t)
+            matched = [t]
+        return matched
+
+    def findmatched(self, psuedo, create=False, multiple=False, allow_done=False):
+        matched = self.find(psuedo.getListAndName(), create)
+        if not allow_done: matched = filter(lambda m: not m.is_done(), matched)
+        if not multiple and len(matched) > 1:
+            raise LookupError
+        if len(matched) == 0:
+            raise NameError
+        return matched
+
+    def editloop(self, psuedo, edit_func, create=False, multiple=False, allow_done=False):
+        matched = self.findmatched(psuedo, create=create, multiple=multiple, allow_done=allow_done)
+        for m in matched:
+            edit_func(m)
+
+
+    def edit(self, psuedo, create=False, multiple=False, allow_done=False, remove=False):
+        def edit_func(m):
+            if remove:
+                m.remove()
+            else:
+                if not psuedo.due is None:
+                    m.setDue(psuedo.getDue())
+                if psuedo.is_done():
+                    m.mark_done()
+
+        self.editloop(psuedo, edit_func, create=create, multiple=multiple, allow_done=allow_done)
+
+    def resetdue(self, psuedo, multiple=False, allow_done=False):
+        def edit_func(m):
+            d = m.getDue()
+            if isinstance(d, DueWeekly):
+                d.reset_due(True)
+            m.setDue(d)
+        self.editloop(psuedo, edit_func, multiple=multiple, allow_done=allow_done)
+
+import sys
+class Pretty:
+    reset='\033[0m'
+    bold='\033[01m'
+
+    blue='\033[34m'
+
+    red='\033[31m'
+    purple='\033[35m'
+    yellow='\033[33m'
+
+    lightgreen='\033[92m'
+    lightblue='\033[94m'
+    cyan='\033[36m'
+    lightcyan='\033[96m'
+
+    def __init__(self, out=sys.stdout):
+        self.out = out
+
+    def pretty_print(self, items, prefix="", suffix=""):
+        items.sort(key=lambda i: str(i))
+        items.sort(key=lambda i: i.getList())
+
+        current_list = None
+        for item in items:
+            if not current_list is None and current_list != item.getList():
+                self.out.write("\n")
+            self.print_item(item, prefix, suffix)
+            current_list = item.getList()
+
+    def print_item(self, item, prefix="", suffix=""):
+        days = item.getDue().days_until()
+        name = item.getName()
+        list = item.getList()
+        if len(list) > 0: list += "/"
+        due = item.getDue()
+        if isinstance(due, DueWeekly):
+            due = due.getDue()
+
+        if isinstance(due, DueDate):
+            date = due.date()
+            if days == 0:
+                due = "today"
+            elif days == 1:
+                due = "tomorrow"
+            elif days == -1:
+                due = "yesterday"
+            elif days < 0:
+                due = str(-days) + " days ago"
+            elif days < 14:
+                due = DueWeekly.Days[date.weekday()]
+                if days > 6:
+                    due = "next "+due
+            else:
+                due = str(days//7) + " weeks"
+
+        else:
+            due = ""
+        if len(due) > 0: due = " @"+due
+
+
+        self.print_color(prefix)
+        if days == Due.Never:
+            self.print_color(str(item), Pretty.blue)
+        elif days < 0:
+            self.print_color(list+name+due, Pretty.red)
+        elif days == 0:
+            self.print_color(list+name+due, Pretty.yellow)
+        elif days < 3:
+            self.print_color(list)
+            self.print_color(name, Pretty.yellow)
+            self.print_color(due)
+        else:
+            self.print_color(list+name+due)
+        self.print_color(suffix)
+
+        self.out.write("\n")
+
+    def print_color(self, s, color=reset):
+        self.out.write(color+s+Pretty.reset)
+        self.out.flush()
+
+class PrettyToday(Pretty):
+    def pretty_print(self, items):
+        for item in items:
+            days = item.getDue().days_until()
+            name = item.getName()
+            list = item.getList()
+            if len(list) > 0: list += "/"
+            if days <= 0 or days == Due.Never:
+                self.print_color(list+name)
+                self.out.write("\n")
+
+
+def Run(args, directory):
+    item = " ".join(args.item)
+    if args.verb == "list" or args.verb == "today" or args.verb == "count":
+        items = directory.find(item)
+        if args.verb == "count":
+            totals = {}
+            for item in items:
+                l = item.getList()
+                if not l in totals:
+                    totals[l] = 0
+                if item.getName() != "":
+                    if item.is_today() or item.getDue().is_late():
+                        if totals[l] == -1:
+                            totals[l] = 0
+                        totals[l] += 1
+                    elif totals[l] == 0:
+                        totals[l] = -1
+            total = 0
+            for t in totals:
+                if totals[t] > 0:
+                    total += totals[t]
+                elif totals[t] == 0:
+                    total += 1
+            print total
+        elif args.verb == "today":
+            # items = filter(lambda i: i.is_today(), items)
+            PrettyToday().pretty_print(items)
+        elif args.pretty:
+            print datetime.date.today().strftime("%A, %B %d, %Y")
+            print
+            Pretty().pretty_print(items, "            ")
+            print
+            count = 0
+            for item in items:
+                days = item.getDue().days_until()
+                if days <= 0 or days == Due.Never:
+                    count += 1
+            if count == 0:
+                print "Nothing Todo Today"
+            elif count == 1:
+                print "1 Todo Today"
+            else:
+                print str(count)+" Todos Today"
+        elif not args.ugly:
+            Pretty().pretty_print(items)
+        else:
+            print "\n".join([str(i) for i in items])
+        return True
+
+    if len(item) == 0:
+        # Potential Error
+        return False
+
+    todo = Todo.str2todo(item)
+
+    try:
+        if args.verb == "add" or args.verb == "edit":
+            directory.edit(todo, create=args.verb=="add", multiple=args.all)
+
+        if args.verb == "info":
+            found = directory.findmatched(todo, multiple=args.all)
+            for t in found:
+                print(repr(t))
+
+        if args.verb == "reset":
+            directory.resetdue(todo, multiple=args.all)
+
+
+        if args.verb == "done" or args.verb == "remove":
+            todo.due = None
+            todo.mark_done()
+            directory.edit(todo, multiple=args.all, remove=args.verb=="remove")
+
+    except Exception as e:
+        if args.debug:
+            print "ERROR", e.message
+        if isinstance(e, LookupError):
+            # Potential Error
+            return False
+        if isinstance(e, NameError):
+            # Potential Error
+            return False
+
+    directory.save()
+    return True
+
+
+import argparse, sys
+def parseArgs():
+    parser = argparse.ArgumentParser("todo")
+    parser.add_argument("--debug", action="store_true")
+    parser.add_argument("-a", dest="all", action="store_true")
+    parser.add_argument("--ugly",  action="store_true")
+    parser.add_argument("--pretty",  action="store_true")
+    parser.add_argument("verb", choices=["add", "edit", "done", "reset", "remove", "info", "list", "today", "count"])
+    parser.add_argument("item", type=str, nargs="*")
+
+    args = parser.parse_args()
+    return args
+
+
+if __name__ == "__main__":
+    if len(sys.argv) == 1: exit()
+    try:
+        f = TodoDirectory(filename="todo.td")
+    except EnvironmentError:
+        print "No Todo Found"
+        exit()
+    try:
+        args = parseArgs()
+        if not Run(args, f):
+                print "Error"
+    except KeyboardInterrupt:
+        pass
+#
