@@ -62,6 +62,7 @@ new-email() {
         config_off="$OUT/account.$account.offlineimap"
         config_send="$OUT/account.$account.send"
         config_mutt="$OUT/account.$account.mutt"
+        config_name="$OUT/account.$account.username"
         build template fill --name "$account" --username "$username"\
                             --clientid "$clientid" --secret "$secret" --refresh "$refresh"\
                             --sslcert "$ssl"\
@@ -74,6 +75,7 @@ new-email() {
         build template fill --name "$account" --username "$username"\
                             --domain "$domain" --sendconfig "$config_send" --short "$short"\
                             "$SCRIPTS/account.mutt.template" > "$config_mutt"
+        echo "$username" > "$config_name"
 }
 
 new-account() {

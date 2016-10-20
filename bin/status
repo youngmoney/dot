@@ -12,7 +12,7 @@ fi
 
 fetch_mail() {
     for c in $ACCOUNTS/account.*.offlineimap; do
-        build etc timeout -k 30  120 offlineimap -o -c "$c"
+        build etc timeout -k 30  520 offlineimap -o -c "$c"
         #-u quiet
     done
     build mail unread | notify Mail

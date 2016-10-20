@@ -19,6 +19,7 @@ buildpathadd() { [[ ":$BUILD_PATH:" != *":$1:"* ]] && export BUILD_PATH="${BUILD
 command -v build >/dev/null 2>&1 || pathadd "$SCRIPTS"
 
 buildpathadd $(cd ${SCRIPTS}/..; pwd -P)
+buildpathadd ~/.local-dot/commands
 
 _completion()
 {

@@ -513,6 +513,7 @@ class Pretty:
 
     def pretty_print(self, items, prefix="", suffix=""):
         items.sort(key=lambda i: str(i))
+        items.sort(key=lambda i: i.getDue().days_until())
         items.sort(key=lambda i: i.getList())
 
         current_list = None

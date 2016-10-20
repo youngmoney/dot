@@ -17,7 +17,9 @@ mail::unread_mail() {
     for m in $MAILDIR/*; do
         local p
         p=$(echo "$m" | sed 's:^'${MAILDIR}'::')
-        mu find --fields='f: s' "m:${p}/INBOX" "date:$d..now" 2>/dev/null | sed 's/ <.*>:/:/'
+        n=$(echo "$p" | sed 's:^/::')
+        username=$(cat ~/.local-dot/accounts/account.$n.username)
+        mu find --fields='f: s' "m:${p}/INBOX" "date:$d..now" "t:${username}" OR "m:${p}/INBOX" "date:$d..now" "c:${username}" 2>/dev/null | sed 's/ <.*>:/:/'
     done
 }
 
@@ -25,7 +27,9 @@ mail::unread_count() {
     n=0
     for m in $MAILDIR/*; do
         p=$(echo "$m" | sed 's:^'${MAILDIR}'::')
-        num=$(mu find "m:${p}/INBOX" flag:unread 2>/dev/null | grep -c '')
+        n=$(echo "$p" | sed 's:^/::')
+        username=$(cat ~/.local-dot/accounts/account.$n.username)
+        num=$(mu find "m:${p}/INBOX" flag:unread "t:${username}" OR "m:${p}/INBOX" flag:unread "c:${username}" 2>/dev/null | grep -c '')
         [ "$num" ] || num=0
         n=$(($n + $num))
     done
