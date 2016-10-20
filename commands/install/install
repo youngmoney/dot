@@ -83,6 +83,10 @@ restore-abstract() {
     done
 }
 
+kjinstall-brew() {
+	ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null
+}
+
 store-brew() {
     [ "$1" ] && out="$1" || out="brew"
     [ "$out" == "-" ] || rm -f "$out"
@@ -104,7 +108,7 @@ restore-brew() {
     if [ "$1" != "--apt" ]; then
         [ "$1" ] && in="$1" || in="brew"
         command -v brew >/dev/null || \
-         run-quiet "Installing homebrew" ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+         run-quiet "Installing homebrew" install-brew
         listdiff "$in" <(store-brew -) | while read item; do
             run-quiet "Installing $item (via brew)" brew install "$item"
         done

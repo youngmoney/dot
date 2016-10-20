@@ -114,7 +114,7 @@ khal-next() {
 }
 khal-agenda() {
     echo
-    khal -c ~/.khal --color list --day-format '{yellow}{name}{reset}' --format "            {blue}{start-end-time-style:<16}{reset} {magenta}{title:<.50}{reset} {recurse} {cyan}{location:<.25}{reset}" `date '+%Y-%m-%d %I:%M%p'` 6d | sed 's/⟳/\&/'
+    khal -c ~/.khal --color list --day-format '{yellow}{name}{reset}' --format "            {blue}{start-end-time-style:<16}{reset} {magenta}{title:<.50}{reset} {repeat-symbol} {cyan}{location:<.25}{reset}" `date '+%Y-%m-%d %I:%M%p'` 6d | sed 's/⟳/\&/'
 }
 
 do-run() {

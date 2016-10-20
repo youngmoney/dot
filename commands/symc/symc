@@ -72,7 +72,7 @@ symc::safe-cp() {
     elif [ -e "$2" ]; then
         symc::_backup "$@"
     fi
-    cp "$1" "$2"
+    cp -r "$1" "$2"
 }
 
 symc::safe-link() {

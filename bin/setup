@@ -32,8 +32,9 @@ run-quiet() {
 go() {
     [ "$1" == "--no" ] && local no="--no" || local no=""
 
-    mkdir -p $LOCALDOT
+    mkdir -p $LOCALDOT/{status,conf,commands,account}
     mkdir -p ~/.mail ~/.calendar ~/.contacts
+    mkdir -p ~/.tmp
 
     [ "$no" ] || setup-me
 
@@ -76,6 +77,7 @@ setup-me() {
 
 setup-decrypt() {
     #tail-c+
+    # gpg --import
     echo "decrypting"
     cd ~/
     build symc safe-rm ~/.local-dot
@@ -94,7 +96,9 @@ setup-dot() {
 
 setup-dirs() {
     if [ "$DOT_DEST" != "$DOT" ]; then
-        build symc mv-dir "$DOT/../../" ~/
+        # TODO rename to lowercase
+        # TODO make cp actually happen
+        build symc cp-dir "$DOT/../../" ~/
         DOT="$DOT_DEST"
         SCRIPTS="$DOT/bin"
     fi
@@ -103,7 +107,7 @@ setup-dirs() {
 setup-dirs-simple() {
     mkdir -p "$DOT_DEST"
     if [ "$DOT_DEST" != "$DOT" ]; then
-        build symc safe-mv "$DOT" "$DOT_DEST"
+        build symc safe-cp "$DOT" "$DOT_DEST"
         DOT="$DOT_DEST"
         SCRIPTS="$DOT/bin"
     fi
@@ -118,7 +122,7 @@ setup-install() {
         read -p "Run Setups? [yes] " r
         if [ "$r" == "" ]; then
             gdrsync.py ~/desktop test -n
-            open $DOT/taylormint.terminal
+            open $DOT/conf/taylormint.terminal
         fi
     fi
 }

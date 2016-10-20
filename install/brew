@@ -1,6 +1,5 @@
 bash-completion
 binutils
-contacts
 coreutils
 ctags
 duti
@@ -8,6 +7,7 @@ gcc
 gdb
 git
 gnupg
+gnupg2
 llvm
 lynx
 mpv
@@ -16,8 +16,10 @@ mu
 mutt
 pandoc
 pass
+perl
 python
 python3
 reattach-to-user-namespace
+ruby
 tmux
 vim

@@ -1,6 +1,5 @@
 argparse
 gdrsync
-khard
 matplotlib
 notebook
 oauthlib
@@ -10,6 +9,7 @@ pipdeptree
 pylint
 scipy
 urlscan
+vboxapi
 virtualenv
 wheel
 wsgiref
