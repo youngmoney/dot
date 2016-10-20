@@ -61,7 +61,7 @@ the_status() {
     curmail="(`build mail flag-count`)"; if [ "$curmail" == "(0)" ]; then curmail=""; fi
     mail="${high}$mail${reset}${curmail}"
     if [ "$mail" != "" ]; then s="$s ✉︎ $mail"; fi
-    rem="`build todo count`"
+    rem="`build tdmd count`"
     mrem="`build mail with-subject Todo | wc -l | sed 's/^ *//g'`"
     rem="`expr $rem + $mrem`"
     if [ "$rem" -ge "1" ]; then s="$s ✓ ${high}$rem${reset}"; fi
@@ -78,7 +78,7 @@ the_status() {
 
 dashboard() {
     while true; do
-        todos="`build todo --pretty list`"
+        todos="`build tdmd --pretty list`"
         todo_lines="`echo "$todos" | wc -l`"
 
         lines="`tput lines`"

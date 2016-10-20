@@ -26,6 +26,7 @@ export LC_ALL="en_US.UTF-8"
 export ACCOUNTS=$LOCALDOT/accounts
 export TMUX_SOCKET=~/.local-dot/status/tmux-global
 export NOTEDIR=~/documents/notes
+export TODO_LIST=~/documents/notes/todo.md
 alias khal="khal -c ~/.khal"
 
 SHORT_BASH_IMPORT="$LOCALDOT/conf/short.bash"
@@ -33,7 +34,7 @@ SHORT_BASH_IMPORT="$LOCALDOT/conf/short.bash"
 
 if [ "$1" == "--short" ]; then return 0; fi
 
-alias todo="build todo";
+alias todo="build tdmd";
 
 alias today="status today -l 20";
 alias muttr="status mail"

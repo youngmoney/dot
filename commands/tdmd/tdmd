@@ -190,7 +190,7 @@ class Todo:
             lines = s.split('\n')
             todo = Todo.firstline2todo(lines[0])
             description_lines = lines[1:]
-            while len(description_lines[-1]) == 0 and len(description_lines) > 0:
+            while len(description_lines) > 0 and len(description_lines[-1]) == 0:
                 description_lines = description_lines[:-1]
             todo.description = '\n'.join(description_lines)
             return todo
@@ -375,10 +375,20 @@ class TodoSet:
 
 
 from os import path
+from os import environ
 class TodoDirectory:
     def __init__(self, directory=None, filename="TODO.td"):
-        self.directory = "./" if directory is None else directory
         self.sets = {}
+
+        potential_quick = environ.get('TODO_LIST')
+        if potential_quick:
+            d, f = path.split(potential_quick)
+            self.directory = d
+            self.filename = f
+            self.addFile()
+            return
+
+        self.directory = "./" if directory is None else directory
         self.filename = filename
 
         # Find Files
@@ -387,11 +397,11 @@ class TodoDirectory:
         while bottom != new_path:
             bottom = new_path
             self.directory = bottom
-            # try:
-            self.addFile()
-            break
-            # except:
-            #     new_path = path.realpath(path.join(bottom, '..'))
+            try:
+                self.addFile()
+                break
+            except:
+                new_path = path.realpath(path.join(bottom, '..'))
         if len(self.sets) == 0:
             raise EnvironmentError
 
