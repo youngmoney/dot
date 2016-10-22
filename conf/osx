@@ -93,7 +93,19 @@ defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebK
 # Use plain text mode for new TextEdit documents
 defaults write com.apple.TextEdit RichText -int 0
 
-# find . -path "$scriptdir/\*" -name '*.safari*' | xargs open -a Safari 
+# Safari
+defaults write com.apple.Safari HomePage ''
+defaults write com.apple.Safari AutoFillCreditCardData 0
+defaults write com.apple.Safari AutoFillFromAddressBook 0
+defaults write com.apple.Safari AutoFillMiscellaneousForms 0
+defaults write com.apple.Safari AutoFillPasswords 0
+defaults write com.apple.Safari AlwaysRestoreSessionAtLaunch 1
+defaults write com.apple.Safari AutoOpenSafeDownloads 0
+defaults write com.apple.Safari HistoryAgeInDaysLimit 14
+defaults write com.apple.Safari NewTabBehavior 0
+defaults write com.apple.Safari NewWindowBehavior 0
+defaults write com.apple.Safari SendDoNotTrackHTTPHeader 1
+
 add_app() {
     local app="$@"
     defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/${app}.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"

@@ -42,6 +42,7 @@ fetch_all() {
             fetch_mail
         fi
     fi
+    for f in $LOCALDOT/conf/*.fetch; do [ -f "$f" ] && . "$f"; done
 }
 do_ctag() { build ctag $@; }
 

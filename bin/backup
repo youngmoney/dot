@@ -12,15 +12,11 @@ fi
 
 FOLDERS='documents local pictures'
 backup_status() {
-    WAVE=`echo $(( $(date +%s) - $(stat -f%c $LOCALDOT/status/wave.lastbackup) ))`
     GOOG=`echo $(( $(date +%s) - $(stat -f%c $LOCALDOT/status/google.lastbackup) ))`
-    ICLO=`echo $(( $(date +%s) - $(stat -f%c $LOCALDOT/status/icloud.lastbackup) ))`
     DAY="86400"
     DAYTwo="172800"
     DAYThree="259200"
-    if [ "$WAVE" -ge "$DAY" ]; then echo "Wave"; fi
-    if [ "$GOOG" -ge "$DAYThree" ]; then echo "Google"; fi
-    if [ "$ICLO" -ge "$DAY" ]; then echo "iCloud"; fi
+    if [ "$GOOG" -ge "$DAYTwo" ]; then echo "Google"; fi
 }
 
 
@@ -41,28 +37,6 @@ backup_installs() {
     build install store $DOT/install
 }
 
-backup-wave() {
-    name="wave"
-    completed=""
-    for f in $FOLDERS; do
-        $TIMEOUT rsync -av --delete-excluded --delete --exclude='.tags' ~/$f/ wave:~/backup/$f/
-        if [ "$?" != "0" ]; then completed="no"; fi
-    done
-    if [ "$completed" == "" ]; then
-        date > $LOCALDOT/status/${name}.lastbackup
-    fi
-}
-backup-icloud() {
-    name="icloud"
-    completed=""
-    for f in $FOLDERS; do
-        $TIMEOUT rsync -av --delete-excluded --delete --exclude='.tags' ~/$f/ ~/library/Mobile\ Documents/com~apple~CloudDocs/backup/$f/
-        if [ "$?" != "0" ]; then completed="no"; fi
-    done
-    if [ "$completed" == "" ]; then
-        date > $LOCALDOT/status/${name}.lastbackup
-    fi
-}
 
 backup-google() {
     name="google"
@@ -94,10 +68,6 @@ for a in $@; do
         backup_installs
     elif [ "$a" == "google" ]; then
         backup-google
-    elif [ "$a" == "wave" ]; then
-        backup-wave
-    elif [ "$a" == "icloud" ]; then
-        backup-icloud
     elif [ "$a" == "status" ]; then
         backup_status
     else

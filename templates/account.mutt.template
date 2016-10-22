@@ -18,3 +18,8 @@ folder-hook =$name$ 'macro index ,m "<tag-pattern>!~(!~hReferences|~F|~sfwd|~C$u
 macro index ,m "<tag-pattern>!~(!~hReferences|~F|~sfwd|~C$username$)<enter><tag-prefix-cond><delete-message><end-cond>" "delete muted threads"
 
 #set set pgp_sign_as=
+
+color index         blue            default         "~U~C$username$"            # read messages
+color index         blue            default         "~v~(~N)~C$username$"       # collapsed thread with some unread
+color index         blue            default         "~v~(~O)~C$username$"       # collapsed thread with some unread
+color index         green           default         "!~(!~hReferences|~F|~sfwd|~C$username$)!~D" # muted
