@@ -133,7 +133,7 @@ list-apt() {
 }
 
 store-brew-tap() {
-    store-abstract brew-tap "brew tap" "$1"
+    store-abstract brew-tap "brew tap --list" "$1"
 }
 
 restore-brew-tap() {
