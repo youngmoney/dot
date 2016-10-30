@@ -104,6 +104,10 @@ store-brew() {
     [ "$out" == "-" ] || sort -o "$out" "$out"
 }
 
+apt-install() {
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install -qq "$@"
+}
+
 restore-brew() {
     if [ "$1" != "--apt" ]; then
         [ "$1" ] && in="$1" || in="brew"
@@ -119,8 +123,7 @@ restore-brew() {
         run-quiet "Updating apt-get" sudo apt-get update -qq
         patch brew apt.patch -o brew.patched
         listdiff "$in".patched <(list-apt -) | while read item; do
-            DEBIAN_FRONTEND=noninteractive
-            run-quiet "Installing $item (via apt)" sudo apt-get install -qq $item
+            run-quiet "Installing $item (via apt)" apt-install $item
         done
         rm -f brew.patched
     fi
