@@ -54,7 +54,7 @@ search-mu() {
 search-khard() {
     name="$@"
     if exists khard; then
-        khard email -p "$name" | awk -F '    ' '{print $1 "	" $2}' | grep -v "E-Mail" | grep -v "Found no"
+        khard email -p "$name" 2>/dev/null | awk -F '    ' '{print $1 "	" $2}' | grep -v "E-Mail" | grep -v "Found no"
     fi
 }
 
