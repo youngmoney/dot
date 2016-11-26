@@ -57,7 +57,7 @@ the_status() {
     s=""
     #⚠︎
     if [[ "`build system battery`" -le 20 ]]; then s="$s ⚡︎ Low"; fi
-    if [ "`backup status`" != "" ]; then s="$s ♼  Late"; fi
+    if [ "`backup status-quiet`" != "" ]; then s="$s ♼  $(backup status-quiet)"; fi
     mail="`build mail unread-count`"; if [ "$mail" == "0" ]; then mail=""; fi
     curmail="(`build mail flag-count`)"; if [ "$curmail" == "(0)" ]; then curmail=""; fi
     mail="${high}$mail${reset}${curmail}"

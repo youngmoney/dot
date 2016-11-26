@@ -10,13 +10,20 @@ else
 fi
 . $SCRIPTS/../conf/bashrc --short
 
+export ARCHIVE_RECIPIENT="me+backup@taylorlmoney.com"
 FOLDERS='documents local pictures'
 backup_status() {
     GOOG=`echo $(( $(date +%s) - $(stat -f%c $LOCALDOT/status/google.lastbackup) ))`
     DAY="86400"
     DAYTwo="172800"
     DAYThree="259200"
-    if [ "$GOOG" -ge "$DAYTwo" ]; then echo "Google"; fi
+    if [ "$GOOG" -ge "$DAY" ]; then echo $(( $GOOG / $DAY )); fi
+    if [ "$1" != "-q" ]; then
+        for f in $LOCALDOT/status/*.lastbackup; do
+            echo -n "$f" | sed 's:.*/\(.*\).lastbackup:\1:'
+            cat $f
+        done
+    fi
 }
 
 
@@ -37,14 +44,36 @@ backup_installs() {
     build install store $DOT/install
 }
 
+archive-live() {
+    cd "$1"
+    pwd
+    local f
+    for f in *; do
+        if [ "$f" != "archive" ]; then
+            build archive archive -f "$f".working "$f" archive
+        fi
+    done
+}
+
+rsync-to-backup() {
+    local f="$1"
+    echo "rsyncing $1"
+    $TIMEOUT rsync -av --delete-excluded --delete --exclude='.tags' ~/$f/archive $(build drive directory)/$f/
+}
 
 backup-google() {
     name="google"
     completed=""
+    local f
+    cd ~
     for f in $FOLDERS; do
-        $TIMEOUT gdrsync.py -s -d -r ~/$f/ backup/$f/ -v
+        cd ~
+        archive-live "$f"
+        rsync-to-backup "$f"
         if [ "$?" != "0" ]; then completed="no"; fi
     done
+    $TIMEOUT build drive backup
+    if [ "$?" != "0" ]; then completed="no"; fi
     if [ "$completed" == "" ]; then
         date > $LOCALDOT/status/${name}.lastbackup
     fi
@@ -70,6 +99,8 @@ for a in $@; do
         backup-google
     elif [ "$a" == "status" ]; then
         backup_status
+    elif [ "$a" == "status-quiet" ]; then
+        backup_status -q
     else
         echo "Command unknown"
     fi

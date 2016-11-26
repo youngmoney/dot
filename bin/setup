@@ -77,7 +77,6 @@ setup-me() {
 
 setup-decrypt() {
     #tail-c+
-    # gpg --import
     echo "decrypting"
     cd ~/
     build symc safe-rm ~/.local-dot
@@ -171,3 +170,4 @@ else
 fi
 
 # https://github.com/odeke-em/drive
+# last meaningful update 16-7-7 12:59:7
