@@ -42,6 +42,8 @@ defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 
 
 defaults write NSGlobalDomain KeyRepeat -int 0
+defaults write NSGlobalDomain KeyRepeat -int 1
+defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
 defaults write com.apple.screensaver askForPassword -int 1
 defaults write com.apple.screensaver askForPasswordDelay -int 0
@@ -105,6 +107,11 @@ defaults write com.apple.Safari HistoryAgeInDaysLimit 14
 defaults write com.apple.Safari NewTabBehavior 0
 defaults write com.apple.Safari NewWindowBehavior 0
 defaults write com.apple.Safari SendDoNotTrackHTTPHeader 1
+defaults write com.apple.Safari CanPromptForPushNotifications 0
+defaults write com.apple.Safari UserStyleSheetLocationURLString  '~/local/dot/conf/shutup.css'
+defaults write com.apple.Safari UserStyleSheetEnabled 1
+defaults write com.apple.Safari BlockStoragePolicy 3
+defaults write com.apple.Safari SafariGeolocationPermissionPolicy 0
 
 add_app() {
     local app="$@"
