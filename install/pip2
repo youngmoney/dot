@@ -1,5 +1,5 @@
 argparse
-gdrsync
+google-api-python-client
 matplotlib
 notebook
 oauthlib
