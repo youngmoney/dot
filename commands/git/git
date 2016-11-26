@@ -128,20 +128,20 @@ autocommit() {
             remote="`git config autocommit.remote`"
             branch="`git config autocommit.branch`"
             if [ "$branch" == "" ]; then branch="master"; fi
-            add="`git config autocommit.add`"
+            toadd="`git config autocommit.add`"
             if [ "$add" == "" ]; then add='*'; fi
             pushforce="`git config autocommit.force`"
             if [ "$pushforce" != "" ]; then pushargs="-f"; fi
-            add=$add
+            add=$toadd
 
             commited=""
-            if [ "$every" != "" ]; then
+            if [ "$every" ] || [ "$toadd" ]; then
                 git add --all $add
                 git commit -a -m "`date`" -q
                 commited="commited"
             fi
 
-            if [ "$remote" != "" ]; then
+            if [ "$remote" ]; then
                 if [ "$commited" == "" ]; then
                     git add --all $add
                     git commit -a -m "`date`" -q
