@@ -50,7 +50,7 @@ archive() {
     fi
     mkdir -p "$outdir" && \
         tar -cz "$obj" | \
-        gpg -e -r "$ARCHIVE_RECIPIENT" | \
+        gpg -e -q -r "$ARCHIVE_RECIPIENT" | \
         split -b 100m - "$outdir/$outname." && [ "$delete_backup" ] && rm -rf "$delete_backup"
 }
 
@@ -58,7 +58,7 @@ unarchive() {
     dir="$1"
     [ -d "$dir" ] || \
         exit_return "not an archive"
-    cat "$dir"/* | gpg -d | tar -xzk
+    cat "$dir"/* | gpg -d -q | tar -xzk
 }
 
 a="$1"
