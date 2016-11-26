@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# DISCLAIMER
+# The binaries in this directory are produced from the open source project
+# *drive* available at https://github.com/odeke-em/drive
+
+scriptdir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
+
+DRIVEDIR=~/.drive-backup
+BACKUPDIR=backup
+
+drive() {
+    if build system is-mac; then
+        "$scriptdir/drive_darwin" "$@"
+    else
+        "$scriptdir/drive_linux" "$@"
+    fi
+}
+
+drive::setup() {
+    mkdir "$DRIVEDIR"
+    drive init "$DRIVEDIR"
+}
+
+drive::directory() {
+    echo "${DRIVEDIR}/${BACKUPDIR}"
+}
+
+drive::backup() {
+    cd "$DRIVEDIR"
+    drive push -ignore-name-clashes -hidden "$@" -no-prompt "$BACKUPDIR"
+}
+
+drive::download() {
+    if [ ! -e "$DRIVEDIR" ]; then
+        mkdir "$DRIVEDIR"
+        drive init "$DRIVEDIR"
+    fi
+    cd "$DRIVEDIR"
+    drive pull -hidden "$@" -no-prompt "$BACKUPDIR"
+}
+
+a="$1"
+shift
+
+if [ "$a" == "drive" ]; then
+    drive "$@"
+elif [ "$a" == "" ]; then
+    drive "$@"
+elif [ "$a" == "setup-backup" ]; then
+    drive::setup "$@"
+elif [ "$a" == "backup" ]; then
+    drive::backup "$@"
+elif [ "$a" == "download" ]; then
+    drive::download "$@"
+elif [ "$a" == "directory" ]; then
+    drive::directory "$@"
+else
+    echo "drive: help"
+fi
