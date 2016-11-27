@@ -7,7 +7,7 @@ class Due:
     def str2due(s):
         s = s.lower()
 
-        human = {"today":0, "tomorrow":1, "soon":3}
+        human = {"today":0, "tomorrow":1, "soon":4}
         days = None
         if s in human:
             days = human[s]

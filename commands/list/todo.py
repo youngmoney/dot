@@ -95,33 +95,41 @@ class Todo(GraphItem):
         return self._is_today() and not self.is_soon()
 
     def _is_today(self):
+        if self.is_comment():
+            return False
         if self.are_dependers_today() and not self.is_blocked():
             return True
         if isinstance(self.due, DueDate) or isinstance(self.due, DueWeekly):
             return self.due.is_today()
-        return False
+        return not self.is_blocked()
 
     def is_soon(self):
+        if self.is_comment():
+            return False
         if self.are_dependers_today() and not self.is_blocked():
             return False
-        if self.are_dependers_soon():
+        if self.are_dependers_soon() and not self.is_blocked():
             return True
         if self.is_blocked() and self._is_today():
             return True
         if self.due.days_until() == Due.Never:
-            return not self.is_blocked()
-        return not self._is_today() and self.due.days_until() <= 3
+            return False
+        return False
 
     def are_dependers_today(self):
         for d in self.dependers:
             if d._is_today() or d.are_dependers_today():
                 return True
+        if self.parent:
+            return self.parent.are_dependers_today()
         return False
 
     def are_dependers_soon(self):
         for d in self.dependers:
             if d.is_soon() or d.are_dependers_soon():
                 return True
+        if self.parent:
+            return self.parent.are_dependers_soon()
         return False
 
 

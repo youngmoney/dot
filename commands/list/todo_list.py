@@ -24,9 +24,11 @@ class TodoList:
             if i.is_overdue():
                 c = Pretty.red
             elif i.is_today():
-                c = Pretty.yellow
+                c = Pretty.blue
             elif i.is_soon():
-                c =  Pretty.blue
+                c =  Pretty.green + Pretty.bold
+            else:
+                c = Pretty.gray
             if not color:
                 c = ''
 
@@ -243,7 +245,10 @@ class Pretty:
     purple='\033[35m'
     yellow='\033[33m'
 
+    green = '\033[32m'
     lightgreen='\033[92m'
     lightblue='\033[94m'
     cyan='\033[36m'
     lightcyan='\033[96m'
+
+    gray='\033[90m'
