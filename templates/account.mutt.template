@@ -19,7 +19,7 @@ macro index ,m "<tag-pattern>!~(!~hReferences|~F|~sfwd|~C$username$)<enter><tag-
 
 #set set pgp_sign_as=
 
-color index         blue            default         "~U~C$username$"            # read messages
-color index         blue            default         "~v~(~N)~C$username$"       # collapsed thread with some unread
-color index         blue            default         "~v~(~O)~C$username$"       # collapsed thread with some unread
-color index         green           default         "!~(!~hReferences|~F|~sfwd|~C$username$)!~D" # muted
+color index         blue            default         "~U~C$username$!~D!~P"                        # read messages
+color index         blue            default         "~v~(~N)~C$username$!~D!~P"                   # collapsed thread with some unread
+color index         blue            default         "~v~(~O)~C$username$!~D!~P"                   # collapsed thread with some unread
+color index         black           default         "!~(!~hReferences|~F|~sfwd|~C$username$)!~D"  # muted
