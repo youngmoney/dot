@@ -75,6 +75,7 @@ let g:ycm_collect_identifiers_from_tags_files = 1
 let g:ycm_error_symbol = '!'
 let g:ycm_warning_symbol = '?'
 let g:ycm_filepath_completion_use_working_dir = 1
+let g:ycm_always_populate_location_list = 1
 
 "UltiSnips
 let g:UltiSnipsExpandTrigger="<c-j>"
@@ -168,7 +169,11 @@ map <leader>c :make check -s<Return>:call ShowErrors()<Return>
 
 map <leader>k :cprevious<Return>
 map <leader>j :cnext<Return>
-map <leader>cc :cclose<Return>
+map <leader>c :cclose<Return>
+map ]k :lprevious<Return>
+map ]j :lnext<Return>
+map ]c :lclose<Return>
+map ,f :YcmCompleter FixIt<Return>
 
 nmap ss <Plug>(easymotion-overwin-f)
 nmap jj <Plug>(easymotion-j)

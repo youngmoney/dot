@@ -47,6 +47,15 @@ system::desktop() {
     fi
 }
 
+system::copy() {
+    all=$(cat)
+    if system::is-mac; then
+        echo "${all}" | pbcopy
+    else
+        echo "${all}" | xclip -in -selection clipboard
+    fi
+}
+
 a="$1"
 shift
 
@@ -62,6 +71,8 @@ elif [ "$a" == "online" ]; then
     system::online "$@"
 elif [ "$a" == "exists" ]; then
     system::exists "$@"
+elif [ "$a" == "copy" ]; then
+    system::copy "$@"
 else
     echo "battery: battery percentage"
     echo "os: get OS name"
@@ -69,4 +80,5 @@ else
     echo "desktop: set desktop picture"
     echo "exists: bool command exists"
     echo "online: bool can reach google"
+    echo "copy: copy to clipboard"
 fi
