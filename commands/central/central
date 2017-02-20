@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+scriptdir=$(cd $(dirname $([ -L $0 ] && readlink $0 || echo $0)) && pwd)
+PORT=8008
+
+central() {
+    $scriptdir/server
+}
+
+notify() {
+    title="$1"
+    shift
+    curl localhost:$PORT/notify -s --data-urlencode "title=${title}" --data-urlencode "message=${@}" >/dev/null 2>&1
+}
+
+open-url() {
+    curl localhost:$PORT/open/url -s --data-urlencode "url=$1" >/dev/null 2>&1
+}
+
+enabled() {
+    [[ `grep 'central/server' <(ps -A) | grep -c ''` -ge 2 ]]
+}
+
+a="$1"
+shift
+
+if [ "$a" == "central" ]; then
+    central $@
+elif [ "$a" == "" ]; then
+    central "$@"
+elif [ "$a" == "notify" ]; then
+    notify "$@"
+elif [ "$a" == "open-url" ]; then
+    open-url "$@"
+elif [ "$a" == "enabled" ]; then
+    enabled
+else
+    echo "central: help"
+fi

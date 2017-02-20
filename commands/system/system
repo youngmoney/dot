@@ -56,6 +56,19 @@ system::copy() {
     fi
 }
 
+system::open-url() {
+if `build central enabled`; then
+    build central open-url "$@"
+else
+    if system::is-mac; then
+        open "$@"
+    else
+        xdg-open "$@"
+    fi
+fi
+
+}
+
 a="$1"
 shift
 
@@ -73,6 +86,8 @@ elif [ "$a" == "exists" ]; then
     system::exists "$@"
 elif [ "$a" == "copy" ]; then
     system::copy "$@"
+elif [ "$a" == "open-url" ]; then
+    system::open-url "$@"
 else
     echo "battery: battery percentage"
     echo "os: get OS name"
@@ -81,4 +96,5 @@ else
     echo "exists: bool command exists"
     echo "online: bool can reach google"
     echo "copy: copy to clipboard"
+    echo "open-url: open url"
 fi
