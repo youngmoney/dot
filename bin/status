@@ -46,7 +46,7 @@ fetch_all() {
 }
 do_ctag() { build ctag $@; }
 
-function notify() { if [ ! -f ~/.silent ]; then build notify notify $1; fi }
+notify() { if [ ! -f ~/.silent ]; then build notify notify $1; fi }
 
 the_status() {
     if [ "$1" == "--color" ]; then
@@ -127,6 +127,14 @@ do-run() {
     fi
 }
 
+central() {
+    if [ -f $LOCALDOT/status/central.me ]; then
+        if ! build central enabled; then
+            nohup build central > /dev/null 2>&1
+        fi
+    fi
+}
+
 a="$1"
 shift;
 if [ "$a" == "tmux" ]; then
@@ -149,6 +157,8 @@ elif [ "$a" == "mail" ]; then
     do_mail $@
 elif [ "$a" == "run" ]; then
     do-run $@
+elif [ "$a" == "central" ]; then
+    central "$@"
 else
     the_status $a $@
 fi
