@@ -58,7 +58,7 @@ archive-live() {
 rsync-to-backup() {
     local f="$1"
     echo "rsyncing $1"
-    $TIMEOUT rsync -av --delete-excluded --delete --exclude='.tags' ~/$f/archive $(build drive directory)/$f/
+    $FAST_TIMEOUT rsync -av --delete-excluded --delete --exclude='.tags' ~/$f/archive $(build drive directory)/$f/
 }
 
 backup-google() {
@@ -85,8 +85,10 @@ if [ ! -f $LOCALDOT/status/backup.me ]; then
 fi
 
 export TIMEOUT="build etc timeout 1200"
+export FAST_TIMEOUT="build etc timeout 60"
 if [ "$1" == "--full" ]; then
     TIMEOUT=""
+    FAST_TIMEOUT=""
     shift
 fi
 
