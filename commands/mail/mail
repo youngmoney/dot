@@ -62,7 +62,7 @@ mail::mail_attachment() {
     if build system is-mac; then
         "$scriptdir/view_attachment" $@
     else
-        xdg-open "$1"
+        xdg-open ~/.tmp/mutt_attach/$(basename "$1")
     fi
 }
 

@@ -164,7 +164,7 @@ map <leader>hh :e %:p:s,.h$,.X123X,:s,.cc$,.h,:s,.X123X$,.cc,<CR>
 map <leader>gb :execute "!git blame -L".line('.').",+3 ".expand("%")<return>
 
 map <leader>b :make<Return>:call ShowErrors()<Return>
-map <leader>r :make run -s<Return>:call ShowErrors()<Return>
+"map <leader>r :make run -s<Return>:call ShowErrors()<Return>
 map <leader>c :make check -s<Return>:call ShowErrors()<Return>
 
 map <leader>k :cprevious<Return>
@@ -172,7 +172,6 @@ map <leader>j :cnext<Return>
 map <leader>c :cclose<Return>
 map ]k :lprevious<Return>
 map ]j :lnext<Return>
-map ]c :lclose<Return>
 map ,f :YcmCompleter FixIt<Return>
 
 nmap ss <Plug>(easymotion-overwin-f)

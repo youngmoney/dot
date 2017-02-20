@@ -52,6 +52,9 @@ alias gc="git commit";
 alias gl='build git pretty-log'
 alias gr="git rebase"
 
+alias el='cd ~/.local-dot; vim'
+alias ed='cd ~/local/dot; vim'
+
 alias s="build search content";
 alias f="build search file"
 
@@ -93,6 +96,7 @@ export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
 . build --completion
 commandadd() { grep "$1" <<< "$PROMPT_COMMAND" >/dev/null || PROMPT_COMMAND="$1; $PROMPT_COMMAND"; }
 commandadd ". build virtualenv auto-activate"
+commandadd "refresh"
 commandadd "check_end"
 
 ssh-setup() {

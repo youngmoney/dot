@@ -196,7 +196,7 @@ class TodoList:
                 while match is None or match.is_comment() and index > 0:
                     index -= 1
                     match = parent.children[index]
-                if index >= 0:
+                if index >= 0 and not match.is_comment():
                     item.add_dependency(match)
                     match.add_depender(item)
                     if DEBUG:
