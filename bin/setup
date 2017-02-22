@@ -29,6 +29,34 @@ run-quiet() {
     [ "$err" ] && error "$err"
 }
 
+me() {
+    if [ "$1" == "continue" ]; then
+        mkdir -p ~/.mail ~/.calendar ~/.contacts
+        mkdir -p ~/.tmp
+
+        setup-install
+        setup-dot
+        build cron install ~/.cron
+        setup-decrypt
+        build system is-mac && setup-osx
+    else
+        build drive download || return 1
+        build symc safe-rm ~/Documents
+        build symc safe-rm ~/documents
+        build symc safe-rm ~/Documents
+        for f in documents local pictures; do
+            build symc safe-rm ~/$f
+            build symc safe-rm ~/$(tr '[:lower:]' '[:upper:]' <<< ${foo:0:1})${foo:1}
+            mkdir ~/$f/archive
+            rsync $(build drive directory)/$f/ ~/$f/archive
+            for w in ~/$f/archive/*.working; do
+                $(cd ~/$f; build archive restore $w)
+            done
+        done
+        $DOT_DEST/bin/setup me continue
+    fi
+}
+
 go() {
     [ "$1" == "--no" ] && local no="--no" || local no=""
 
@@ -87,7 +115,7 @@ setup-decrypt() {
 }
 
 setup-dot() {
-    build symc clean ~/
+    # build symc clean ~/
     build symc link-dir $DOT/conf ~/.
     . ~/.bashrc
     build mail link-mailcap
@@ -116,11 +144,10 @@ setup-install() {
     build install restore $DOT/install
     command -v mu >/dev/null 2>&1 && run-quiet "Indexing with mu" mu index -m ~/.mail
     echo "The following extras must be installed on their own"
-    echo 'gdrsync (setup); peppermint'
+    echo 'peppermint'
     if [ "$1" != "--no" ]; then
         read -p "Run Setups? [yes] " r
         if [ "$r" == "" ]; then
-            gdrsync.py ~/desktop test -n
             open $DOT/conf/taylormint.terminal
         fi
     fi
@@ -161,12 +188,15 @@ elif [ "$a" == "all" ]; then
     go "$@"
 elif [ "$a" == "no" ]; then
     go --no "$@"
+elif [ "$a" == "me" ]; then
+    me "$@"
 else
     echo "git: run git setup"
     echo "account: run account setup"
     echo "dot: symlink dotfiles"
     echo "go/all: run everything"
     echo "no: run everything, ask no questions"
+    echo "me: download from drive, and setup"
 fi
 
 # https://github.com/odeke-em/drive
