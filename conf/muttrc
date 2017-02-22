@@ -76,8 +76,8 @@ macro index,pager A "<pipe-message>cat | awk '{ if (NF < 1) b=1; if (b) print; }
 macro index,pager S "Ascratch.md<enter>d"
 
 #macro pager \Cu "|urlview<enter>" "call urlview to open links"
-macro index,pager \cu "<pipe-message> urlscan<Enter>" "call urlscan to extract URLs out of a message"
-macro attach,compose \cu "<pipe-entry> urlscan<Enter>" "call urlscan to extract URLs out of a message"
+macro index,pager \cu "<pipe-message> build system open-url<Enter>" "call urlscan to extract URLs out of a message"
+macro attach,compose \cu "<pipe-entry> build system open-url<Enter>" "call urlscan to extract URLs out of a message"
 
 #
 #

@@ -18,7 +18,7 @@ open-url() {
 }
 
 enabled() {
-    [[ `grep 'central/server' <(ps -A) | grep -c ''` -ge 2 ]]
+    [[ `grep 'central/server' <(ps -fA) | grep -c ''` -ge 2 ]]
 }
 
 a="$1"

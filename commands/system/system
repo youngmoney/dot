@@ -57,7 +57,7 @@ system::copy() {
 }
 
 system::open-url() {
-if `build central enabled`; then
+if build central enabled; then
     build central open-url "$@"
 else
     if system::is-mac; then
@@ -67,6 +67,15 @@ else
     fi
 fi
 
+}
+
+system::find-url() {
+   if system::exists urlscan; then
+     export BROWSER="build system open-url %s"
+     urlscan
+   else
+     echo "no url finder"
+   fi
 }
 
 a="$1"
@@ -88,6 +97,8 @@ elif [ "$a" == "copy" ]; then
     system::copy "$@"
 elif [ "$a" == "open-url" ]; then
     system::open-url "$@"
+elif [ "$a" == "find-url" ]; then
+    system::find-url "$@"
 else
     echo "battery: battery percentage"
     echo "os: get OS name"
@@ -97,4 +108,5 @@ else
     echo "online: bool can reach google"
     echo "copy: copy to clipboard"
     echo "open-url: open url"
+    echo "find-url: find and open url"
 fi

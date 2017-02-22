@@ -18,6 +18,7 @@ pathadd /usr/texbin
 pathadd /usr/bin
 
 export EDITOR=`which vim`; export VISUAL=$EDITOR
+export BROWSER="build system open-url"
 export MAILDIR=~/.mail
 export KHARD_CONFIG=~/.khard
 export LOCALDOT=~/.local-dot
