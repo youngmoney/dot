@@ -44,6 +44,8 @@ if [ "$1" == "--short" ]; then return 0; fi
 alias today="status today -l 20";
 alias muttr="status mail"
 
+alias pass="build pass"
+
 alias gh="build github";
 alias gt="build gitolite"
 alias gs="git status";
