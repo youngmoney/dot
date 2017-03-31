@@ -209,12 +209,13 @@ class TodoList:
                 matches = self.search(ref, graph)
                 if len(matches) == 1:
                     match = list(matches)[0]
+                    orig = item
                     if swap:
-                        item, match = match, item
+                        orig, match = match, orig
                     if DEBUG:
                         print 'setting', item.summary, '->', match.summary
-                    item.add_dependency(match)
-                    match.add_depender(item)
+                    orig.add_dependency(match)
+                    match.add_depender(orig)
                 else:
                     pass
 
