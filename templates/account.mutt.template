@@ -23,3 +23,4 @@ color index         blue            default         "~U~C$username$!~D!~P"      
 color index         blue            default         "~v~(~N)~C$username$!~D!~P"                   # collapsed thread with some unread
 color index         blue            default         "~v~(~O)~C$username$!~D!~P"                   # collapsed thread with some unread
 color index         black           default         "!~(!~hReferences|~F|~sfwd|~C$username$)!~D"  # muted
+color body cyan default "($username$)"
