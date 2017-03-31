@@ -174,9 +174,9 @@ map ]k :lprevious<Return>
 map ]j :lnext<Return>
 map ,f :YcmCompleter FixIt<Return>
 
-nmap ss <Plug>(easymotion-overwin-f)
-nmap jj <Plug>(easymotion-j)
-nmap kk <Plug>(easymotion-k)
+nmap gs <Plug>(easymotion-overwin-f)
+nmap gj <Plug>(easymotion-j)
+nmap gk <Plug>(easymotion-k)
 
 autocmd BufRead,BufNewFile .cron set ft=crontab
 autocmd Filetype java set errorformat+=%A%f:%l:\ %m,%-Z%p^,%-C%.%#
