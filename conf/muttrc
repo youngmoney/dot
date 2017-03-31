@@ -173,6 +173,7 @@ color signature     brightgreen     default
 color bold          black           default
 color underline     black           default
 color normal        default         default
+color body cyan default "(changed)"
 
 ## pgp
 
