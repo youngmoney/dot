@@ -138,6 +138,8 @@ list-apt() {
 }
 
 store-brew-tap() {
+    command -v brew >/dev/null || \
+     run-quiet "Installing homebrew" install-brew
     store-abstract brew-tap "brew tap --list" "$1"
 }
 

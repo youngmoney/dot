@@ -4,9 +4,13 @@ if command -v realpath >/dev/null 2>&1; then
 elif command -v readlink >/dev/null 2>&1 \
     && readlink --canonicalize-existing ~ >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(readlink --canonicalize-existing ${BASH_SOURCE[0]}))"
-else
+elif command -v readlink >/dev/null 2>&1; then
+    SCRIPTS="$(dirname $(readlink ${BASH_SOURCE[0]}))"
+fi
+
+if [ "$SCRIPTS" == "" ] || [ "$SCRIPTS" == "${HOME}" ]; then
     SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)
-    if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; exit 1; fi
+    if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; fi
 fi
 pathadd() { [[ ":$PATH:" != *":$1:"* ]] && export PATH="${PATH:+"$PATH:"}$1"; }
 pathaddfirst() { [[ ":$PATH:" != *":$1:"* ]] && export PATH="$1${PATH:+":$PATH"}"; }
@@ -163,7 +167,7 @@ setup-account() {
 
 setup-git() {
     default_email=git@taylorlmoney.com
-    read -p "git email[$default_email]: " email
+    read -p "git email [$default_email]: " email
     if [ "$email" == "" ]; then email="$default_email"; fi
     build template fill --email "$email" $DOT/templates/git.bash.template > $LOCALDOT/conf/git.bash
     . $LOCALDOT/conf/git.bash
