@@ -169,7 +169,7 @@ map <leader>c :make check -s<Return>:call ShowErrors()<Return>
 
 map <leader>k :cprevious<Return>
 map <leader>j :cnext<Return>
-map <leader>c :cclose<Return>
+map <leader>C :cclose<Return>
 map ]k :lprevious<Return>
 map ]j :lnext<Return>
 map ,f :YcmCompleter FixIt<Return>

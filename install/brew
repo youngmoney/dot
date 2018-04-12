@@ -1,5 +1,6 @@
 bash-completion
 binutils
+bitlbee
 coreutils
 ctags
 duti
@@ -24,3 +25,4 @@ reattach-to-user-namespace
 ruby
 tmux
 vim
+weechat

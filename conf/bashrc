@@ -87,20 +87,43 @@ else
 fi
 
 # Pretty
-check_start() { command_timer=${command_timer:-$(date +%s)}; }
-check_end() { [[ $(($(date +%s) - $command_timer)) -ge 10 ]] && tput bel; unset command_timer; }
-trap 'check_start' DEBUG;
+check_date() {
+    date +"%Y-%m-%d %T (%Z %z)"
+}
+check_start() {
+    export command_timer=${command_timer:-$(date +%s)}
+    export command_start=${command_start:-$(check_date)}
+}
+check_end() {
+    local runtime=$(($(date +%s)  - $command_timer))
+    export command_runtime="from command_start to $(check_date) in ${runtime}s"
+    if [[ "$runtime" -ge 10 ]]; then
+        tput bel
+    fi
+    unset command_timer
+    unset command_start
+}
 if [ ! -f $LOCALDOT/status/home.me ]; then COMPNAME="\e[31m@$(hostname | cut -c 1-10)\e[0m"; fi
 current_path() { pwd | sed 's:^'${HOME}':~:'; }; get_current_path() { current_path; }
 get_jobs() { [ "$(jobs | wc -l | grep -v '^ *0$')" ] && echo '&'; }
-export PS1="\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\$(get_current_path)\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\]\$(check_end)
-\$(get_jobs)$ "
+export PS1="\[\033[0;90m\]\${command_runtime}
+\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\$(get_current_path)\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\]
+\[\033[0;90m\]\$(get_jobs)$\[\033[0;0m\] "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
 . build --completion
+
+trap 'check_start' DEBUG
+unset PROMPT_COMMAND
+
+shopt -s histappend
+export HISTSIZE= HISTFILESIZE=
+export HISTFILE=~/.bash_eternal_history
+
 commandadd() { grep "$1" <<< "$PROMPT_COMMAND" >/dev/null || PROMPT_COMMAND="$1; $PROMPT_COMMAND"; }
-commandadd ". build virtualenv auto-activate"
-commandadd "refresh"
 commandadd "check_end"
+commandadd ". build virtualenv auto-activate"
+commandadd "history -a"
+commandadd "refresh"
 
 ssh-setup() {
     ssh-share $1;

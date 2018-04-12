@@ -103,7 +103,13 @@ dashboard() {
         sleep 5
     done
 }
-do_mail() { while [ "" == "" ]; do mutt; (mu index -q 2>/dev/null &); done; }
+do_mail() {
+    while [ "" == "" ]; do
+        mutt
+        (mu index -q 2>/dev/null &)
+        echo -e '\033kMutt\033\\'
+    done
+}
 
 khal-up() {
     O="$1"
