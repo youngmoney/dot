@@ -100,7 +100,7 @@ check_start() {
 }
 check_end() {
     local runtime=$(($(date +%s)  - $command_timer))
-    export command_runtime="from command_start to $(check_date) in ${runtime}s"
+    export command_runtime="from ${command_start} to $(check_date) in ${runtime}s"
     if [[ "$runtime" -ge 10 ]]; then
         tput bel
     fi
