@@ -4,9 +4,13 @@ if command -v realpath >/dev/null 2>&1; then
 elif command -v readlink >/dev/null 2>&1 \
     && readlink --canonicalize-existing ~ >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(readlink --canonicalize-existing ${BASH_SOURCE[0]}))"
-else
+elif command -v readlink >/dev/null 2>&1; then
+    SCRIPTS="$(dirname $(readlink ${BASH_SOURCE[0]}))"
+fi
+
+if [ "$SCRIPTS" == "" ] || [ "$SCRIPTS" == "${HOME}" ]; then
     SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)
-    if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; exit 1; fi
+    if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; fi
 fi
 DOT="$(cd $SCRIPTS/..; pwd -P)"
 pathadd() { [[ ":$PATH:" != *":$1:"* ]] && export PATH="${PATH:+"$PATH:"}$1"; }
