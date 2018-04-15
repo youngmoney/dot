@@ -85,7 +85,7 @@ if __name__ == '__main__':
     elif not sys.stdin.isatty():
         s = sys.stdin.read()
     else:
-        sys.stderr.write("[file] [--var value]*\n")
+        sys.stderr.write("[file] [-v] [--var value]*\n")
         exit(1)
 
     v = OrderedDict()
@@ -101,4 +101,9 @@ if __name__ == '__main__':
     for pre in predefined:
         v[pre] = predefined[pre]
     s = replace_vars(s, v)
+    if 'v' in fl:
+        vs = []
+        for i in v:
+            vs.append('"--%s" "%s"' % (i, v[i]))
+        print(' '.join(vs))
     print(s)

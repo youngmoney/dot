@@ -8,8 +8,11 @@ def getMetaValue(meta, field):
     return None
 
 def readin():
+  print "hi"
   jsonText = sys.stdin.read()
   jsonObj = json.loads(jsonText)
+  print "hello"
+  print jsonObj
   meta = jsonObj[0]["unMeta"]
   content = jsonObj[1]
 

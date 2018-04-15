@@ -18,5 +18,6 @@ if [ "$arg" == "fill" ]; then
 elif [ "$arg" == "example" ]; then
     example_template $@
 else
-    echo "fill <file>: read file, and fill out as template"
+    echo "fill [-v] [--outfile file] <file>: read file, and fill out as template"
+    echo "if -v then echo the templates as command line arguments first"
 fi

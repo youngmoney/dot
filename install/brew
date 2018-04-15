@@ -8,7 +8,6 @@ gcc
 gdb
 git
 gnupg
-gnupg2
 gobject-introspection
 llvm
 lynx
@@ -17,7 +16,6 @@ msmtp
 mu
 mutt
 pandoc
-pass
 perl
 python
 python3

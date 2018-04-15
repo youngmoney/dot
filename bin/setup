@@ -5,7 +5,7 @@ elif command -v readlink >/dev/null 2>&1 \
     && readlink --canonicalize-existing ~ >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(readlink --canonicalize-existing ${BASH_SOURCE[0]}))"
 elif command -v readlink >/dev/null 2>&1; then
-    SCRIPTS="$(dirname $(readlink ${BASH_SOURCE[0]}))"
+    SCRIPTS="$(dirname $(readlink ${BASH_SOURCE[0]}) 2>/dev/null)"
 fi
 
 if [ "$SCRIPTS" == "" ] || [ "$SCRIPTS" == "${HOME}" ]; then
@@ -64,7 +64,7 @@ me() {
 go() {
     [ "$1" == "--no" ] && local no="--no" || local no=""
 
-    mkdir -p $LOCALDOT/{status,conf,commands,account}
+    mkdir -p $LOCALDOT/{status,conf,commands,accounts}
     mkdir -p ~/.mail ~/.calendar ~/.contacts
     mkdir -p ~/.tmp
 
@@ -149,7 +149,7 @@ setup-install() {
     command -v mu >/dev/null 2>&1 && run-quiet "Indexing with mu" mu index -m ~/.mail
     echo "The following extras must be installed on their own"
     echo 'peppermint'
-    if [ "$1" != "--no" ]; then
+    if [ "$1" != "--no" ] && [ "$1" != "no" ]; then
         read -p "Run Setups? [yes] " r
         if [ "$r" == "" ]; then
             open $DOT/conf/taylormint.terminal
@@ -158,11 +158,15 @@ setup-install() {
 }
 
 setup-account() {
-    read -p "Add Account? " q
-    while [ "$q" == "" ]; do
-        $DOT/templates/account.template
+    if [ "$1" != "" ]; then
+        $DOT/templates/account.template "$@"
+    else
         read -p "Add Account? " q
-    done
+        while [ "$q" == "" ]; do
+            $DOT/templates/account.template
+            read -p "Add Account? " q
+        done
+    fi
 }
 
 setup-git() {
@@ -194,6 +198,8 @@ elif [ "$a" == "no" ]; then
     go --no "$@"
 elif [ "$a" == "me" ]; then
     me "$@"
+elif [ "$a" == "install" ]; then
+    setup-install "$@"
 else
     echo "git: run git setup"
     echo "account: run account setup"
@@ -201,6 +207,7 @@ else
     echo "go/all: run everything"
     echo "no: run everything, ask no questions"
     echo "me: download from drive, and setup"
+    echo "install: install (accepts no)"
 fi
 
 # https://github.com/odeke-em/drive

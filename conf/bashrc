@@ -5,9 +5,8 @@ elif command -v readlink >/dev/null 2>&1 \
     && readlink --canonicalize-existing ~ >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(readlink --canonicalize-existing ${BASH_SOURCE[0]}))"
 elif command -v readlink >/dev/null 2>&1; then
-    SCRIPTS="$(dirname $(readlink ${BASH_SOURCE[0]}))"
+    SCRIPTS="$(dirname $(readlink ${BASH_SOURCE[0]}) 2>/dev/null)"
 fi
-
 if [ "$SCRIPTS" == "" ] || [ "$SCRIPTS" == "${HOME}" ]; then
     SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)
     if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; fi

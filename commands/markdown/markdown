@@ -136,7 +136,8 @@ def parse_and_run():
 
     file_name = ".".join(filename.split(".")[:-1])
     outfile = file_name+"."+ext
-    command = ["pandoc", args.filename, "-o", outfile, "--template", template, "--filter", script_directory+"/section.filter.py"]
+    command = ["pandoc", args.filename, "-o", outfile, "--template", template]
+    #command +=["--filter", script_directory+"/section.filter.py"]
     command.extend(["--var", "filename="+file_name])
     if "args" in meta: 
         command.extend(meta["args"].split(" "))

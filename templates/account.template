@@ -11,17 +11,16 @@ new-contact() {
         username="$3"
         clientid="$4"
         secret="$5"
-        refresh="$6"
 
-        config="$OUT/account.$account.contact.vdirsyncer"
+        local config="$OUT/account.$account.contact.vdirsyncer"
 
         build template fill --name "$account" --username "$username"\
-                            --clientid "$clientid" --secret "$secret" --refresh "$refresh"\
+                            --clientid "$clientid" --secret "$secret"\
                             "$SCRIPTS/account.vdirsyncer.contact.template" > "$config"
         vdirsyncer -c "$config" discover
         vdirsyncer -c "$config" metasync
         rm ~/.vdirsyncer/status/${account}_contacts/*
-        vdirsyncer -c "$config" sync
+        # vdirsyncer -c "$config" sync
 }
 
 new-calendar() {
@@ -30,17 +29,16 @@ new-calendar() {
         username="$3"
         clientid="$4"
         secret="$5"
-        refresh="$6"
 
-        config="$OUT/account.$account.calendar.vdirsyncer"
+        local config="$OUT/account.$account.calendar.vdirsyncer"
 
         build template fill --name "$account" --username "$username"\
-                            --clientid "$clientid" --secret "$secret" --refresh "$refresh"\
+                            --clientid "$clientid" --secret "$secret"\
                             "$SCRIPTS/account.vdirsyncer.calendar.template" > "$config"
         vdirsyncer -c "$config" discover
         vdirsyncer -c "$config" metasync
         rm ~/.vdirsyncer/status/${account}_calendar/*
-        vdirsyncer -c "$config" sync
+        # vdirsyncer -c "$config" sync
 }
 
 new-email() {
@@ -49,7 +47,6 @@ new-email() {
         username="$3"
         clientid="$4"
         secret="$5"
-        refresh="$6"
 
         build mail gmail-auth --generate_oauth2_token "--client_id=$clientid" "--client_secret=$secret"
         read -p "refresh token: " refresh
@@ -78,9 +75,13 @@ new-email() {
         echo "$username" > "$config_name"
 }
 
+get-variable() {
+grep "$1" | awk -F': ' '{for (i=2; i<NF; i++) printf $i " "; print $NF}'
+}
+
 new-account() {
-    clientid="$ACCOUNT_GOOGLE_CLIENTID"
-    secret="$ACCOUNT_GOOGLE_SECRET"
+    local clientid="$ACCOUNT_GOOGLE_CLIENTID"
+    local secret="$ACCOUNT_GOOGLE_SECRET"
     if [ "$clientid" == "" ]; then
         echo "No ACCOUNT_GOOGLE_CLIENDID found"
         echo "https://console.developers.google.com/apis/library"
@@ -89,39 +90,89 @@ new-account() {
     if [ "$secret" == "" ]; then
         read -p "please specify a client secret: " secret
     fi
-    read -p "username: " username
-    if [ "$username" != "" ]; then
-        possible_account=${username%%@*}
+
+    local username
+    local account
+    local short
+
+    local config_file="$1"
+
+    local potential_config_file="${OUT}/account.${config_file}.account"
+    if [ ! -e "$config_file" ] && [ -e "$potential_config_file" ]; then
+            config_file="${potential_config_file}"
+    fi
+
+    if [ -e "$config_file" ]; then
+        username=$(cat "$config_file" | get-variable username)
+        account=$(cat "$config_file" | get-variable account)
+        short=$(cat "$config_file" | get-variable short)
+    elif [ "$config_file" != "" ]; then
+        echo "config not found ${config_file}"
+        return
+    else
+        config_file=/dev/null
+    fi
+
+    if [ "$username" == "" ]; then
+        read -p "username: " username
+    fi
+    if [ "$account" == "" ]; then
+        local possible_account=${username%%@*}
         read -p "account name [$possible_account]: " account
         if [ "$account" == "" ]; then
             account="$possible_account"
         fi
+    fi
 
+    if  [ "$short" == "" ]; then
         domain=${username##*@}
         short="$(echo $account | head -c 1)"
         read -p "shortname [$short]: " potential_short
-        if [ "$potential_shortk" != "" ]; then
+        if [ "$potential_short" != "" ]; then
             short="$potential_short"
         fi
-
-        read -p "add as email? " q
-        if [ "$q" == "" ]; then
-            mkdir -p ~/.mail
-            new-email "$account" "$short" "$username" "$clientid" "$secret" "$refresh"
-        fi
-
-        read -p "add as calendar? " q
-        if [ "$q" == "" ]; then
-            mkdir -p ~/.calendar
-            new-calendar "$account" "$short" "$username" "$clientid" "$secret" "$refresh"
-        fi
-
-        read -p "add as contact? " q
-        if [ "$q" == "" ]; then
-            mkdir -p ~/.contacts
-            new-contact "$account" "$short" "$username" "$clientid" "$secret" "$refresh"
-        fi
     fi
+
+    if [ "$username" == "" ] || [ "$account" == "" ] || [ "$short" == "" ]; then
+        echo "leave nothing blank"
+        return
+    fi
+
+    local config="${OUT}/account.$account.account"
+    echo "username: ${username}" >> "$config.new"
+    echo "account: ${account}" >> "$config.new"
+    echo "short: ${short}" >> "$config.new"
+
+    q=$(cat "$config" | get-variable has_email)
+    [ "$q" ] || read -p "add as email? " q
+    if [ "$q" == "" ] || [ "$q" == "yes" ]; then
+        mkdir -p ~/.mail
+        new-email "$account" "$short" "$username" "$clientid" "$secret"
+        echo "has_email: yes" >> "$config.new"
+    else
+        echo "has_email: no" >> "$config.new"
+    fi
+
+    q=$(cat "$config" | get-variable has_calendar)
+    [ "$q" ] || read -p "add as calendar? " q
+    if [ "$q" == "" ] || [ "$q" == "yes" ]; then
+        mkdir -p ~/.calendar
+        new-calendar "$account" "$short" "$username" "$clientid" "$secret"
+        echo "has_calendar: yes" >> "$config.new"
+    else
+        echo "has_calendar: no" >> "$config.new"
+    fi
+
+    q=$(cat "$config" | get-variable has_contact)
+    [ "$q" ] || read -p "add as contact? " q
+    if [ "$q" == "" ] || [ "$q" == "yes" ]; then
+        mkdir -p ~/.contacts
+        new-contact "$account" "$short" "$username" "$clientid" "$secret"
+        echo "has_contact: yes" >> "$config.new"
+    else
+        echo "has_contact: no" >> "$config.new"
+    fi
+    mv "$config.new" "$config"
 }
 
 new-account $@

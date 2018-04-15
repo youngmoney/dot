@@ -32,7 +32,7 @@ search-google() {
 search-mac() {
     name="$@"
     if exists contacts; then
-        contacts -Sf '%eTOKEN%n' "$name" | sed -e 's/TOKEN/	/g' | grep -v "error:"
+        contacts -Sf '%eTOKEN%n' "$name" 2>/dev/null | sed -e 's/TOKEN/	/g' | grep -v "error:"
     fi
 }
 
@@ -54,7 +54,7 @@ search-mu() {
 search-khard() {
     name="$@"
     if exists khard; then
-        khard email -p "$name" 2>/dev/null | awk -F '    ' '{print $1 "	" $2}' | grep -v "E-Mail" | grep -v "Found no"
+        khard email -p "$name" 2>/dev/null | grep -v "E-Mail" | grep -v "Error" | grep -v "Found no" |sed '/^ */d' | awk -F '    ' '{print $1 "	" $2}'
     fi
 }
 

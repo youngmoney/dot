@@ -10,7 +10,7 @@ pipdeptree
 pylint
 scipy
 urlscan
-vboxapi
 virtualenv
 wheel
 wsgiref
+pyyaml
