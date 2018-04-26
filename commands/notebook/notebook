@@ -158,8 +158,15 @@ def run(filename, meta, line_to_exec):
     combined = blocked
 
     exec_options = {}
+    if 'notebook' in meta:
+        meta = meta['notebook']
     if 'command' in meta:
         exec_options['command'] = meta['command'].split(' ')
+
+    indent = False
+    if 'quote' in meta:
+        indent = True
+
 
     outputs = []
     for i in range(len(combined)):
@@ -170,6 +177,9 @@ def run(filename, meta, line_to_exec):
                     continue
             o = execute(item.get_code(), **exec_options)
             o = o.rstrip('\n')
+            if indent:
+                ind = '>        '
+                o = '\n'.join([ind+p for p in o.split('\n')])
             outputs.append((i,Item(wrap_output([o]), Item.OUTPUT_TYPE)))
 
     inserts = 0
