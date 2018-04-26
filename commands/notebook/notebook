@@ -1,0 +1,198 @@
+#!/usr/bin/env python2.7
+from argparse import ArgumentParser
+import sys, os, subprocess
+import yaml
+
+def read_meta(f):
+    md = open(f, "r")
+    meta = []
+    reading_meta = False
+    for l in md.readlines():
+        line = l.strip("\n")
+        if line == "---":
+            reading_meta = not reading_meta
+        elif reading_meta:
+            meta.append(line)
+
+    metaDict = yaml.safe_load("\n".join(meta))
+    if not metaDict: return {}
+    return metaDict
+
+def parse_and_run():
+    parser = ArgumentParser(description="Execute Markdown Code Blocks")
+
+    parser.add_argument("--line", type=int, help="line to execute")
+
+    parser.add_argument("filename", help="Markdown file")
+    args = parser.parse_args()
+
+    if not os.path.isfile(args.filename):
+        args.filename = args.filename+".md"
+    if not os.path.isfile(args.filename):
+        raise ValueError("Could Not Find File "+args.filename)
+    filename = args.filename
+
+    meta = read_meta(args.filename)
+
+    run(filename, meta, args.line)
+
+
+OUTPUT_START = '<!-- notebook start output -->'
+OUTPUT_END= '<!-- notebook end output -->'
+
+def wrap_output(l):
+    return [OUTPUT_START]+l+[OUTPUT_END]
+
+class Item(object):
+    CODE_TYPE = "CODE_TYPE"
+    TEXT_TYPE = "TEXT_TYPE"
+    OUTPUT_TYPE = "OUTPUT_TYPE"
+
+    def __init__(self, lines, type=TEXT_TYPE):
+        self.lines = lines
+        self.type = type
+        self.output_item = None
+        self.output = None
+        self.start = -1
+        self.end = -1
+
+    def set_range(self, start, end):
+        self.start = start
+        self.end = end
+
+    def has_line(self, l):
+        return self.start <= l and l <= self.end
+
+    def get_lines(self):
+        return self.lines
+
+    def set_output(self, output):
+        assert self.type == Item.CODE_TYPE
+        self.output = output
+
+    def set_output_item(self, output_item):
+        assert self.type == Item.CODE_TYPE
+        self.output_type = output_type
+
+    def get_code(self):
+        assert self.type == Item.CODE_TYPE
+        return ''.join(self.lines[1:-1])
+
+    def get_command(self):
+        assert self.type == Item.CODE_TYPE
+        return None
+
+    def get_type(self):
+        return self.type
+
+    def __repr__(self):
+        return '<Item: %s>\n%s</Item>' % (self.type, self.lines)
+
+MARK_CODE = '```'
+
+def mark(lines):
+    output = []
+    for l in lines:
+        stripped = l.strip()
+        mark = None
+        if stripped.startswith(MARK_CODE):
+            mark = MARK_CODE
+        elif stripped == OUTPUT_START:
+            mark = OUTPUT_START
+        elif stripped == OUTPUT_END:
+            mark = OUTPUT_END
+        output.append((l.rstrip('\n'), mark))
+    return output
+
+def find_end(marks, start, match):
+    for i in range(start, len(marks)):
+        if match(marks[i][0], marks[i][1]):
+            return i
+    raise ValueError("error looking for end of from line %d" % (start))
+
+
+def block(marks):
+    sets = []
+    skip = 0
+    for i in range(len(marks)):
+        if skip > 0:
+            skip -= 1
+            continue
+        l, m = marks[i]
+        if m == MARK_CODE:
+            j = find_end(marks, i+1, lambda l,m: m == MARK_CODE)
+            sets.append((i,j, Item.CODE_TYPE))
+            skip = j-i
+        if m == OUTPUT_START:
+            j = find_end(marks, i+1, lambda l,m: m == OUTPUT_END)
+            sets.append((i,j, Item.OUTPUT_TYPE))
+            skip = j-i
+
+    lines = [l for l,m in marks]
+    blocks = []
+    last_i = 0
+    for s in sets:
+        i, j, t = s
+        if last_i < i:
+            blocks.append(Item(lines[last_i:i]))
+
+        item = Item(lines[i:j+1], t)
+        item.set_range(i,j)
+        blocks.append(item)
+        last_i = j+1
+
+    if last_i < len(lines):
+        blocks.append(Item(lines[last_i:i]))
+    return blocks
+
+def execute(code, command=['bash']):
+    interpreter = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = interpreter.communicate(code)
+    return stdout + stderr
+
+def run(filename, meta, line_to_exec):
+    md = open(filename, 'r')
+    contents = md.readlines()
+    marked = mark(contents)
+    blocked = block(marked)
+    combined = blocked
+
+    exec_options = {}
+    if 'command' in meta:
+        exec_options['command'] = meta['command'].split(' ')
+
+    outputs = []
+    for i in range(len(combined)):
+        item = combined[i]
+        if item.get_type() == Item.CODE_TYPE:
+            if line_to_exec is not None:
+                if not item.has_line(line_to_exec):
+                    continue
+            o = execute(item.get_code(), **exec_options)
+            o = o.rstrip('\n')
+            outputs.append((i,Item(wrap_output([o]), Item.OUTPUT_TYPE)))
+
+    inserts = 0
+    for i,o in outputs:
+        inserts += 1
+        combined.insert(i+inserts,Item(['']))
+        inserts += 1
+        combined.insert(i+inserts,o)
+
+    lines = []
+    prev = None
+    for item in combined:
+        if prev and prev.type == Item.OUTPUT_TYPE and item.type == prev.type:
+            continue
+        if prev  and prev.type == Item.OUTPUT_TYPE and item.type == Item.TEXT_TYPE:
+            if item.get_lines() == ['']:
+                continue
+        prev = item
+        lines += item.get_lines()
+
+    md_out = open(filename, 'w')
+    md_out.write('\n'.join(lines))
+    md_out.close()
+
+if __name__ == "__main__":
+    exit(0 if parse_and_run() else 1)
