@@ -188,6 +188,8 @@ autocmd Filetype ruby map <leader>b :w<Return>:!ruby %<Return>
 autocmd Filetype ruby map <leader>r :w<Return>:!ruby %<Return>
 autocmd Filetype markdown map <leader>r :w<Return>:execute "!build markdown -o %"<Return><Return>
 autocmd Filetype markdown map <leader>b :w<Return>:execute "!build markdown -o %"<Return>
+autocmd Filetype markdown map <leader>e :w<Return>:call system("build notebook --line " . line('.') . " ".  bufname("%"))<Return>
+autocmd Filetype markdown map <leader>E :w<Return>:call system("build notebook " . bufname("%"))<Return>
 autocmd Filetype rmd map <leader>r :w<Return>:execute "!R -e \"rmarkdown::render('%','pdf_document')\""<Return><Return>
 autocmd Filetype rmd map <leader>b :w<Return>:execute "!R -e \"rmarkdown::render('%')\""<Return><Return>
 autocmd Filetype r map <leader>r :w<Return>:execute "!R -e \"library(knitr); knitr::stitch('%')\""<Return><Return>
