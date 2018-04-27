@@ -342,7 +342,6 @@ def run(filename, meta, full_meta, lines_to_exec):
                 lines = lines[:-1]
                 i += 1
                 continue
-        prev = item
         i += 1
         lines += item.get_lines()
 
