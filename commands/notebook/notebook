@@ -3,6 +3,9 @@ from argparse import ArgumentParser
 import sys, os, subprocess, copy, re, datetime
 import yaml
 
+def error(line, msg):
+    return ValueError("Error line %s: %s" % (line, msg))
+
 def read_defaults(d, name="defaults.yaml"):
     f = os.path.join(d, name)
     try:
@@ -64,12 +67,44 @@ def parse_and_run():
 
     parser.add_argument("filename", help="Markdown file")
     args = parser.parse_args()
+    try:
+        prerun(args)
+    except Exception as e:
+        print e
+        return False
 
+
+def prerun(args):
     if not os.path.isfile(args.filename):
         args.filename = args.filename+".md"
     if not os.path.isfile(args.filename):
-        raise ValueError("Could Not Find File "+args.filename)
+        raise error(0, "Could Not Find File "+args.filename)
     filename = args.filename
+
+    lines_to_exec = []
+    if args.line:
+        for l in args.line.split(','):
+            parts = l.split('-')
+            def make_int(p):
+                try:
+                    return int(p)
+                except:
+                    raise error(0, 'invalid line option: %s' % p)
+            if len(parts) == 1:
+                i = make_int(parts[0])
+                lines_to_exec.append((i,i))
+            elif len(parts) == 2:
+                i = 0
+                j = sys.maxsize
+                if parts[0]:
+                    i = make_int(parts[0])
+                if parts[1]:
+                    j = make_int(parts[1])
+                if i > j:
+                    raise error(0, 'invalid line option: %s'% l)
+                lines_to_exec.append((i,j))
+            else:
+                raise error(0, 'invalid --line %s' % args.line)
 
     full_meta = read_meta(args.filename)
     meta = full_meta
@@ -84,7 +119,7 @@ def parse_and_run():
         meta = defaults
     else:
         meta = merge_dict(defaults, meta)
-    run(filename,meta , full_meta, args.line)
+    run(filename,meta , full_meta, lines_to_exec)
 
 
 OUTPUT_START = '<!-- notebook output start -->'
@@ -126,8 +161,10 @@ class Item(object):
         self.start = start
         self.end = end
 
-    def has_line(self, l):
-        return self.start <= l and l <= self.end
+    def has_line_overlap(self, start, end):
+        return start <= self.start and end >= self.start or\
+                end >= self.end and start <= self.end or\
+                start >= self.start and end <= self.end
 
     def get_lines(self):
         return self.lines
@@ -169,7 +206,7 @@ def find_end(marks, start, match):
     for i in range(start, len(marks)):
         if match(marks[i][0], marks[i][1]):
             return i
-    raise ValueError("error looking for end of from line %d" % (start))
+    raise error(start, "unterminated block")
 
 
 def block(marks):
@@ -206,7 +243,7 @@ def block(marks):
         blocks.append(Item(lines[last_i:i]))
     return blocks
 
-def fill_in_command(c, r, code, f):
+def fill_in_command(c, r, f):
     o = []
     u = []
     for p in c:
@@ -223,13 +260,6 @@ def fill_in_command(c, r, code, f):
                 if n > 0 and n-1 < len(r):
                     s = r[n-1]
                     u.append(n-1)
-            content = '_content'
-            if not s and m.startswith(content):
-                s = code
-                if m == content+'_joined':
-                    s = s.replace('\n', ' ')
-                if m == content+'_joined_strict':
-                    s = s.replace('\n', '')
             if s:
                 p = p.replace('$%s$' % (m), str(s))
 
@@ -241,7 +271,7 @@ def fill_in_command(c, r, code, f):
 def execute(code,meta, full_meta):
     command = get_option('command', meta)
     if not command:
-        raise ValueError("No command")
+        raise error(0, "no command")
     command = command.split(' ')
     rest = []
     if not '.' in command[0]:
@@ -249,23 +279,34 @@ def execute(code,meta, full_meta):
         if possible:
             rest = command[1:]
             command = possible.split(' ')
-    command = fill_in_command(command, rest, code, full_meta)
-    interpreter = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = interpreter.communicate(code)
-    return (stdout + stderr).rstrip('\n').split('\n')
+    command = fill_in_command(command, rest, full_meta)
+    try:
+        interpreter = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = interpreter.communicate(code)
+        out = stdout + stderr
+    except Exception as e:
+        out = 'Error executing %s:\n%s' % (command, str(e))
+
+    return out.rstrip('\n').split('\n')
 
 def wrap_output(l, code, meta):
     IND = '>        '
     display = get_option('display', meta)
     displays = ['quote', 'raw']
     if display not in displays:
-        raise ValueError('Display "%s" not in %s' % (display, displays))
+        raise error(0, 'display "%s" not in %s' % (display, displays))
     if display == 'quote':
         l = [IND+li for li in l]
     date = '<!-- notebook output modified %s -->' % (datetime.datetime.now().strftime("%Y-%m-%d %T"))
     return [OUTPUT_START, date]+l+[OUTPUT_END]
 
-def run(filename, meta, full_meta, line_to_exec):
+def check_lines(item, lines):
+    for s,e in lines:
+        if item.has_line_overlap(s,e):
+            return True
+    return False
+
+def run(filename, meta, full_meta, lines_to_exec):
     md = open(filename, 'r')
     contents = md.readlines()
     marked = mark(contents)
@@ -276,8 +317,8 @@ def run(filename, meta, full_meta, line_to_exec):
     for i in range(len(combined)):
         item = combined[i]
         if item.get_type() == Item.CODE_TYPE:
-            if line_to_exec is not None:
-                if not item.has_line(int(line_to_exec)):
+            if lines_to_exec:
+                if not check_lines(item, lines_to_exec):
                     continue
             opts = merge_dict(meta, item.get_options())
             o = execute(item.get_code(), opts, full_meta)

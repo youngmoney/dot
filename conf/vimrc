@@ -180,6 +180,28 @@ nmap gs <Plug>(easymotion-overwin-f)
 nmap gj <Plug>(easymotion-j)
 nmap gk <Plug>(easymotion-k)
 
+function! RunNotebook(mode) range
+    write
+    if a:mode == 0
+        cexpr system("build notebook " . bufname("%"))
+    endif
+    if a:mode == 1
+        cexpr system("build notebook --line " . a:firstline . "-" . a:lastline . " ".  bufname("%"))
+    endif
+    if a:mode == 2
+        cexpr system("build notebook --line " . line('.') . "- ".  bufname("%"))
+    endif
+endfunction
+
+function! RunMarkdown(mode)
+    if a:mode == 0
+        cexpr system("build markdown " . bufname("%"))
+    endif
+    if a:mode == 1
+        cexpr system("build markdown -o " . bufname("%"))
+    endif
+endfunction
+
 autocmd BufRead,BufNewFile .cron set ft=crontab
 autocmd Filetype java set errorformat+=%A%f:%l:\ %m,%-Z%p^,%-C%.%#
 autocmd Filetype java set makeprg=javac\ %
@@ -188,14 +210,11 @@ autocmd Filetype python map <leader>r :w<Return>:!python %<Return>
 autocmd FileType python map <leader>f :w<Return>:call Flake8()<CR>
 autocmd Filetype ruby map <leader>b :w<Return>:!ruby %<Return>
 autocmd Filetype ruby map <leader>r :w<Return>:!ruby %<Return>
-autocmd Filetype markdown map <leader>r :w<Return>:execute "!build markdown -o %"<Return><Return>
-autocmd Filetype markdown map <leader>b :w<Return>:execute "!build markdown -o %"<Return>
-autocmd Filetype markdown map <leader>e :w<Return>:call system("build notebook --line " . line('.') . " ".  bufname("%"))<Return>
-autocmd Filetype markdown map <leader>E :w<Return>:call system("build notebook " . bufname("%"))<Return>
-autocmd Filetype rmd map <leader>r :w<Return>:execute "!R -e \"rmarkdown::render('%','pdf_document')\""<Return><Return>
-autocmd Filetype rmd map <leader>b :w<Return>:execute "!R -e \"rmarkdown::render('%')\""<Return><Return>
-autocmd Filetype r map <leader>r :w<Return>:execute "!R -e \"library(knitr); knitr::stitch('%')\""<Return><Return>
-autocmd Filetype r map <leader>b :w<Return>:execute "!R -e \"library(knitr); knitr::stitch('%')\""<Return><Return>
+autocmd Filetype markdown map <leader>r :call RunMarkdown(1)<CR>
+autocmd Filetype markdown map <leader>b :call RunMarkdown(0)<CR>
+autocmd Filetype markdown map <leader>E :call RunNotebook(0)<CR>
+autocmd Filetype markdown map <leader>e :call RunNotebook(1)<CR>
+autocmd Filetype markdown map <leader>ee :call RunNotebook(2)<CR>
 
 "Building
 function! ShowErrors()
