@@ -206,11 +206,10 @@ def block(marks):
         blocks.append(Item(lines[last_i:i]))
     return blocks
 
-def fill_in_command(c, r, f):
+def fill_in_command(c, r, code, f):
     o = []
     u = []
     for p in c:
-        print p
         for m in re.findall('\$([\[\]\w\-\.]+)\$', p):
             s = get_option(m, f)
             pre = '_arg['
@@ -221,12 +220,17 @@ def fill_in_command(c, r, f):
                     n = int(pn)
                 except:
                     pass
-                print n, r
                 if n > 0 and n-1 < len(r):
                     s = r[n-1]
                     u.append(n-1)
+            content = '_content'
+            if not s and m.startswith(content):
+                s = code
+                if m == content+'_joined':
+                    s = s.replace('\n', ' ')
+                if m == content+'_joined_strict':
+                    s = s.replace('\n', '')
             if s:
-                print m,s
                 p = p.replace('$%s$' % (m), str(s))
 
         o.append(p)
@@ -245,7 +249,7 @@ def execute(code,meta, full_meta):
         if possible:
             rest = command[1:]
             command = possible.split(' ')
-    command = fill_in_command(command, rest, full_meta)
+    command = fill_in_command(command, rest, code, full_meta)
     interpreter = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = interpreter.communicate(code)
     return (stdout + stderr).rstrip('\n').split('\n')
