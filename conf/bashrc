@@ -73,6 +73,8 @@ alias ls="ls -1F"
 alias refresh=". ~/.bash_profile"
 
 alias n="cd $NOTEDIR && vim scratch.md"
+alias note="cd $NOTEDIR && vim scratch.md"
+alias no="cd $NOTEDIR && vim scratch.md"
 alias vess="vim -R -";
 
 ssh-add ~/.ssh/*_rsa > /dev/null 2>&1

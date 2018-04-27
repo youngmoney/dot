@@ -36,7 +36,7 @@ Bundle 'tpope/vim-surround'
 Bundle 'tomtom/tcomment_vim'
 
 "Text
-Bundle 'vim-pandoc/vim-pandoc-syntax'
+" Bundle 'vim-pandoc/vim-pandoc-syntax'
 Bundle 'dhruvasagar/vim-table-mode'
 
 let pluginrc=$LOCALDOT . '/conf/plugin.vim'
@@ -103,8 +103,9 @@ set vb "t_vb
 colo slate
 set cursorline
 set hlsearch
-autocmd Filetype text set ft=pandoc
-autocmd Filetype pandoc set cursorline!
+autocmd Filetype text set ft=markdown
+autocmd BufNewFile,BufreadPost *.md set ft=markdown
+autocmd Filetype markdown set cursorline!
 autocmd WinEnter * setlocal cursorline
 autocmd WinLeave * setlocal nocursorline
 set fillchars+=vert:\ 
@@ -132,6 +133,7 @@ map ,w :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name")
   \ . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
 
 "Markdown
+let g:markdown_fenced_languages = ['html', 'python', 'bash=sh', 'sh', 'sql']
 autocmd Filetype markdown set updatetime=50
 autocmd Filetype markdown syntax match mdReminder "<!--+.*-->"
 autocmd Filetype markdown highlight link mdReminder Todo
@@ -163,9 +165,9 @@ map <leader>hh :e %:p:s,.h$,.X123X,:s,.cc$,.h,:s,.X123X$,.cc,<CR>
 
 map <leader>gb :execute "!git blame -L".line('.').",+3 ".expand("%")<return>
 
-map <leader>b :make<Return>:call ShowErrors()<Return>
+" map <leader>b :make<Return>:call ShowErrors()<Return>
 "map <leader>r :make run -s<Return>:call ShowErrors()<Return>
-map <leader>c :make check -s<Return>:call ShowErrors()<Return>
+" map <leader>c :make check -s<Return>:call ShowErrors()<Return>
 
 map <leader>k :cprevious<Return>
 map <leader>j :cnext<Return>
@@ -225,19 +227,19 @@ nmap ;; :tab new<return>:QuickSearch
 nmap <leader>; :QuickSearch 
 
 "Highlight Long Lines
-let g:highlight_long_lines=1
-function! HighlightTooLongLines()
-  highlight def link RightMargin Error
-  if &textwidth != 0
-    if g:highlight_long_lines != 0
-      call matchadd('ErrorMsg', '\%>' . &l:textwidth . 'v.\+', -1)
-    endif
-  endif
-endfunction
-augroup highlight_toolong3
-  au!
-  au FileType,BufEnter * call HighlightTooLongLines()
-augroup END
+" let g:highlight_long_lines=1
+" function! HighlightTooLongLines()
+"   highlight def link RightMargin Error
+"   if &textwidth != 0
+"     if g:highlight_long_lines != 0
+"       call matchadd('ErrorMsg', '\%>' . &l:textwidth . 'v.\+', -1)
+"     endif
+"   endif
+" endfunction
+" augroup highlight_toolong3
+"   au!
+"   au FileType,BufEnter * call HighlightTooLongLines()
+" augroup END
 
 
 "Load Local Settings

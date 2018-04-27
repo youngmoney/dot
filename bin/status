@@ -114,10 +114,10 @@ do_mail() {
 khal-up() {
     O="$1"
     if [ "$O" == "" ]; then O=10; fi
-    khal -c ~/.khal list --notstarted --day-format '' --format "{start-time} {title}" "`date '+%Y-%m-%d %I:%M%p'`" "${O}m" | grep -v 'No events' | grep -v '^$'
+    khal -c ~/.khal list --notstarted --day-format '' --format "{start-time} {title}" "`date '+%Y-%m-%d %I:%M%p'`" "${O}m" | grep -v 'No events' | grep -v '^$' | grep ':'
 }
 khal-next() {
-    khal -c ~/.khal list --notstarted --day-format '' --format "{start-time} {title}" "`date '+%Y-%m-%d %I:%M%p'`" eod | grep -v 'No events' | sed 's/^ //' | cut -c 1-25 | grep -v '^$' | head -1
+    khal -c ~/.khal list --notstarted --day-format '' --format "{start-time} {title}" "`date '+%Y-%m-%d %I:%M%p'`" eod | grep -v 'No events' | grep ':' | sed 's/^ //' | cut -c 1-25 | grep -v '^$' | head -1
 }
 khal-agenda() {
     echo
