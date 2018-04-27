@@ -231,7 +231,7 @@ def fill_in_command(c, r, code, f):
                 if m == content+'_joined_strict':
                     s = s.replace('\n', '')
             if s:
-                p = p.replace('$%s$' % (m), str(s))
+                p = p.replace('$%s$' % (m), str(s)).split(' ')
 
         o.append(p)
     for i in reversed(sorted(u)):
