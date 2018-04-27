@@ -1,7 +1,16 @@
 #!/usr/bin/env python2.7
 from argparse import ArgumentParser
-import sys, os, subprocess
+import sys, os, subprocess, copy, re, datetime
 import yaml
+
+def read_defaults(d, name="defaults.yaml"):
+    f = os.path.join(d, name)
+    try:
+        stream = open(f, "r")
+    except Exception as e:
+        return {}
+    return yaml.safe_load(stream)
+
 
 def read_meta(f):
     md = open(f, "r")
@@ -18,10 +27,40 @@ def read_meta(f):
     if not metaDict: return {}
     return metaDict
 
+def merge_dict(big, little):
+    if not isinstance(little, dict):
+        return little
+    if not isinstance(big, dict):
+        return little
+
+    nd = copy.copy(big)
+    for k in little:
+        if k in nd:
+            if isinstance(little[k], dict):
+                nd[k] = merge_dict(nd[k], little[k])
+                continue
+        nd[k] = little[k]
+    return nd
+
+def get_option(o, m, default=None):
+    """ returns option from a dictionary of the form key.key.key"""
+    keys = o.split('.')
+    while keys:
+        k = keys.pop(0)
+        if k in m and isinstance(m, dict):
+            if keys:
+                m = m[k]
+            else:
+                return m[k]
+        else:
+            break
+
+    return default
+
 def parse_and_run():
     parser = ArgumentParser(description="Execute Markdown Code Blocks")
 
-    parser.add_argument("--line", type=int, help="line to execute")
+    parser.add_argument("--line", help="lines to execute line|line-line|-line|line- comma seperated")
 
     parser.add_argument("filename", help="Markdown file")
     args = parser.parse_args()
@@ -32,16 +71,24 @@ def parse_and_run():
         raise ValueError("Could Not Find File "+args.filename)
     filename = args.filename
 
-    meta = read_meta(args.filename)
+    full_meta = read_meta(args.filename)
+    meta = full_meta
+    script_directory, script_name=os.path.split(os.path.realpath(__file__))
+    defaults = read_defaults(script_directory)
+    local = os.getenv("LOCALDOT")
+    if local:
+        local_defaults = read_defaults(os.path.join(local, "conf"), "notebook.yaml")
+        defaults = merge_dict(defaults, local_defaults)
+    meta = get_option('notebook', meta, {})
+    if meta is None:
+        meta = defaults
+    else:
+        meta = merge_dict(defaults, meta)
+    run(filename,meta , full_meta, args.line)
 
-    run(filename, meta, args.line)
 
-
-OUTPUT_START = '<!-- notebook start output -->'
-OUTPUT_END= '<!-- notebook end output -->'
-
-def wrap_output(l):
-    return [OUTPUT_START]+l+[OUTPUT_END]
+OUTPUT_START = '<!-- notebook output start -->'
+OUTPUT_END= '<!-- notebook output end -->'
 
 class Item(object):
     CODE_TYPE = "CODE_TYPE"
@@ -51,10 +98,29 @@ class Item(object):
     def __init__(self, lines, type=TEXT_TYPE):
         self.lines = lines
         self.type = type
-        self.output_item = None
-        self.output = None
         self.start = -1
         self.end = -1
+        self.options = {}
+        if self.type == Item.CODE_TYPE:
+            self.options = self._parse_options()
+
+    def _parse_options(self):
+        if len(self.lines) < 1:
+            return {}
+        else:
+            start = self.lines[0]
+            if len(start) > len(MARK_CODE):
+                command = start[len(MARK_CODE):]
+                opts = {}
+                p1 = '[^\w-]([\w\-]+)* ?= ?"(.*?)"'
+                p2 = '[^\w-]([\w\-]+) ?= ?\'(.*?)\''
+                for k,v in re.findall(p1, start)+re.findall(p2, start):
+                    opts[k] = v
+                if command and not opts:
+                    opts = {'command':command}
+                return opts
+        return {}
+
 
     def set_range(self, start, end):
         self.start = start
@@ -66,17 +132,12 @@ class Item(object):
     def get_lines(self):
         return self.lines
 
-    def set_output(self, output):
-        assert self.type == Item.CODE_TYPE
-        self.output = output
-
-    def set_output_item(self, output_item):
-        assert self.type == Item.CODE_TYPE
-        self.output_type = output_type
+    def get_options(self):
+        return self.options
 
     def get_code(self):
         assert self.type == Item.CODE_TYPE
-        return ''.join(self.lines[1:-1])
+        return '\n'.join(self.lines[1:-1])
 
     def get_command(self):
         assert self.type == Item.CODE_TYPE
@@ -145,42 +206,78 @@ def block(marks):
         blocks.append(Item(lines[last_i:i]))
     return blocks
 
-def execute(code, command=['bash']):
+def fill_in_command(c, r, f):
+    o = []
+    u = []
+    for p in c:
+        print p
+        for m in re.findall('\$([\[\]\w\-\.]+)\$', p):
+            s = get_option(m, f)
+            pre = '_arg['
+            if not s and m.startswith(pre) and len(m) > len(pre) + 1:
+                pn = m[len(pre):-1]
+                n = -1
+                try:
+                    n = int(pn)
+                except:
+                    pass
+                print n, r
+                if n > 0 and n-1 < len(r):
+                    s = r[n-1]
+                    u.append(n-1)
+            if s:
+                print m,s
+                p = p.replace('$%s$' % (m), str(s))
+
+        o.append(p)
+    for i in reversed(sorted(u)):
+        del r[i]
+    return o + r
+
+def execute(code,meta, full_meta):
+    command = get_option('command', meta)
+    if not command:
+        raise ValueError("No command")
+    command = command.split(' ')
+    rest = []
+    if not '.' in command[0]:
+        possible = get_option('commands.%s.command' % (command[0]), meta)
+        if possible:
+            rest = command[1:]
+            command = possible.split(' ')
+    command = fill_in_command(command, rest, full_meta)
     interpreter = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = interpreter.communicate(code)
-    return stdout + stderr
+    return (stdout + stderr).rstrip('\n').split('\n')
 
-def run(filename, meta, line_to_exec):
+def wrap_output(l, code, meta):
+    IND = '>        '
+    display = get_option('display', meta)
+    displays = ['quote', 'raw']
+    if display not in displays:
+        raise ValueError('Display "%s" not in %s' % (display, displays))
+    if display == 'quote':
+        l = [IND+li for li in l]
+    date = '<!-- notebook output modified %s -->' % (datetime.datetime.now().strftime("%Y-%m-%d %T"))
+    return [OUTPUT_START, date]+l+[OUTPUT_END]
+
+def run(filename, meta, full_meta, line_to_exec):
     md = open(filename, 'r')
     contents = md.readlines()
     marked = mark(contents)
     blocked = block(marked)
     combined = blocked
 
-    exec_options = {}
-    if 'notebook' in meta:
-        meta = meta['notebook']
-    if 'command' in meta:
-        exec_options['command'] = meta['command'].split(' ')
-
-    indent = False
-    if 'quote' in meta:
-        indent = True
-
-
     outputs = []
     for i in range(len(combined)):
         item = combined[i]
         if item.get_type() == Item.CODE_TYPE:
             if line_to_exec is not None:
-                if not item.has_line(line_to_exec):
+                if not item.has_line(int(line_to_exec)):
                     continue
-            o = execute(item.get_code(), **exec_options)
-            o = o.rstrip('\n')
-            if indent:
-                ind = '>        '
-                o = '\n'.join([ind+p for p in o.split('\n')])
-            outputs.append((i,Item(wrap_output([o]), Item.OUTPUT_TYPE)))
+            opts = merge_dict(meta, item.get_options())
+            o = execute(item.get_code(), opts, full_meta)
+            outputs.append((i,Item(wrap_output(o, item, opts), Item.OUTPUT_TYPE)))
 
     inserts = 0
     for i,o in outputs:
@@ -190,14 +287,18 @@ def run(filename, meta, line_to_exec):
         combined.insert(i+inserts,o)
 
     lines = []
-    prev = None
+    i = 0
     for item in combined:
-        if prev and prev.type == Item.OUTPUT_TYPE and item.type == prev.type:
-            continue
-        if prev  and prev.type == Item.OUTPUT_TYPE and item.type == Item.TEXT_TYPE:
-            if item.get_lines() == ['']:
+        if item.type == Item.OUTPUT_TYPE:
+            p = combined[i-1] if i > 0 else None
+            p2 = combined[i-2] if i > 1 else None
+            skip = False
+            if (p and p.type == Item.OUTPUT_TYPE) or (p and p.type == Item.TEXT_TYPE and p.get_lines() == [''] and p2 and p2.type == Item.OUTPUT_TYPE):
+                lines = lines[:-1]
+                i += 1
                 continue
         prev = item
+        i += 1
         lines += item.get_lines()
 
     md_out = open(filename, 'w')
