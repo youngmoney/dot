@@ -43,6 +43,7 @@ def run_client(args):
         lines = sys.stdin.readlines()
         lines = [l.rstrip('\n') for l in lines]
         output = rs.execute(lines, auto_start=True)
+        output = [o+'\n' for o in output]
         sys.stdout.writelines(output)
     else:
         if not getattr(rs, verb)():
