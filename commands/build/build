@@ -65,11 +65,19 @@ for p in "${path_array[@]}"; do
         if [ -f "$commandsh" ]; then
             break
         fi
-
+        commandsh="$commanddir/$arg/main.sh"
+        if [ -f "$commandsh" ]; then
+            break
+        fi
+        commandsh="$commanddir/$arg/main.py"
+        if [ -f "$commandsh" ]; then
+            break
+        fi
+        commandsh=""
     fi
 done
 
-if [ -f "$commandsh" ]; then
+if [ "$commandsh" != "" ]; then
     [ "$0" = "$BASH_SOURCE" ] || start="."
     $start "$commandsh" "$@"
 else
