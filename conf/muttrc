@@ -174,11 +174,13 @@ color bold          black           default
 color underline     black           default
 color normal        default         default
 color body          cyan            default         "(changed)"
-color body          yellow          default         "(_.*_)"
-color body          yellow          default         "(\\*.*\\*)"
-color body          yellow          default         "(\\*\\*.*\\*\\*)"
-mono  body          bold                            "(\\*\\*.*\\*\\*)"
-color body          brightred       brightred       "(^\\.$)"
+color body          yellow          default         "(^| )(_.*_)( |$)"
+color body          yellow          default         "(^| )(\\*.*\\*)( |$)"
+color body          yellow          default         "(^| )(\\*\\*.*\\*\\*)( |$)"
+mono  body          bold                            "(^| )(\\*\\*.*\\*\\*)( |$)"
+color body          yellow          default         "(^(=*)$)"
+color body          brightyellow    default         "(^(-*|_*)$)"
+color body          brightyellow    default         "(^([A-Z][a-z]* [A-Z][a-z]*)$)"
 
 ## pgp
 
