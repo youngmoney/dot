@@ -79,7 +79,7 @@ def prerun(args):
         args.filename = args.filename+".md"
     if not os.path.isfile(args.filename):
         raise error(0, "Could Not Find File "+args.filename)
-    filename = args.filename
+    filename = os.path.abspath(args.filename)
 
     lines_to_exec = []
     if args.line:
@@ -106,7 +106,8 @@ def prerun(args):
             else:
                 raise error(0, 'invalid --line %s' % args.line)
 
-    full_meta = read_meta(args.filename)
+    full_meta = read_meta(filename)
+    full_meta['_filename'] = filename
     meta = full_meta
     script_directory, script_name=os.path.split(os.path.realpath(__file__))
     defaults = read_defaults(script_directory)
@@ -119,7 +120,7 @@ def prerun(args):
         meta = defaults
     else:
         meta = merge_dict(defaults, meta)
-    run(filename,meta , full_meta, lines_to_exec)
+    run(filename, meta , full_meta, lines_to_exec)
 
 
 OUTPUT_START = '<!-- notebook output start -->'

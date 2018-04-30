@@ -1,2 +1,5 @@
 command: bash
 display: quote
+commands:
+    bash_session:
+        command: build session client execute $_filename$

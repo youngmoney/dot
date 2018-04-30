@@ -209,6 +209,15 @@ function! RunMarkdown(mode)
     endif
 endfunction
 
+function! SessionStop()
+    cexpr system("build session client stop " . expand('%:p'))
+endfunction
+function! SessionKill()
+    cexpr system("build session client kill " . expand('%:p'))
+endfunction
+command! SessionStop call SessionStop()
+command! SessionKill call SessionKill()
+
 autocmd BufRead,BufNewFile .cron set ft=crontab
 autocmd Filetype java set errorformat+=%A%f:%l:\ %m,%-Z%p^,%-C%.%#
 autocmd Filetype java set makeprg=javac\ %
