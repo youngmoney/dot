@@ -8,6 +8,7 @@ offlineimap
 parsedatetime
 pipdeptree
 pylint
+requests
 scipy
 urlscan
 virtualenv
