@@ -6,3 +6,4 @@
 * * * * * ~/local/dot/bin/status fetch >/dev/null 2>&1
 */5 * * * * ~/local/dot/bin/status next-event
 * * * * * ~/local/dot/bin/status central
+* * * * * ~/local/dot/bin/status session

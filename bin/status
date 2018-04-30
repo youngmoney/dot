@@ -141,6 +141,12 @@ central() {
     fi
 }
 
+session() {
+    if [[ ! `ps -fA | grep 'build session server start' | grep -c ''` -ge 2 ]]; then
+        nohup build session server start > /dev/null 2>&1
+    fi
+}
+
 a="$1"
 shift;
 if [ "$a" == "tmux" ]; then
@@ -165,6 +171,8 @@ elif [ "$a" == "run" ]; then
     do-run $@
 elif [ "$a" == "central" ]; then
     central "$@"
+elif [ "$a" == "session" ]; then
+    session "$@"
 else
     the_status $a $@
 fi
