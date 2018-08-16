@@ -2,7 +2,7 @@ from graph import GraphItem
 from due import *
 
 class Todo(GraphItem):
-    def __init__(self, summary, level, type, due, references, filename, has_keyword):
+    def __init__(self, summary, level, type, due, references, filename, has_keyword, line_number):
         GraphItem.__init__(self)
         self.summary = summary
         self.level = level
@@ -11,6 +11,7 @@ class Todo(GraphItem):
         self.references = references
         self.filename = filename
         self.has_keyword = has_keyword
+        self.line_number = line_number
         self.done = False
 
     def getSummary(self):
@@ -172,7 +173,7 @@ class Todo(GraphItem):
         s = self.summary
         if self.parent:
             s = self.parent.full_name() + '/' + s
-        return self.filename + "/" + self.summary
+        return s
 
     # def remove(self):
     #     self.due = Due()

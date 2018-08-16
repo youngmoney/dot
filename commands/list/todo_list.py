@@ -41,9 +41,13 @@ class TodoList:
 
     def _table(self):
         for i in self.graph.iterate():
-            if not i.has_keyword and not i.has_keyword_child():
-                continue
-            yield i.string(table=True)
+            if i.has_keyword:
+                yield '"%s" %s: %s (%s)' % (
+                        i.filename,
+                        i.line_number,
+                        i.summary,
+                        i.full_name()
+                    )
 
     def count(self):
         count = 0
@@ -168,8 +172,10 @@ class TodoList:
     def parse(self, file_iter):
         items = []
         for filename, lines in file_iter:
-            items.append(Todo(filename, 0, 'file', Due(), [], filename, has_keyword=False))
+            items.append(Todo(filename, 0, 'file', Due(), [], filename, has_keyword=False, line_number=0))
+            line_number = 0
             for line in TodoList.cleanup_markdown(lines()):
+                line_number += 1
                 line = line.rstrip('\n').lower()
                 level, type, summary, has_keyword = TodoList.line_level_and_type_and_summary(line)
                 due, summary = TodoList.due_date_and_summary(summary)
@@ -180,7 +186,7 @@ class TodoList:
                 due = Due.str2due(due)
                 if not summary or type is None:
                     continue
-                item = Todo(summary, level, type, due, dependencies, filename=filename, has_keyword=has_keyword)
+                item = Todo(summary, level, type, due, dependencies, filename=filename, has_keyword=has_keyword, line_number=line_number)
                 items.append(item)
 
         return items

@@ -17,17 +17,18 @@ def prompt(prompt):
 
 from todo_list import TodoList
 def Run(args):
+    tl = lines(args.list)
     if args.verb == 'count':
-        tl = TodoList(lines())
+        tl = TodoList(tl)
         print tl.count()
     elif args.verb == 'tags':
-        tl = TodoList(lines())
+        tl = TodoList(tl)
         print tl.tags()
     elif args.verb == 'table':
-        tl = TodoList(lines())
+        tl = TodoList(tl)
         print tl.table()
     else:
-        tl = TodoList(lines())
+        tl = TodoList(tl)
         print tl.string()
     return True
 
@@ -38,9 +39,9 @@ from os import environ
 from glob import glob
 def lines(files=None):
     if files is None:
-        files = environ.get('LISTS').split(':')
+        files = environ.get('LISTS')
 
-    for p in files:
+    for p in files.split(':'):
         for l in glob(path.expanduser(p)):
             with open(l) as f:
                 def yielder():
@@ -54,7 +55,8 @@ def parseArgs():
     parser = argparse.ArgumentParser("todo")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("-a", dest="all", action="store_true")
-    parser.add_argument("verb", choices=["list", "count", 'tags', 'table', 'quickfix'])
+    parser.add_argument('--list')
+    parser.add_argument("verb", choices=["list", "count", 'tags', 'table'])
 
     args = parser.parse_args()
     return args

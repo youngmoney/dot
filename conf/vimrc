@@ -176,6 +176,11 @@ map <leader>gb :execute "!git blame -L".line('.').",+3 ".expand("%")<return>
 "map <leader>r :make run -s<Return>:call ShowErrors()<Return>
 " map <leader>c :make check -s<Return>:call ShowErrors()<Return>
 
+
+map <C-t> :lex system('build list --list ' . expand("%") . ' table')<return>:lopen<return>
+map ,t :lex system('build list --list *.md:**/*.md table')<return>:lopen<return>
+autocmd FileType qf nmap <buffer> <cr> <cr>:lcl<cr>
+
 map <leader>k :cprevious<Return>
 map <leader>j :cnext<Return>
 map <leader>C :cclose<Return>
