@@ -176,6 +176,8 @@ class TodoList:
             line_number = 0
             for line in TodoList.cleanup_markdown(lines()):
                 line_number += 1
+                if line_number > 2500:
+                    break
                 line = line.rstrip('\n').lower()
                 level, type, summary, has_keyword = TodoList.line_level_and_type_and_summary(line)
                 due, summary = TodoList.due_date_and_summary(summary)
