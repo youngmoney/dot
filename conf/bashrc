@@ -34,10 +34,8 @@ echo "UPDATESTARTUPTTY" | gpg-connect-agent > /dev/null 2>&1
 export GPG_TTY=`tty`
 export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_ANALYTICS=1
-listsadd() { [[ ":$LISTS:" != *":$1:"* ]] && export LISTS="${LISTS:+"$LISTS:"}$1"; }
-listsadd '~/documents/notes/*.md'
 alias khal="khal -c ~/.khal"
-todo() { build list "$@"; }
+todo() { (cd ~/documents/notes; build list --list '*.md' "$@"); }
 
 SHORT_BASH_IMPORT="$LOCALDOT/conf/short.bash"
 [ -f "$SHORT_BASH_IMPORT" ] && . "$SHORT_BASH_IMPORT"
