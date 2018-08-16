@@ -2,13 +2,15 @@ from graph import GraphItem
 from due import *
 
 class Todo(GraphItem):
-    def __init__(self, summary, level, type, due, references):
+    def __init__(self, summary, level, type, due, references, filename, has_keyword):
         GraphItem.__init__(self)
         self.summary = summary
         self.level = level
         self.type = type
         self.due = due
         self.references = references
+        self.filename = filename
+        self.has_keyword = has_keyword
         self.done = False
 
     def getSummary(self):
@@ -52,7 +54,7 @@ class Todo(GraphItem):
         total = 0
         for child in self.children:
             total += child.count()
-        self_total = 1 if self.is_today() else 0
+        self_total = 1 if self.is_today() and self.has_keyword else 0
         return max(total, self_total)
 
     def __repr__(self):
@@ -63,7 +65,7 @@ class Todo(GraphItem):
                                                          self.due,
                                                          self.references)
 
-    def string(self, lite=True):
+    def string(self, lite=True, table=False):
         start = ''
         if not lite:
             if self.level >= 7:
@@ -81,7 +83,10 @@ class Todo(GraphItem):
             if isinstance(self.type, int):
                 start += str(self.type)+'. '
 
-        s = start+self.summary
+        summary = self.summary
+        if table:
+            summary = summary.replace(' ', '_')
+        s = start+summary
         if isinstance(self.due, DueDate) or isinstance(self.due, DueWeekly):
             s += ' @{}'.format(self.due)
         if self.references:
@@ -101,7 +106,7 @@ class Todo(GraphItem):
             return True
         if isinstance(self.due, DueDate) or isinstance(self.due, DueWeekly):
             return self.due.is_today()
-        return not self.is_blocked()
+        return False # not self.is_blocked()
 
     def is_soon(self):
         if self.is_comment():
@@ -113,7 +118,7 @@ class Todo(GraphItem):
         if self.is_blocked() and self._is_today():
             return True
         if self.due.days_until() == Due.Never:
-            return False
+            return not self.is_blocked()
         return False
 
     def are_dependers_today(self):
@@ -152,6 +157,22 @@ class Todo(GraphItem):
 
     def is_comment(self):
         return self.type == ''
+
+    def is_filename(self):
+        return self.type == 'file'
+
+    def has_keyword_child(self):
+        for c in self.get_children():
+            if c.has_keyword  or c.has_keyword_child():
+                return True
+        return False
+
+
+    def full_name(self):
+        s = self.summary
+        if self.parent:
+            s = self.parent.full_name() + '/' + s
+        return self.filename + "/" + self.summary
 
     # def remove(self):
     #     self.due = Due()

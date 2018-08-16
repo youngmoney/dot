@@ -9,15 +9,20 @@ except:
     DEBUG = False
 
 class TodoList:
-    def __init__(self, lines):
-        items = self.parse(lines)
+    def __init__(self, file_iter):
+        items = self.parse(file_iter)
         self.graph = self.connect(items)
 
     def string(self, **kwargs):
         return '\n'.join(self._string(**kwargs))
 
+    def table(self, **kwargs):
+        return '\n'.join(self._table(**kwargs))
+
     def _string(self, lite=True, color=True, graph=None):
         for i in self.graph.iterate():
+            if lite and not i.has_keyword and not i.has_keyword_child():
+                continue
             if lite and i.is_comment():
                 continue
             c = ''
@@ -34,12 +39,31 @@ class TodoList:
 
             yield c+ i.string(lite=lite) + Pretty.reset
 
+    def _table(self):
+        for i in self.graph.iterate():
+            if not i.has_keyword and not i.has_keyword_child():
+                continue
+            yield i.string(table=True)
+
     def count(self):
         count = 0
+        # for i in self.graph.iterate():
+        #     if i.has_keyword:
+        #         count += 1
         for i in self.graph.get_children():
             count += i.count()
         return count
 
+    def tags(self):
+        items = []
+        for i in self.graph.iterate():
+            if i.has_keyword or i.has_keyword_child():
+                items.append('%s\t%s\t/%s/' % (
+                        i.summary.replace(' ', '_'),
+                        i.filename,
+                        i.summary,
+                    ))
+        return '\n'.join(sorted(items))
 
     @classmethod
     def cleanup_markdown(cls, lines):
@@ -61,45 +85,54 @@ class TodoList:
 
     @classmethod
     def line_level_and_type_and_summary(cls, line):
-        if line.startswith('#'):
-            split = line.split(' ')
+        summary = line.lstrip()
+
+        has_keyword = False
+        KEYS = ['TODO', 'ACTIONITEM', ' ^ ']
+
+        for k in KEYS:
+            if k.lower() in line:
+                has_keyword = True
+                keep = []
+                found = False
+                kw = k.strip().lower()
+                for w in summary.split(' '):
+                    if found or not w.startswith(kw):
+                        keep.append(w)
+                    else:
+                        found = True
+                summary = ' '.join(keep)
+        level = 7 + len(line) - len(summary)
+        type = '' if not has_keyword else 'action'
+        if len(summary) == 0:
+            summary = line
+            level = -1
+            type = None
+        elif line.startswith('#'):
+            split = summary.split(' ')
             hashes = split[0]
             if len(set(hashes)) == 1:
-                return len(hashes), '#', ' '.join(split[1:])
+                summary = ' '.join(split[1:])
+                level = len(hashes)
+                type = '#'
+        elif summary.startswith('-'):
+            split = summary.split('- ')
+            type = '-'
+            summary = '- '.join(split[1:])
+        elif summary.startswith('+'):
+            split = summary.split('+ ')
+            type = '+'
+            summary = '+ '.join(split[1:])
+        else:
+            try:
+                i = int(summary.split('.')[0])
+                split = summary.split(str(i)+'. ')
+                type = i
+                summary = (str(i)+'. ').join(split[1:])
+            except:
+                pass
 
-        stripped = line.lstrip()
-
-        if len(stripped) == 0:
-            return -1, None, line
-
-        if stripped.startswith('-'):
-            level = 0
-            while line[0] == ' ':
-                line = line[1:]
-                level += 1
-            split = stripped.split('- ')
-            return 7+level, '-', '- '.join(split[1:])
-
-        if stripped.startswith('+'):
-            level = 0
-            while line[0] == ' ':
-                line = line[1:]
-                level += 1
-            split = stripped.split('+ ')
-            return 7+level, '+', '+ '.join(split[1:])
-
-        try:
-            i = int(stripped.split('.')[0])
-            level = 0
-            while line[0] == ' ':
-                line = line[1:]
-                level += 1
-            split = stripped.split(str(i)+'. ')
-            return 7+level, i, (str(i)+'. ').join(split[1:])
-        except:
-            pass
-
-        return 7+len(line) - len(stripped), '', stripped
+        return level, type, summary, has_keyword
 
     @classmethod
     def due_date_and_summary(cls, line):
@@ -132,21 +165,23 @@ class TodoList:
         return deps, letters
 
 
-    def parse(self, lines):
+    def parse(self, file_iter):
         items = []
-        for line in TodoList.cleanup_markdown(lines):
-            line = line.rstrip().lower()
-            level, type, summary = TodoList.line_level_and_type_and_summary(line)
-            due, summary = TodoList.due_date_and_summary(summary)
-            dependencies, summary = TodoList.dependencies_and_summary(summary)
-            if DEBUG:
-                print '{:30} {:15} {:2} {:6} {:15} {:25}'.format(line, summary, level, type, due, dependencies)
+        for filename, lines in file_iter:
+            items.append(Todo(filename, 0, 'file', Due(), [], filename, has_keyword=False))
+            for line in TodoList.cleanup_markdown(lines()):
+                line = line.rstrip('\n').lower()
+                level, type, summary, has_keyword = TodoList.line_level_and_type_and_summary(line)
+                due, summary = TodoList.due_date_and_summary(summary)
+                dependencies, summary = TodoList.dependencies_and_summary(summary)
+                if DEBUG:
+                    print '{:30} {:15} {:2} {:6} {:15} {:25}'.format(line, summary, level, type, due, dependencies)
 
-            due = Due.str2due(due)
-            if not summary or type is None:
-                continue
-            item = Todo(summary, level, type, due, dependencies)
-            items.append(item)
+                due = Due.str2due(due)
+                if not summary or type is None:
+                    continue
+                item = Todo(summary, level, type, due, dependencies, filename=filename, has_keyword=has_keyword)
+                items.append(item)
 
         return items
 
