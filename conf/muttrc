@@ -57,7 +57,9 @@ bind editor ^T    complete
 bind index gg       first-entry
 bind index G        last-entry
 
-bind index R        group-reply
+bind index,pager r        group-reply
+bind index,pager R        group-reply
+bind index,pager \cr        reply
 bind index <tab>    sync-mailbox
 bind index <space>  collapse-thread
 
@@ -65,8 +67,13 @@ bind pager k  previous-line
 bind pager j  next-line
 bind pager gg top
 bind pager G  bottom
+bind index,pager \cu half-up
+bind index,pager \cd half-down
 
-bind pager R  group-reply
+bind index,pager d delete-thread
+bind index,pager D delete-message
+bind index,pager u undelete-thread
+bind index,pager U undelete-message
 
 
 # View attachments properly.
@@ -76,8 +83,8 @@ macro index,pager A "<pipe-message>cat | awk '{ if (NF < 1) b=1; if (b) print; }
 macro index,pager S "Ascratch.md<enter>d"
 
 #macro pager \Cu "|urlview<enter>" "call urlview to open links"
-macro index,pager \cu "<pipe-message> build system find-url<Enter>" "call urlscan to extract URLs out of a message"
-macro attach,compose \cu "<pipe-entry> build system find-url<Enter>" "call urlscan to extract URLs out of a message"
+macro index,pager U "<pipe-message> build system find-url<Enter>" "call urlscan to extract URLs out of a message"
+macro attach,compose U "<pipe-entry> build system find-url<Enter>" "call urlscan to extract URLs out of a message"
 
 #
 #

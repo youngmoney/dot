@@ -137,11 +137,15 @@ let g:markdown_fenced_languages = ['html', 'python', 'bash=sh', 'sh', 'sql']
 autocmd Filetype markdown set updatetime=50
 autocmd Filetype markdown syntax match mdReminder "<!--+.*-->"
 autocmd Filetype markdown highlight link mdReminder Todo
+autocmd Filetype markdown syntax match mdNoteParagraph "NOTE"
 autocmd Filetype markdown syntax region mdNoteParagraph start=/\C^NOTE:/ end='^$'
 autocmd Filetype markdown syntax region mdNoteParagraph start=/\C^TIP:/ end='^$'
 autocmd Filetype markdown highlight link mdNoteParagraph Comment
 autocmd Filetype markdown syntax match mdTodo "<!---.*-->"
 autocmd Filetype markdown highlight link mdTodo Todo
+autocmd Filetype markdown syntax match mdTodoParagraph "TODO"
+autocmd Filetype markdown syntax match mdTodoParagraph "\s\^\s"
+autocmd Filetype markdown syntax match mdTodoParagraph "ACTIONITEM"
 autocmd Filetype markdown syntax region mdTodoParagraph start=/\C^TODO:/ end='^$'
 autocmd Filetype markdown highlight link mdTodoParagraph Todo
 autocmd Filetype markdown syntax match mdAlert "<!--.*!.*-->"
@@ -150,7 +154,7 @@ autocmd Filetype markdown syntax region mdWarningParagraph start=/\C^WARNING:/ e
 autocmd Filetype markdown highlight link mdWarningParagraph Error
 autocmd Filetype markdown syntax match mdMath "\$\_.\{-}\$"
 autocmd Filetype markdown highlight link mdMath Structure
-autocmd Filetype markdown set textwidth=80
+" autocmd Filetype markdown set textwidth=80
 autocmd Filetype markdown syntax match mdBudget "^\(in\|tx\|bg\|ex\) .*$"
 autocmd Filetype markdown highlight link mdBudget Ignore
 highlight nonascii guibg=Red ctermbg=1 term=standout

@@ -15,7 +15,7 @@ fetch_mail() {
         build etc timeout -k 30  520 offlineimap -o -c "$c" $OFFLINEIMAP_ARGS
         #-u quiet
     done
-    build mail unread | notify Mail
+    # build mail unread | notify Mail
     mu index -q
 }
 fetch_vdir() {
@@ -173,6 +173,8 @@ elif [ "$a" == "central" ]; then
     central "$@"
 elif [ "$a" == "session" ]; then
     session "$@"
+elif [ "$a" == "agenda" ]; then
+    khal-agenda "$@"
 else
     the_status $a $@
 fi

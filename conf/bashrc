@@ -35,7 +35,7 @@ export GPG_TTY=`tty`
 export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_ANALYTICS=1
 listsadd() { [[ ":$LISTS:" != *":$1:"* ]] && export LISTS="${LISTS:+"$LISTS:"}$1"; }
-listsadd ~/documents/notes/todo.md
+listsadd '~/documents/notes/*.md'
 alias khal="khal -c ~/.khal"
 todo() { build list "$@"; }
 
@@ -47,6 +47,7 @@ if [ "$1" == "--short" ]; then return 0; fi
 
 alias today="status today -l 20";
 alias muttr="status mail"
+alias agenda="status agenda | head -25"
 
 alias pass="build pass"
 
@@ -73,6 +74,7 @@ alias ls="ls -1F"
 alias refresh=". ~/.bash_profile"
 
 alias n="cd $NOTEDIR && vim scratch.md"
+alias d="cd $NOTEDIR && vim scratch.md"
 alias note="cd $NOTEDIR && vim scratch.md"
 alias no="cd $NOTEDIR && vim scratch.md"
 alias vess="vim -R -";

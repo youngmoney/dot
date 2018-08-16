@@ -72,10 +72,19 @@ fi
 system::find-url() {
    if system::exists urlscan; then
      export BROWSER="build system open-url %s"
-     urlscan
+     urlscan "$@"
    else
      echo "no url finder"
    fi
+}
+
+system::tmux-url() {
+    output_pane=$(tmux list-panes | sed -ne 's/.* %\([0-9]*\) .*active.*/\1/p')
+    tmux last-pane
+    active_pane=$(tmux list-panes | sed -ne 's/.* %\([0-9]*\) .*active.*/\1/p')
+    tmux capture-pane -J -p > /tmp/tmux_url
+    tmux last-pane
+    cat /tmp/tmux_url | system::find-url -c
 }
 
 a="$1"
@@ -99,6 +108,8 @@ elif [ "$a" == "open-url" ]; then
     system::open-url "$@"
 elif [ "$a" == "find-url" ]; then
     system::find-url "$@"
+elif [ "$a" == "tmux-url" ]; then
+    system::tmux-url "$@"
 else
     echo "battery: battery percentage"
     echo "os: get OS name"

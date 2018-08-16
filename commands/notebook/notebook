@@ -288,7 +288,16 @@ def execute(code,meta, full_meta):
     except Exception as e:
         out = 'Error executing %s:\n%s' % (command, str(e))
 
-    return out.rstrip('\n').split('\n')
+    o = out.rstrip('\n').split('\n')
+    if o == ['']: return []
+    lines = get_option('lines', meta)
+    try:
+        if lines:
+            lines = int(lines)
+            lines = min(lines, len(o))
+            return o[:lines]
+    finally:
+        return o
 
 def wrap_output(l, code, meta):
     IND = '>        '

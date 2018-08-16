@@ -12,6 +12,11 @@ add_contact() {
     mac_add_contact $@
 }
 
+search-email-abs() {
+    echo "search"
+    search-email "$@" | grep -v 'noreply' | sed 's/\+.*@/@/' | awk -F' ' '{print $1}' | sort | uniq
+}
+
 search-email() {
     name="$@"
     echo "search"
@@ -63,7 +68,7 @@ search-khard() {
 arg=$1
 shift
 if [ "$arg" == "search-email" ]; then
-    search-email $@
+    search-email-abs $@
 elif [ "$arg" == "add" ]; then
     add_contact "$@"
 else
