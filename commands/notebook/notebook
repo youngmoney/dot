@@ -341,23 +341,28 @@ def expand(filename, meta, full_meta):
         if c.get_type() == Item.CODE_TYPE:
             opts = merge_dict(meta, c.get_options())
             command = get_command(opts, full_meta)
-            command_string = ' '.join(command)
-            command_name = get_option('expand.name', opts)
-            if not command_name:
-                command_name = command[0] if command else ""
+            command_name = get_option('command', opts).split(' ')[0]
             type = get_option('expand.type', opts)
             type_override = get_option('commands.%s.expand.type' % command_name, opts)
             if type_override:
                 type = type_override
-            if command_string == command_name:
-                type = "none"
+
+            command_string = ' '.join(command)
             name_override = get_option('commands.%s.expand.name' % command_name, opts)
             if name_override:
-                command_name = name_override
+                command_string = name_override
+
+            block_name = command_name.split(' ')[0]
+            block_override = get_option('commands.%s.expand.block' % command_name, opts)
+            if block_override:
+                block_name = block_override
+
+            if command_string == block_name:
+                type = "none"
+
+            print '```'+block_name
             if not type:
                 raise error(0, "no expand type (expand.type)")
-
-            print '```'+command_name
             if type == "none":
                 print c.get_code()
             elif type == "line":
