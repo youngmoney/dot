@@ -90,6 +90,7 @@ class TodoList:
     @classmethod
     def line_level_and_type_and_summary(cls, line):
         summary = line.lstrip()
+        stripped = summary
 
         has_keyword = False
         KEYS = ['TODO', 'ACTIONITEM', ' ^ ']
@@ -106,7 +107,7 @@ class TodoList:
                     else:
                         found = True
                 summary = ' '.join(keep)
-        level = 7 + len(line) - len(summary)
+        level = 7 + len(line) - len(stripped)
         type = '' if not has_keyword else 'action'
         if len(summary) == 0:
             summary = line
@@ -204,7 +205,6 @@ class TodoList:
         top = []
         parents = []
         for item in items:
-            p = parents
             while parents and parents[-1].level >= item.level:
                 parents = parents[:-1]
             if parents:
