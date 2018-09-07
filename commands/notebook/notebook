@@ -63,9 +63,14 @@ def get_option(o, m, default=None):
 def parse_and_run():
     parser = ArgumentParser(description="Execute Markdown Code Blocks")
 
-    parser.add_argument("--line", help="lines to execute line|line-line|-line|line- comma seperated")
+    subparsers = parser.add_subparsers(title="commands", dest="command")
 
-    parser.add_argument("filename", help="Markdown file")
+    execute_parser = subparsers.add_parser('execute')
+    execute_parser.add_argument("--line", help="lines to execute line|line-line|-line|line- comma seperated")
+    execute_parser.add_argument("filename", help="Markdown file")
+
+    expand_parser = subparsers.add_parser('expand')
+    expand_parser.add_argument("filename", help="Markdown file")
     args = parser.parse_args()
     try:
         prerun(args)
@@ -82,7 +87,7 @@ def prerun(args):
     filename = os.path.abspath(args.filename)
 
     lines_to_exec = []
-    if args.line:
+    if args.command == "execute" and args.line:
         for l in args.line.split(','):
             parts = l.split('-')
             def make_int(p):
@@ -120,7 +125,11 @@ def prerun(args):
         meta = defaults
     else:
         meta = merge_dict(defaults, meta)
-    run(filename, meta , full_meta, lines_to_exec)
+    if args.command == "execute":
+        run(filename, meta , full_meta, lines_to_exec)
+    elif args.command == "expand":
+        expand(filename, meta , full_meta)
+
 
 
 OUTPUT_START = '<!-- notebook output start -->'
@@ -269,7 +278,7 @@ def fill_in_command(c, r, f):
         del r[i]
     return o + r
 
-def execute(code,meta, full_meta):
+def get_command(meta, full_meta):
     command = get_option('command', meta)
     if not command:
         raise error(0, "no command")
@@ -281,6 +290,10 @@ def execute(code,meta, full_meta):
             rest = command[1:]
             command = possible.split(' ')
     command = fill_in_command(command, rest, full_meta)
+    return command
+
+def execute(code, meta, full_meta):
+    command = get_command(meta, full_meta)
     try:
         interpreter = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = interpreter.communicate(code)
@@ -315,6 +328,53 @@ def check_lines(item, lines):
         if item.has_line_overlap(s,e):
             return True
     return False
+
+def expand(filename, meta, full_meta):
+    md = open(filename, 'r')
+    contents = md.readlines()
+    marked = mark(contents)
+    blocked = block(marked)
+    combined = blocked
+
+    for c in combined:
+        if c.get_type() == Item.CODE_TYPE:
+            opts = merge_dict(meta, c.get_options())
+            command = get_command(opts, full_meta)
+            command_string = ' '.join(command)
+            command_name = get_option('expand.name', opts)
+            if not command_name:
+                command_name = command[0] if command else ""
+            type = get_option('expand.type', opts)
+            type_override = get_option('commands.%s.expand.type' % command_name, opts)
+            if type_override:
+                type = type_override
+            if command_string == command_name:
+                type = "none"
+            name_override = get_option('commands.%s.expand.name' % command_name, opts)
+            if name_override:
+                command_name = name_override
+            if not type:
+                raise error(0, "no expand type (expand.type)")
+
+            print '```'+command_name
+            if type == "none":
+                print c.get_code()
+            elif type == "line":
+                for l in c.get_code().split('\n'):
+                    print command_string + " " + l
+            elif type == "once":
+                print command_string
+                print
+                print c.get_code()
+            elif type == "heredoc":
+                print command_string + " << EOF"
+                print c.get_code()
+                print "EOF"
+
+            print '```'
+        else:
+            print '\n'.join(c.get_lines())
+
 
 def run(filename, meta, full_meta, lines_to_exec):
     md = open(filename, 'r')

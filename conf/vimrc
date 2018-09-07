@@ -210,13 +210,13 @@ autocmd FileType markdown map <leader>nn :call NewNote()<return>
 function! RunNotebook(mode) range
     write
     if a:mode == 0
-        cexpr system("build notebook " . bufname("%"))
+        cexpr system("build notebook execute " . bufname("%"))
     endif
     if a:mode == 1
-        cexpr system("build notebook --line " . a:firstline . "-" . a:lastline . " ".  bufname("%"))
+        cexpr system("build notebook execute --line " . a:firstline . "-" . a:lastline . " ".  bufname("%"))
     endif
     if a:mode == 2
-        cexpr system("build notebook --line " . line('.') . "- ".  bufname("%"))
+        cexpr system("build notebook execute --line " . line('.') . "- ".  bufname("%"))
     endif
     silent !tput bel
     redraw!
