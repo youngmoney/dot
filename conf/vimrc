@@ -86,6 +86,7 @@ let g:ulti_expand_or_jump_res = 0
 "CtrlP
 let g:ctrlp_extensions = ['tag']
 let g:ctrlp_open_new_file = 'r'
+let g:ctrlp_custom_ignore = 'documents/notes/.*\.html'
 
 "Slime
 let g:slimux_select_from_current_window = 1
@@ -148,6 +149,7 @@ autocmd Filetype markdown syntax match mdTodoParagraph "\s\^\s"
 autocmd Filetype markdown syntax match mdTodoParagraph "ACTIONITEM"
 autocmd Filetype markdown syntax region mdTodoParagraph start=/\C^TODO:/ end='^$'
 autocmd Filetype markdown highlight link mdTodoParagraph Todo
+autocmd Filetype markdown syntax match mdAlert "@today"
 autocmd Filetype markdown syntax match mdAlert "<!--.*!.*-->"
 autocmd Filetype markdown highlight link mdAlert Error
 autocmd Filetype markdown syntax region mdWarningParagraph start=/\C^WARNING:/ end='^$'
@@ -196,6 +198,15 @@ nmap gs <Plug>(easymotion-overwin-f)
 nmap gj <Plug>(easymotion-j)
 nmap gk <Plug>(easymotion-k)
 
+function! NewNote()
+    call inputsave()
+    let name = input('note name: ')
+    call inputrestore()
+    exec ':e ' . strftime("%y.%m.%d") . '_' . name . '.md'
+endfunction
+
+autocmd FileType markdown map <leader>nn :call NewNote()<return>
+
 function! RunNotebook(mode) range
     write
     if a:mode == 0
@@ -207,6 +218,10 @@ function! RunNotebook(mode) range
     if a:mode == 2
         cexpr system("build notebook --line " . line('.') . "- ".  bufname("%"))
     endif
+    silent !tput bel
+    redraw!
+    redraw!
+    echo "Done"
 endfunction
 
 function! RunMarkdown(mode)
@@ -227,6 +242,20 @@ endfunction
 command! SessionStop call SessionStop()
 command! SessionKill call SessionKill()
 
+function! InsertCell()
+    let l=line('.')
+    normal! ]O
+    if l >= line('.')
+        normal G
+    endif
+    :noh
+    call append(line('.'), '```')
+    call append(line('.'), '```')
+    normal o
+    normal jo
+    startinsert
+endfunction
+
 autocmd BufRead,BufNewFile .cron set ft=crontab
 autocmd Filetype java set errorformat+=%A%f:%l:\ %m,%-Z%p^,%-C%.%#
 autocmd Filetype java set makeprg=javac\ %
@@ -240,6 +269,13 @@ autocmd Filetype markdown map <leader>b :call RunMarkdown(0)<CR>
 autocmd Filetype markdown map <leader>E :call RunNotebook(0)<CR>
 autocmd Filetype markdown map <leader>e :call RunNotebook(1)<CR>
 autocmd Filetype markdown map <leader>ee :call RunNotebook(2)<CR>
+autocmd Filetype markdown map <leader>ne :call InsertCell()<CR>
+autocmd Filetype markdown map ]e /\(\_^\n\_^```\)<return>:noh<return>jj
+autocmd Filetype markdown map [e ?\(\_^\n\_^```\)<return>n:noh<return>jj
+autocmd Filetype markdown map [E ?\(\_^\n\_^```\)<return>:noh<return>jj
+autocmd Filetype markdown map ]o /\(<!-- notebook output start\)<return>:noh<return>jj
+autocmd Filetype markdown map [o ?\(<!-- notebook output start\)<return>n:noh<return>jj
+autocmd Filetype markdown map [O ?\(<!-- notebook output end\)<return>:noh<return>
 
 "Building
 function! ShowErrors()

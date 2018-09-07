@@ -86,7 +86,7 @@ dashboard() {
         lines="`expr $lines - 3`"
         before_todo="`expr $lines - $todo_lines`"
 
-        events="`khal-agenda`"
+        events="`khal-agenda 2> /tmp/khal-errors`"
         events="`echo "$events" | head -$before_todo`"
         event_lines="`echo "$events" | wc -l`"
         after_events="`expr $before_todo - $event_lines`"

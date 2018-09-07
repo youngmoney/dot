@@ -2,12 +2,13 @@ import datetime
 
 class Due:
     Never = 0xDEADBEAF
+    FAR = 0x0FF0FF
 
     @staticmethod
     def str2due(s):
         s = s.lower()
 
-        human = {"today":0, "tomorrow":1, "soon":4}
+        human = {"today":0, "tomorrow":1, "soon":4, "far": Due.FAR}
         days = None
         if s in human:
             days = human[s]
@@ -78,6 +79,8 @@ class DueDate(Due):
         return delta.days
 
     def __repr__(self):
+        if self.is_today(): return "today"
+        if self.days_until() == Due.FAR: return "far"
         return str(self.month)+"/"+str(self.day)+"/"+str(self.year)
 
 class DueWeekly(Due):
