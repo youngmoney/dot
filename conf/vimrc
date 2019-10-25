@@ -107,6 +107,7 @@ set hlsearch
 autocmd Filetype text set ft=markdown
 autocmd BufNewFile,BufreadPost *.md set ft=markdown
 autocmd Filetype markdown set cursorline!
+autocmd BufNewFile,BufreadPost *.jsonnet set ft=javascript
 autocmd WinEnter * setlocal cursorline
 autocmd WinLeave * setlocal nocursorline
 set fillchars+=vert:\ 
@@ -209,6 +210,7 @@ autocmd FileType markdown map <leader>nn :call NewNote()<return>
 
 function! RunNotebook(mode) range
     write
+    echo "Executing..."
     if a:mode == 0
         cexpr system("build notebook execute " . bufname("%"))
     endif

@@ -19,7 +19,6 @@ search-email-abs() {
 
 search-email() {
     name="$@"
-    echo "search"
     search-khard $name
     search-mac $name
     search-google $name

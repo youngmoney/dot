@@ -28,3 +28,4 @@ oauth2_refresh_token = $refresh$
 realdelete = no
 maxconnections = 3
 sslcacertfile = $sslcert$
+ssl_version = tls1_2

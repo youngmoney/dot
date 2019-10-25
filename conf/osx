@@ -126,16 +126,22 @@ defaults write com.apple.Safari SafariGeolocationPermissionPolicy 0
 
 add_app() {
     local app="$@"
-    defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/${app}.app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
+    defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/System/Applications/${app}.app/</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
+}
+add_app_old() {
+    local app="$@"
+    defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>/Applications/${app}.app/</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
 }
 
 defaults write com.apple.dock autohide -bool true
 defaults write com.apple.dock tilesize -int 36
 defaults write com.apple.dock persistent-apps '<array></array>'
 defaults write com.apple.dock persistent-others '<array></array>'
-add_app Safari
+add_app_old Safari
 add_app Utilities/Terminal
 add_app Preview
+add_app Notes
+add_app Photos
 killall Dock
 
 osx::clean-home() {

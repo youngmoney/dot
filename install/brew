@@ -11,13 +11,11 @@ gnupg
 gobject-introspection
 llvm
 lynx
-mpv
 msmtp
 mu
 mutt
 pandoc
-perl
-python
+python2
 python3
 reattach-to-user-namespace
 ruby

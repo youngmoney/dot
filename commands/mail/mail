@@ -67,7 +67,7 @@ mail::mail_attachment() {
 }
 
 mail::mail_with_subject() {
-   local SEARCH="$@"
+   local SEARCH="^Subject:.* $@"
    find $MAILDIR  -path '*/INBOX/*/*' -print0 | xargs -0 grep -H "$SEARCH"
 
 }

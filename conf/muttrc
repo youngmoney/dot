@@ -25,9 +25,9 @@ bind pager <up> previous-line
 bind pager <down> next-line
 
 set strict_threads="yes"
-set sort=threads
+set sort=reverse-threads
 set sort_browser=date
-set sort_aux=reverse-last-date-received
+set sort_aux=last-date-received
 
 # unset collapse_unread
 set uncollapse_jump
