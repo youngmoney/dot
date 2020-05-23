@@ -296,9 +296,9 @@ def get_command(meta, full_meta):
 def execute(code, meta, full_meta):
     command = get_command(meta, full_meta)
     try:
-        interpreter = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        interpreter = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout, stderr = interpreter.communicate(code)
-        out = stdout + stderr
+        out = stdout
     except Exception as e:
         out = 'Error executing %s:\n%s' % (command, str(e))
 

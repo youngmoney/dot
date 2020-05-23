@@ -95,8 +95,9 @@ map <Leader>> :SlimuxREPLSendBuffer<CR>
 vmap <Leader>. :SlimuxREPLSendSelection<CR>
 
 "Table
-let g:table_mode_corner_corner='+'
-let g:table_mode_corner='+'
+" let g:table_mode_corner_corner='+'
+" let g:table_mode_corner='+'
+let g:table_mode_corner='|'
 
 "Colors
 set statusline=%<\ %f\ %m%r%y%=%-20.(%l/%L-%c%V\ (%P)%)

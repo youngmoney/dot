@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+[ -n "$ZSH_VERSION" ] && bash && exit
 if command -v realpath >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(realpath "${BASH_SOURCE[0]}" 2>/dev/null))"
 elif command -v readlink >/dev/null 2>&1 \
@@ -111,8 +112,24 @@ check_end() {
 if [ ! -f $LOCALDOT/status/home.me ]; then COMPNAME="\e[31m@$(hostname | cut -c 1-10)\e[0m"; fi
 current_path() { pwd | sed 's:^'${HOME}':~:'; }; get_current_path() { current_path; }
 get_jobs() { [ "$(jobs | wc -l | grep -v '^ *0$')" ] && echo '&'; }
+command_line_extras() {
+    IFS=: read -r -d '' -a extras < <(printf '%s:\0' "$COMMAND_LINE_EXTRAS")
+    prev=""
+    for extra in "${extras[@]}"; do
+      out=$($extra)
+      if [ "$out" != "" ]; then
+        if [ "$prev" != "" ]; then
+            echo -n " | "
+        fi
+        prev="$out"
+      fi
+      echo -n "$out"
+    done
+}
+COMMAND_LINE_EXTRAS=""
+clextraadd() { [[ ":$COMMAND_LINE_EXTRAS:" != *":$1:"* ]] && export COMMAND_LINE_EXTRAS="${COMMAND_LINE_EXTRAS:+"$COMMAND_LINE_EXTRAS:"}$1"; }
 export PS1="\[\033[0;90m\]\${command_runtime}
-\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\$(get_current_path)\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\]
+\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\$(get_current_path)\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\] \[\e[0;33,\]\$(command_line_extras)\[\e[0;39m\]
 \[\033[0;90m\]\$(get_jobs)$\[\033[0;0m\] "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
 . build --completion
