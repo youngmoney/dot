@@ -140,8 +140,8 @@ class Todo(GraphItem):
 
 
     def get_blocking_relatives(self):
-        rel = filter(lambda x: x.has_keyword or
-                     x.get_blocking_relatives(), self.children)
+        rel = [x for x in self.children if x.has_keyword or
+                     x.get_blocking_relatives()]
         return rel
 
     def is_blocked(self):

@@ -93,8 +93,8 @@ def main(argv):
         oauth = Oauth(request_url, client_id, client_secret,
                 acct.username, acct.refresh_token)
         if args.debug:
-            print("Sending from:", fromaddr)
-            print("Sending to:", toaddrs)
+            print(("Sending from:", fromaddr))
+            print(("Sending to:", toaddrs))
         sender(fromaddr, tos + ccs + bccs, msg, oauth, acct, args.debug)
     else:
         raise KeyError('Configuration file has no section for: ', fromaddr)

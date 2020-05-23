@@ -38,7 +38,7 @@ def readin():
 
     content = new_content
 
-  print(json.dumps([jsonObj[0], content]))
+  print((json.dumps([jsonObj[0], content])))
 
 if __name__ == "__main__":
   readin()

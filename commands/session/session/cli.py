@@ -9,7 +9,7 @@ def debug(s):
         if isinstance(s, str):
             print(s)
         else:
-            print(s())
+            print((s()))
 
 def parse_and_run():
     parser = ArgumentParser(description="Execute Markdown Code Blocks")

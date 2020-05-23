@@ -1,5 +1,5 @@
 import requests
-from session import Session
+from .session import Session
 
 class RemoteSession(Session):
     def __init__(self, session_id, url=None, port=7007):

@@ -63,9 +63,9 @@ def GetXcodeProjectFlags(project, project_dir):
                     filename = args[args.index('-c') + 1]
                     #xcode_flags[filename] = _RemoveUnusedFlags(args, filename)
                     xcode_flags[filename] = args
-                except ValueError, e:
+                except ValueError as e:
                     pass
-    except OSError, e:
+    except OSError as e:
         raise Exception('Cannot find xcodebuild executable in PATH')
 
     return xcode_flags

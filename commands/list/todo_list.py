@@ -165,8 +165,8 @@ class TodoList:
             else:
                 letters += l
 
-        deps = map(lambda x: x.strip(), dependency_letters.split(','))
-        deps = filter(lambda x: len(x) > 0, deps)
+        deps = [x.strip() for x in dependency_letters.split(',')]
+        deps = [x for x in deps if len(x) > 0]
         return deps, letters
 
 
@@ -184,7 +184,7 @@ class TodoList:
                 due, summary = TodoList.due_date_and_summary(summary)
                 dependencies, summary = TodoList.dependencies_and_summary(summary)
                 if DEBUG:
-                    print '{:30} {:15} {:2} {:6} {:15} {:25}'.format(line, summary, level, type, due, dependencies)
+                    print('{:30} {:15} {:2} {:6} {:15} {:25}'.format(line, summary, level, type, due, dependencies))
 
                 due = Due.str2due(due)
                 if not summary or type is None:
@@ -243,7 +243,7 @@ class TodoList:
                     item.add_dependency(match)
                     match.add_depender(item)
                     if DEBUG:
-                        print 'autosetting', item.summary, '->', match.summary
+                        print('autosetting', item.summary, '->', match.summary)
             for ref in item.getReferences():
                 swap = False
                 if len(ref) > 0 and ref[0] == '!':
@@ -256,7 +256,7 @@ class TodoList:
                     if swap:
                         orig, match = match, orig
                     if DEBUG:
-                        print 'setting', item.summary, '->', match.summary
+                        print('setting', item.summary, '->', match.summary)
                     orig.add_dependency(match)
                     match.add_depender(orig)
                 else:

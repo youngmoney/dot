@@ -12,7 +12,7 @@ def jsonsearch(jsonObj, query):
     new_objs = []
     for obj in objs:
       if type(obj) == dict:
-        for k,v in obj.items():
+        for k,v in list(obj.items()):
           if o == '' or k == o:
             new_objs.append(v)
       if type(obj) == list:
