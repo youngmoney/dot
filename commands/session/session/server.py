@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 from flask import Flask, request
-from session import BashSession
+from .session import BashSession
 
 app = Flask(__name__)
 

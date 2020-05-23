@@ -5,7 +5,7 @@ import json, base64
 def confirm(prompt):
     while True:
         try:
-            i = raw_input(prompt+" ")
+            i = input(prompt+" ")
         except KeyboardInterrupt:
             return False
         if i.lower() in ('yes','y', ''): return True
@@ -13,7 +13,7 @@ def confirm(prompt):
 
 def prompt(prompt):
     try:
-        return raw_input(prompt+" ")
+        return input(prompt+" ")
     except KeyboardInterrupt:
         return ""
 
@@ -310,7 +310,7 @@ class TodoSet:
             self.addItem(item)
 
     def getItems(self):
-        return filter(lambda i: not i.is_done(), self.items)
+        return [i for i in self.items if not i.is_done()]
 
     def __repr__(self):
         name = self.name+"/" if len(self.name) > 0 else ""
@@ -355,7 +355,7 @@ class TodoDirectory:
         return s
 
     def save(self, files=None):
-        if files is None: files = self.sets.keys()
+        if files is None: files = list(self.sets.keys())
         for f in files:
             with open(path.join(path.join(self.directory, f),self.filename), "w") as t:
                 t.write(str(self.sets[f])+"\n")
@@ -392,7 +392,7 @@ class TodoDirectory:
 
     def findmatched(self, psuedo, create=False, multiple=False, allow_done=False):
         matched = self.find(psuedo.getListAndName(), create)
-        if not allow_done: matched = filter(lambda m: not m.is_done(), matched)
+        if not allow_done: matched = [m for m in matched if not m.is_done()]
         if not multiple and len(matched) > 1:
             raise LookupError
         if len(matched) == 0:
@@ -542,30 +542,30 @@ def Run(args, directory):
                     total += totals[t]
                 elif totals[t] == 0:
                     total += 1
-            print total
+            print(total)
         elif args.verb == "today":
             # items = filter(lambda i: i.is_today(), items)
             PrettyToday().pretty_print(items)
         elif args.pretty:
-            print datetime.date.today().strftime("%A, %B %d, %Y")
-            print
+            print(datetime.date.today().strftime("%A, %B %d, %Y"))
+            print()
             Pretty().pretty_print(items, "            ")
-            print
+            print()
             count = 0
             for item in items:
                 days = item.getDue().days_until()
                 if days <= 0 or days == Due.Never:
                     count += 1
             if count == 0:
-                print "Nothing Todo Today"
+                print("Nothing Todo Today")
             elif count == 1:
-                print "1 Todo Today"
+                print("1 Todo Today")
             else:
-                print str(count)+" Todos Today"
+                print(str(count)+" Todos Today")
         elif not args.ugly:
             Pretty().pretty_print(items)
         else:
-            print "\n".join([str(i) for i in items])
+            print("\n".join([str(i) for i in items]))
         return True
 
     if len(item) == 0:
@@ -588,7 +588,7 @@ def Run(args, directory):
             directory.edit(todo, multiple=args.all, remove=args.verb=="remove")
     except Exception as e:
         if args.debug:
-            print "ERROR", e.message
+            print("ERROR", e.message)
         if isinstance(e, LookupError):
             # Potential Error
             return False
@@ -620,12 +620,12 @@ if __name__ == "__main__":
     try:
         f = TodoDirectory(filename=".TODO.td")
     except EnvironmentError:
-        print "No Todo Found"
+        print("No Todo Found")
         exit()
     try:
         args = parseArgs()
         if not Run(args, f):
-                print "Error"
+                print("Error")
     except KeyboardInterrupt:
         pass
 #

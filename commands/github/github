@@ -3,7 +3,7 @@
 from subprocess import Popen, PIPE
 import subprocess
 import json, base64
-import urllib2, argparse
+import urllib.request, urllib.error, urllib.parse, argparse
 import sys, os, tempfile
 from github import GitHub
 
@@ -11,7 +11,7 @@ from github import GitHub
 def confirm(prompt):
     while True:
         try:
-            i = raw_input(prompt+" ")
+            i = input(prompt+" ")
         except KeyboardInterrupt:
             return False
         if i.lower() in ('yes','y', ''): return True
@@ -19,7 +19,7 @@ def confirm(prompt):
 
 def prompt(prompt):
     try:
-        return raw_input(prompt+" ")
+        return input(prompt+" ")
     except KeyboardInterrupt:
         return ""
 
@@ -52,7 +52,7 @@ def getMessage(initial_message=""):
 
     message_lines = [l for l in message.split('\n') if not l.startswith('#')]
     first_line = -1
-    for i in reversed(range(len(message_lines))):
+    for i in reversed(list(range(len(message_lines)))):
         if message_lines[i].strip() != "":
             first_line = i
             break
@@ -76,15 +76,15 @@ def repoCommand(args, gh):
             return False
         for repo in repos:
             if repo["private"]:
-                print repo["full_name"] + " (private)"
+                print(repo["full_name"] + " (private)")
             else :
-                print repo["full_name"]
+                print(repo["full_name"])
         return True
 
     elif verb in ["create", "edit", "delete", "open"]:
         repo = getRepoName(args.repo, gh)
         if not repo:
-            print "No repo given"
+            print("No repo given")
             return True
 
         if verb == "open":
@@ -113,7 +113,7 @@ def repoCommand(args, gh):
         if verb == "create":
             if private == None:
                 private = False
-            print "Creating GitHub repository " + repo + " ..."
+            print("Creating GitHub repository " + repo + " ...")
             org, repo = repo.split("/")
             org_name = org
             if org == gh.username:
@@ -127,7 +127,7 @@ def repoCommand(args, gh):
             return False
 
         if verb == "edit":
-            print "Updating GitHub repository " + repo + " ..."
+            print("Updating GitHub repository " + repo + " ...")
             return gh.repo_edit(repo, private=private, description=description)
 
     return True
@@ -136,7 +136,7 @@ def collabCommand(args, gh):
     verb = args.verb[0]
     repo = getRepoName(args.repo, gh)
     if not repo:
-        print "No repo given"
+        print("No repo given")
         return True
 
     if verb == "list":
@@ -145,9 +145,9 @@ def collabCommand(args, gh):
             return False
         for collab in collabs:
             if collab["login"].lower() == gh.username.lower():
-                print collab["login"] + " (me)"
+                print(collab["login"] + " (me)")
             else:
-                print collab["login"]
+                print(collab["login"])
         return True
 
     if verb in ['add', 'remove']:
@@ -155,7 +155,7 @@ def collabCommand(args, gh):
         if not collab:
             collab = prompt("Who is this collaborator?")
             if not collab:
-                print "No collab given"
+                print("No collab given")
                 return True
         return gh.repo_collab(repo, collab, verb == 'remove')
 
@@ -166,7 +166,7 @@ def keyCommand(args, gh):
         if not keys:
             return False
         for key in keys:
-            print key["title"] + "\t" + key["key"]
+            print(key["title"] + "\t" + key["key"])
         return True
 
     if verb in ['add', 'remove']:
@@ -175,7 +175,7 @@ def keyCommand(args, gh):
         if not title:
             title = prompt("Key name:")
             if not title:
-                print "No name given"
+                print("No name given")
                 return True
 
         if verb == 'add':
@@ -185,7 +185,7 @@ def keyCommand(args, gh):
             if not key:
                 key = prompt("SSH Key:")
                 if not key:
-                    print "No key given"
+                    print("No key given")
                     return True
             return gh.key_create(title, key)
 
@@ -240,7 +240,7 @@ def pullCommand(args, gh):
 
         if verb == "diff" or verb == "patch":
             diffpatch = pull[verb+"_url"]
-            response = urllib2.urlopen(diffpatch)
+            response = urllib.request.urlopen(diffpatch)
             diffpatch = response.read()
             print(diffpatch)
         elif verb == "checkout":
@@ -301,7 +301,7 @@ def issueCommand(args, gh):
 
         issue = gh.issue_create(project, title, body)
         if issue:
-            print(issue["number"])
+            print((issue["number"]))
         return issue
     if verb == "list":
         issues = gh.issues_list(project)
@@ -363,7 +363,7 @@ def issue_info(gh, project, issue, pull=False):
         if info is None:
             return False
         if not info:
-            print("are you sure this is an {}?".format("pull" if pull else "issue"))
+            print(("are you sure this is an {}?".format("pull" if pull else "issue")))
             return False
         width = 100
         under = ('{:^'+str(width)+'}').format('-'*width)
@@ -476,7 +476,7 @@ def pull_request(gh, project, base, head):
     # base = gh.username+":"+base
     request = gh.pull_request(base=base, head=head, title=title, body=body, repo_name=project)
     if request:
-        print(request["number"])
+        print((request["number"]))
     return request
 
 def parseArgs():
@@ -535,7 +535,7 @@ if __name__ == "__main__":
             if args.debug:
                 gh.debug = True
             if not args.func(args,gh):
-                print "Error"
+                print("Error")
         else:
             GitHub.setup_config()
     except KeyboardInterrupt:

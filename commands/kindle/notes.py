@@ -42,13 +42,13 @@ def clippingList(d=os.environ['KINDLE_DIR']):
 
 def printClippingList(l):
     for book in l:
-        print "# "+book
-        print ""
+        print("# "+book)
+        print("")
         for q in l[book]:
             s = "\""+q["text"]+"\""+ " ("+q["type"]+", "+q["location"]+")"
-            print s.encode('utf-8')
-            print ""
-        print ""
+            print(s.encode('utf-8'))
+            print("")
+        print("")
 
 def clippings():
     clips = clippingList()

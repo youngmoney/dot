@@ -2,16 +2,16 @@
 # from https://github.com/cscorley/send.py
 # with changes
 
-from __future__ import print_function
+
 from email.parser import Parser
 from email.utils import parseaddr,getaddresses
 from os.path import expanduser
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 from collections import namedtuple
 import sys
 import argparse
 import smtplib
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import json
 import base64
 
@@ -122,7 +122,7 @@ def oauth_handler(oauth):
     params['refresh_token'] = oauth.user_refresh_token
     params['grant_type'] = 'refresh_token'
 
-    response = urllib.urlopen(oauth.request_url, urllib.urlencode(params)).read()
+    response = urllib.request.urlopen(oauth.request_url, urllib.parse.urlencode(params)).read()
     resp = json.loads(response)
     access_token = resp['access_token']
 

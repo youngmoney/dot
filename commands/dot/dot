@@ -6,7 +6,7 @@ import argparse
 def confirm(prompt):
     while True:
         try:
-            i = raw_input(prompt+" ")
+            i = input(prompt+" ")
         except KeyboardInterrupt:
             return False
         if i.lower() in ('yes','y', ''): return True
@@ -14,7 +14,7 @@ def confirm(prompt):
 
 def prompt(prompt):
     try:
-        return raw_input(prompt+" ")
+        return input(prompt+" ")
     except KeyboardInterrupt:
         return ""
 
@@ -30,8 +30,8 @@ def get_all(f, dots=False, all=False):
     a = glob.glob(f+"/*")
     if dots: a += glob.glob(f+"/.*")
     if not all:
-        a = filter(lambda f: not os.access(f, os.X_OK), a)
-        a = filter(lambda f: os.path.isfile(f), a)
+        a = [f for f in a if not os.access(f, os.X_OK)]
+        a = [f for f in a if os.path.isfile(f)]
     return a
 
 
@@ -51,11 +51,11 @@ def move(frm, to, prefix=".", backup=True, force=False, all=False):
         if new in a:
             actuals.append(base)
     if not force and not backup and len(actuals) > 0:
-        print "Found:", actuals
+        print("Found:", actuals)
         return
 
     if not force and backup and len(backups) > 0:
-        print "Found Backups:", backups
+        print("Found Backups:", backups)
         return
 
     for f in to_move:

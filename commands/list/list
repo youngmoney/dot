@@ -3,7 +3,7 @@
 def confirm(prompt):
     while True:
         try:
-            i = raw_input(prompt+" ")
+            i = input(prompt+" ")
         except KeyboardInterrupt:
             return False
         if i.lower() in ('yes','y', ''): return True
@@ -11,7 +11,7 @@ def confirm(prompt):
 
 def prompt(prompt):
     try:
-        return raw_input(prompt+" ")
+        return input(prompt+" ")
     except KeyboardInterrupt:
         return ""
 
@@ -20,16 +20,16 @@ def Run(args):
     tl = lines(args.list)
     if args.verb == 'count':
         tl = TodoList(tl)
-        print tl.count()
+        print(tl.count())
     elif args.verb == 'tags':
         tl = TodoList(tl)
-        print tl.tags()
+        print(tl.tags())
     elif args.verb == 'table':
         tl = TodoList(tl)
-        print tl.table()
+        print(tl.table())
     else:
         tl = TodoList(tl)
-        print tl.string()
+        print(tl.string())
     return True
 
 
@@ -67,6 +67,6 @@ if __name__ == "__main__":
     try:
         args = parseArgs()
         if not Run(args):
-                print "Error"
+                print("Error")
     except KeyboardInterrupt:
         pass

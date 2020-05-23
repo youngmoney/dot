@@ -3,7 +3,7 @@
 from subprocess import Popen, PIPE
 import subprocess
 import json, base64
-import urllib2, argparse
+import urllib.request, urllib.error, urllib.parse, argparse
 import sys, os, tempfile
 
 def jsonsearch(jsonObj, query):
@@ -12,7 +12,7 @@ def jsonsearch(jsonObj, query):
     new_objs = []
     for obj in objs:
       if type(obj) == dict:
-        for k,v in obj.iteritems():
+        for k,v in obj.items():
           if o == '' or k == o:
             new_objs.append(v)
       if type(obj) == list:
@@ -22,10 +22,10 @@ def jsonsearch(jsonObj, query):
 
   return objs
 
-class RequestWithMethod(urllib2.Request):
+class RequestWithMethod(urllib.request.Request):
   def __init__(self, *args, **kwargs):
     self._method = kwargs.pop('method', None)
-    urllib2.Request.__init__(self, *args, **kwargs)
+    urllib.request.Request.__init__(self, *args, **kwargs)
 
   def get_method(self):
     return self._method if self._method else super(RequestWithMethod, self).get_method()
@@ -53,7 +53,7 @@ class GitHub():
 
     def _throw(self, error):
         if self.debug:
-            print (str(error))
+            print((str(error)))
 
         if self.return_false_on_error:
             return False
@@ -129,13 +129,13 @@ class GitHub():
                 post_body = json.dumps(params)
                 req = RequestWithMethod(request_url, post_body, headers=headers, method=method)
 
-            handler = urllib2.urlopen(req)
+            handler = urllib.request.urlopen(req)
             links = handler.info().getheader('Link')
             response = handler.read()
         except IOError as error:
             if self.debug:
-                print (error.read())
-                print ("Error Making Request: " + str(error))
+                print((error.read()))
+                print(("Error Making Request: " + str(error)))
             return self._throw(error)
 
         if response:

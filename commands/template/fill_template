@@ -35,7 +35,7 @@ def ask_for_vars(arg_dict):
     try:
         for v in arg_dict:
             try:
-                val = raw_input("["+v+"] "+arg_dict[v]+": ")
+                val = input("["+v+"] "+arg_dict[v]+": ")
             except KeyboardInterrupt:
                 sys.stdin=old_in
                 sys.stdout=old_out
@@ -79,8 +79,8 @@ if __name__ == '__main__':
         try:
             with open(ins[0]) as f:
                 s = f.read()
-        except Exception, e:
-            print(ins[0]+" not found")
+        except Exception as e:
+            print((ins[0]+" not found"))
 
     elif not sys.stdin.isatty():
         s = sys.stdin.read()
@@ -105,5 +105,5 @@ if __name__ == '__main__':
         vs = []
         for i in v:
             vs.append('"--%s" "%s"' % (i, v[i]))
-        print(' '.join(vs))
+        print((' '.join(vs)))
     print(s)

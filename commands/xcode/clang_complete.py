@@ -7,8 +7,8 @@ import shutil
 
 
 def usage():
-    print 'Usage: \nclang_complete XcodeProjectFolderPath macosx/iphoneos/iphonesimulator'
-    print 'clang_complete XcodeProjectFolderPath ProjectName TargetName macosx/iphoneos/iphonesimulator'
+    print('Usage: \nclang_complete XcodeProjectFolderPath macosx/iphoneos/iphonesimulator')
+    print('clang_complete XcodeProjectFolderPath ProjectName TargetName macosx/iphoneos/iphonesimulator')
 
 
 def targets_in_projectfile(projectfile):
@@ -77,7 +77,7 @@ def get_clang_args(projectfolder, projectfilepath, target, sdk='iphonesimulator'
             break
 
     if len(args) == 0:
-        print output
+        print(output)
 
     return args
 
@@ -106,7 +106,7 @@ def main(argv):
     projectfolder = os.path.abspath(argv[0])
 
     if not os.path.exists(projectfolder):
-        print '%s is not exists.' % projectfolder
+        print(('%s is not exists.' % projectfolder))
         sys.exit(1)
 
     projectname = targetname = sdk = None
@@ -124,27 +124,27 @@ def main(argv):
                     break
 
     if sdk not in ['macosx', 'iphoneos', 'iphonesimulator']:
-        print 'SDK is not correct. It should be one of macosx/iphoneos/iphonesimulator.'
+        print('SDK is not correct. It should be one of macosx/iphoneos/iphonesimulator.')
         sys.exit(1)
 
     targets = targets_in_projectfile(os.path.join(projectfolder, projectname))
 
     if len(targets) == 0:
-        print 'The xcode project %s has no valid target.' % projectname
+        print(('The xcode project %s has no valid target.' % projectname))
         sys.exit(1)
 
     if None == targetname:
         targetname = targets[0]
     elif not targetname in targets:
-        print 'Target "%s" is not in existing target list %s.' % (targetname, targets)
+        print(('Target "%s" is not in existing target list %s.' % (targetname, targets)))
 
-    print 'Processing target "%s" in project "%s"...' % (targetname, projectname)
+    print(('Processing target "%s" in project "%s"...' % (targetname, projectname)))
 
     argstring = get_clang_args(projectfolder, os.path.join(projectfolder, projectname), targetname, sdk)
     args = (('\n-'.join((' '+argstring).split(' -'))).strip('\n ')).split('\n')
 
     if len(args) == 0 or len(argstring) == 0:
-        print('Build target "%s" failed. Please check your code.' % targetname)
+        print(('Build target "%s" failed. Please check your code.' % targetname))
         sys.exit(1)
 
     folderlist = get_all_header_folder(projectfolder)
@@ -158,13 +158,13 @@ def main(argv):
 
     filteredpath = [x for x in args if '\\ ' in x] + [x for x in folderlist if '\\ ' in x]
     if len(filteredpath) > 0:
-        print 'Please make sure there is no white space in your project path and target name because of a bug in clang.\n' \
-              'Following paths are not valid, correct the path with "\ " and try again.\n'
+        print('Please make sure there is no white space in your project path and target name because of a bug in clang.\n' \
+              'Following paths are not valid, correct the path with "\ " and try again.\n')
         for path in [x for x in filteredpath]:
-            print path
+            print(path)
 
-    print
-    print 'Processed target "%s" in project "%s". Please restart your MacVIM now.' % (targetname, projectname)
+    print()
+    print(('Processed target "%s" in project "%s". Please restart your MacVIM now.' % (targetname, projectname)))
 
 if __name__ == "__main__":
     main(sys.argv[1:])

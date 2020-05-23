@@ -122,7 +122,7 @@ class Budget:
 
         for line in p:
             if line is not None:
-                print("{:<10}{:>10,.2f}".format(line[0].capitalize(), line[1]))
+                print(("{:<10}{:>10,.2f}".format(line[0].capitalize(), line[1])))
             else:
                 print("")
 
@@ -150,6 +150,6 @@ if __name__ == "__main__":
     try:
         args = parseArgs()
         if not Run(args):
-                print "Error"
+                print("Error")
     except KeyboardInterrupt:
         pass

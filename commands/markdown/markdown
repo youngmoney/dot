@@ -37,7 +37,7 @@ def parse_and_run():
     if not os.path.isfile(args.filename):
             args.filename = args.filename+".md"
     if not os.path.isfile(args.filename):
-            print "Could Not Find File "+args.filename
+            print("Could Not Find File "+args.filename)
             return
     filename = args.filename
 
@@ -53,7 +53,7 @@ def parse_and_run():
         template = defaults["type"]
 
     if not template:
-        print "No template specified"
+        print("No template specified")
         return
 
     for k in meta:
@@ -98,14 +98,14 @@ def parse_and_run():
             #     args.extend(metafaults["To"].split(","))
             try:
                 if "debug" in meta:
-                    print " ".join(args)
+                    print(" ".join(args))
                 body = subprocess.check_output(('pandoc', '-t', 'plain', filename))
                 mailer = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 stdout, stderr = mailer.communicate(body)
-                print stdout
-                print stderr
+                print(stdout)
+                print(stderr)
             except:
-                print "Sendmail Error"
+                print("Sendmail Error")
                 return
             exit(0)
 
@@ -125,7 +125,7 @@ def parse_and_run():
             template = template_name + "." + template_exts[0]
             template_exts.pop(0)
     if not os.path.isfile(template):
-            print("Template not found: "+template)
+            print(("Template not found: "+template))
 
     ext = template.split(".")[-1]
     if ".tex" in template and "tex" not in meta and not args.tex: ext = "pdf"
@@ -150,10 +150,10 @@ def parse_and_run():
         command.extend(["--var", str(d)+"="+str(defaults[d])])
     try:
         if "debug" in meta:
-            print " ".join(command)
+            print(" ".join(command))
         response = subprocess.check_output(command)
     except:
-        print "Pandoc Error"
+        print("Pandoc Error")
         return
 
     if args.open:

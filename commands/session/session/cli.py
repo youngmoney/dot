@@ -1,15 +1,15 @@
 #!/usr/bin/env python2.7
 from argparse import ArgumentParser
-import client, server
+from . import client, server
 import base64
 import sys
 
 def debug(s):
     if True:
         if isinstance(s, str):
-            print s
+            print(s)
         else:
-            print s()
+            print(s())
 
 def parse_and_run():
     parser = ArgumentParser(description="Execute Markdown Code Blocks")
@@ -28,7 +28,7 @@ def parse_and_run():
     try:
         args.func(args)
     except Exception as e:
-        print e
+        print(e)
         return False
 
 

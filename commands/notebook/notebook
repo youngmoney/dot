@@ -75,7 +75,7 @@ def parse_and_run():
     try:
         prerun(args)
     except Exception as e:
-        print e
+        print(e)
         return False
     return True
 
@@ -360,26 +360,26 @@ def expand(filename, meta, full_meta):
             if command_string == block_name:
                 type = "none"
 
-            print '```'+block_name
+            print('```'+block_name)
             if not type:
                 raise error(0, "no expand type (expand.type)")
             if type == "none":
-                print c.get_code()
+                print(c.get_code())
             elif type == "line":
                 for l in c.get_code().split('\n'):
-                    print command_string + " " + l
+                    print(command_string + " " + l)
             elif type == "once":
-                print command_string
-                print
-                print c.get_code()
+                print(command_string)
+                print()
+                print(c.get_code())
             elif type == "heredoc":
-                print command_string + " << EOF"
-                print c.get_code()
-                print "EOF"
+                print(command_string + " << EOF")
+                print(c.get_code())
+                print("EOF")
 
-            print '```'
+            print('```')
         else:
-            print '\n'.join(c.get_lines())
+            print('\n'.join(c.get_lines()))
 
 
 def run(filename, meta, full_meta, lines_to_exec):
