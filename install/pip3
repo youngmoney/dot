@@ -1,6 +1,8 @@
 khal
 khard
+matplotlib
+notebook
 pipdeptree
 requests-oauthlib
+scipy
 vdirsyncer
-wheel
