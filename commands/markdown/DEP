@@ -1,0 +1,3 @@
+package:pandoc
+package:mactex
+pip3:PyYAML

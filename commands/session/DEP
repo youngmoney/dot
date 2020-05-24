@@ -1,0 +1,3 @@
+package:python3
+pip3:flask
+pip3:requests
