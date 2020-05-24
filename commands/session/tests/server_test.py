@@ -5,7 +5,7 @@ from multiprocessing import Process
 import session.server as server
 
 def shell(command, stdin=None):
-    p = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    p = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
     return p.communicate(stdin)[0]
 
 def curl(path, method = 'GET', args = {}):

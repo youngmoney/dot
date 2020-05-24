@@ -55,6 +55,7 @@ class PipeSession(Session):
     def _sendlines(self, lines):
         assert self.running
         self.interpreter.stdin.writelines([l+'\n' for l in lines])
+        self.interpreter.stdin.flush()
 
     def _readline(self):
         """Read a line from the output of the program.
@@ -79,7 +80,7 @@ class PipeSession(Session):
         with Locked(self.lock):
             assert not self.running
             try:
-                self.interpreter = subprocess.Popen(self._command(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+                self.interpreter = subprocess.Popen(self._command(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True, universal_newlines=True)
             except Exception as e:
                 raise ValueError("Error running command %s: %s" % (self.command, str(e)))
             self.running = True
@@ -97,11 +98,15 @@ class PipeSession(Session):
             assert self.running
             self.interpreter.terminate()
             self.interpreter.wait()
+            self.interpreter.stdin.close()
+            self.interpreter.stdout.close()
             self.running = False
 
     def kill(self):
         self.interpreter.kill()
         self.interpreter.wait()
+        self.interpreter.stdin.close()
+        self.interpreter.stdout.close()
         self.running = False
 
     def is_running(self):
@@ -116,5 +121,5 @@ class BashSession(PipeSession):
 
     def _ready(self):
         end = "SESSION_END_OF_COMMAND_REACHED_READY"
-        self._sendlines(["echo "+end])
+        self._sendlines(['echo '+end])
         return lambda l: l == end

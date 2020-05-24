@@ -1,5 +1,6 @@
 import requests
 from .session import Session
+import locale
 
 class RemoteSession(Session):
     def __init__(self, session_id, url=None, port=7007):
@@ -25,7 +26,7 @@ class RemoteSession(Session):
         data = {'command': '\n'.join(command)}
         response = requests.put(self._url_for_verb('execute'), data=data)
         if response.content:
-            return response.content.split('\n')
+            return response.content.decode(locale.getpreferredencoding(False)).split('\n')
         return []
 
     def is_running(self):
