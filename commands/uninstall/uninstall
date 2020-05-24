@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 list-python() {
-    python$1 -m pipdeptree -f -w silence 2>/dev/null | grep -v '^ ' | sort || pip$1 freeze
+  (python$1 -m pipdeptree -f -w silence 2>/dev/null | grep -v '^ ' | sort || pip$1 freeze) | awk -F'==' '{print $1}'
 }
 
 list-python3() { list-python 3; }
@@ -13,6 +13,10 @@ leftover() {
 }
 
 uninstall-generic() {
+    if [ "$3" == "-f" ]; then
+        uninstall-file "$1" "$2" "$4"
+        return
+    fi
     lister="$1"
     uninstaller="$2"
 
@@ -20,12 +24,36 @@ uninstall-generic() {
     left="$3"
     while [ "$old" != "$new" ]; do
         old="`$lister`"
+
+        echo "Removing:"
+        echo "$left"
+        read -p "continue[y/N] " c
+        [ "$c" != "y" ] && return
+
         while read -r i; do
             [ "$i" != "" ] && $uninstaller "$i"
         done <<< "$left"
         new="`$lister`"
         left="`leftover <(echo "$old") <(echo "$new")`"
     done
+}
+
+uninstall-file() {
+  lister="$1"
+  uninstaller="$2"
+  file="$3"
+  [ ! -f "$file" ] && echo "file must exist" &&  return 1
+  correct=$(cat "$file")
+  while [ "$correct" != "$($lister)" ]; do
+      remove=$(leftover $file <($lister))
+      echo "Remove:"
+      echo $remove
+      read -p "continue[y/N] " c
+      [ "$c" != "y" ] && return
+      while read -r i; do
+          [ "$i" != "" ] && $uninstaller "$i"
+      done <<< "$remove"
+  done
 }
 
 uninstall-pip3() {

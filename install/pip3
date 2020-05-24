@@ -1,8 +1,6 @@
-khal
-khard
-matplotlib
-notebook
 pipdeptree
-requests-oauthlib
-scipy
-vdirsyncer
+PyYAML
+Flask
+requests
+setuptools
+wheel
