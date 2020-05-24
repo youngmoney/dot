@@ -10,118 +10,18 @@ else
 fi
 . $SCRIPTS/../conf/bashrc --short
 
-fetch_mail() {
-    for c in $ACCOUNTS/account.*.offlineimap; do
-        build etc timeout -k 30  520 offlineimap -o -c "$c" $OFFLINEIMAP_ARGS
-        #-u quiet
-    done
-    # build mail unread | notify Mail
-    mu index -q
-}
-fetch_vdir() {
-    for c in $ACCOUNTS/account.*.vdirsyncer; do
-        build etc timeout -k 20 30 vdirsyncer -c "$c" sync --max-workers=1
-    done
-}
-fetch_discover() {
-    for c in $ACCOUNTS/account.*.vdirsyncer; do
-        build etc timeout -k 20 30 vdirsyncer -c "$c" discover --max-workers=1
-        build etc timeout -k 20 30 vdirsyncer -c "$c" metasync --max-workers=1
-    done
-}
-next_event() { khal-up | notify "Coming Up"; }
-fetch_all() {
-    if [ ! -f $LOCALDOT/status/sync.me ]; then
-        exit
-    fi
-    if build system online; then
-        if [ "$1" != "mail" ]; then
-            fetch_vdir
-        fi
-        if [ "$1" != "vdir" ]; then
-            fetch_mail
-        fi
-    fi
-    for f in $LOCALDOT/conf/*.fetch; do [ -f "$f" ] && . "$f"; done
-}
-do_ctag() { build ctag $@; }
 
 notify() { if [ ! -f ~/.silent ]; then build notify notify $1; fi }
 
 the_status() {
-    if [ "$1" == "--color" ]; then
-        rest=""
-        # reset="#[fg=colour255]"
-        # high="#[fg=colour160]"
-    fi
     s=""
-    #⚠︎
     if [[ "`build system battery`" -le 20 ]]; then s="$s ⚡︎ Low"; fi
-    if [ "`backup status-quiet`" != "" ]; then s="$s ♼  $(backup status-quiet)"; fi
-    mail="`build mail unread-count`"; if [ "$mail" == "0" ]; then mail=""; fi
-    curmail="(`build mail flag-count`)"; if [ "$curmail" == "(0)" ]; then curmail=""; fi
-    mail="${high}$mail${reset}${curmail}"
-    if [ "$mail" != "" ]; then s="$s ✉︎ $mail"; fi
-    rem="`todo count`"
-    mrem="`build mail with-subject Todo | wc -l | sed 's/^ *//g'`"
-    rem="`expr $rem + $mrem`"
+    rem="`todo count 2>/dev/null`"
     if [ "$rem" -ge "1" ]; then s="$s ✓ ${high}$rem${reset}"; fi
-    next="`khal-next`"
-    if [ "$next" != "" ]; then
-        s="$s [$next]";
-    else
-        s="$s |";
-    fi
+    s="$s |";
     s="$s `date '+%b %d %l:%M'`"
     s="$s "
     echo "${reset}$s"
-}
-
-dashboard() {
-    while true; do
-        todos="`todo list`"
-        todo_lines="`echo "$todos" | wc -l`"
-
-        lines="`tput lines`"
-        lines="`expr $lines - 3`"
-        before_todo="`expr $lines - $todo_lines`"
-
-        events="`khal-agenda 2> /tmp/khal-errors`"
-        events="`echo "$events" | head -$before_todo`"
-        event_lines="`echo "$events" | wc -l`"
-        after_events="`expr $before_todo - $event_lines`"
-
-        clear
-        date '+%b %d %l:%M'
-        printf '\033[?7l'
-        echo "$events"
-        printf '\033[?7l'
-        echo -en "\033[0m"
-        for i in `seq 0 $after_events`; do echo; done
-        echo "$todos"
-        # read -s -e -t 5 i
-        sleep 5
-    done
-}
-do_mail() {
-    while [ "" == "" ]; do
-        mutt
-        (mu index -q 2>/dev/null &)
-        echo -e '\033kMutt\033\\'
-    done
-}
-
-khal-up() {
-    O="$1"
-    if [ "$O" == "" ]; then O=10; fi
-    khal -c ~/.khal list --notstarted --day-format '' --format "{start-time} {title}" "`date '+%Y-%m-%d %I:%M%p'`" "${O}m" | grep -v 'No events' | grep -v '^$' | grep ':'
-}
-khal-next() {
-    khal -c ~/.khal list --notstarted --day-format '' --format "{start-time} {title}" "`date '+%Y-%m-%d %I:%M%p'`" eod | grep -v 'No events' | grep ':' | sed 's/^ //' | cut -c 1-25 | grep -v '^$' | head -1
-}
-khal-agenda() {
-    echo
-    khal -c ~/.khal --color list --day-format '{yellow}{name}{reset}' --format "            {blue}{start-end-time-style:<16}{reset} {magenta}{title:<.50}{reset} {repeat-symbol} {cyan}{location:<.25}{reset}" `date '+%Y-%m-%d %I:%M%p'` 6d | sed 's/⟳/\&/'
 }
 
 do-run() {
@@ -130,14 +30,6 @@ do-run() {
     else
         if [ "$1" == "-l" ]; then shift; fi
         $@
-    fi
-}
-
-central() {
-    if [ -f $LOCALDOT/status/central.me ]; then
-        if ! build central enabled; then
-            nohup build central > /dev/null 2>&1
-        fi
     fi
 }
 
@@ -151,30 +43,12 @@ a="$1"
 shift;
 if [ "$a" == "tmux" ]; then
     the_status $@
-elif [ "$a" == "today" ]; then
-    dashboard $@
-elif [ "$a" == "fetch" ]; then
-    fetch_all $@
-elif [ "$a" == "sync" ]; then
-    fetch_all $@
-elif [ "$a" == "discover" ]; then
-    fetch_discover $@
-elif [ "$a" == "next-event" ]; then
-    next_event $@
-elif [ "$a" == "ctag" ]; then
-    do_ctag "$@"
 elif [ "$a" == "notify" ]; then
     notify $@
-elif [ "$a" == "mail" ]; then
-    do_mail $@
 elif [ "$a" == "run" ]; then
     do-run $@
-elif [ "$a" == "central" ]; then
-    central "$@"
 elif [ "$a" == "session" ]; then
     session "$@"
-elif [ "$a" == "agenda" ]; then
-    khal-agenda "$@"
 else
     the_status $a $@
 fi
