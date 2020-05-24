@@ -34,59 +34,36 @@ run-quiet() {
 }
 
 me() {
-    if [ "$1" == "continue" ]; then
-        mkdir -p ~/.mail ~/.calendar ~/.contacts
-        mkdir -p ~/.tmp
+    mkdir -p ~/.tmp
 
-        setup-install
-        setup-dot
-        build cron install ~/.cron
-        setup-decrypt
-        build system is-mac && setup-osx
-    else
-        build drive download || return 1
-        build symc safe-rm ~/Documents
-        build symc safe-rm ~/documents
-        build symc safe-rm ~/Documents
-        for f in documents local pictures; do
-            build symc safe-rm ~/$f
-            build symc safe-rm ~/$(tr '[:lower:]' '[:upper:]' <<< ${foo:0:1})${foo:1}
-            mkdir ~/$f/archive
-            rsync $(build drive directory)/$f/ ~/$f/archive
-            for w in ~/$f/archive/*.working; do
-                $(cd ~/$f; build archive restore $w)
-            done
-        done
-        $DOT_DEST/bin/setup me continue
-    fi
+    setup-install
+    setup-dot
+    build cron install ~/.cron
+    build system is-mac && setup-osx
 }
 
 go() {
     [ "$1" == "--no" ] && local no="--no" || local no=""
 
-    mkdir -p $LOCALDOT/{status,conf,commands,accounts}
-    mkdir -p ~/.mail ~/.calendar ~/.contacts
+    mkdir -p $LOCALDOT/{status,conf,commands}
     mkdir -p ~/.tmp
 
     [ "$no" ] || setup-me
 
-    [ -d $DOT/../archives ] && setup-dirs || setup-dirs-simple
+    setup-dirs-simple
     hash -r; pathaddfirst $SCRIPTS
 
     setup-install $no
 
     setup-dot
     build cron install ~/.cron
-    [ -d ~/local/archives ] && [ "$no" == "" ] && setup-decrypt
 
     build system is-mac && setup-osx
 
     if [ "$no" == "" ]; then
         setup-git
-        setup-account
     else
         echo "run setup git"
-        echo "run setup account"
     fi
 }
 
@@ -99,40 +76,12 @@ setup-me() {
     read -p "make home?[Y/n]" q
     if [ "$q" == "" ]; then touch $LOCALDOT/status/home.me;
     else rm -f $LOCALDOT/status/home.me; fi
-    read -p "allow backups?[Y/n]" q
-    if [ "$q" == "" ]; then touch $LOCALDOT/status/backup.me;
-    else rm -f $LOCALDOT/status/backup.me; fi
-    read -p "allow sync?[Y/n]" q
-    if [ "$q" == "" ]; then touch $LOCALDOT/status/sync.me;
-    else rm -f $LOCALDOT/status/sync.me; fi
-}
-
-setup-decrypt() {
-    #tail-c+
-    echo "decrypting"
-    cd ~/
-    build symc safe-rm ~/.local-dot
-    build symc safe-rm ~/.password-store
-
-    build archive restore ~/local/archive/word
-    build archive restore ~/local/archive/local
 }
 
 setup-dot() {
     # build symc clean ~/
     build symc link-dir $DOT/conf ~/.
     . ~/.bashrc
-    build mail link-mailcap
-}
-
-setup-dirs() {
-    if [ "$DOT_DEST" != "$DOT" ]; then
-        # TODO rename to lowercase
-        # TODO make cp actually happen
-        build symc cp-dir "$DOT/../../" ~/
-        DOT="$DOT_DEST"
-        SCRIPTS="$DOT/bin"
-    fi
 }
 
 setup-dirs-simple() {
@@ -146,7 +95,6 @@ setup-dirs-simple() {
 
 setup-install() {
     build install restore $DOT/install
-    command -v mu >/dev/null 2>&1 && run-quiet "Indexing with mu" mu index -m ~/.mail
     echo "The following extras must be installed on their own"
     echo 'peppermint'
     if [ "$1" != "--no" ] && [ "$1" != "no" ]; then
@@ -154,18 +102,6 @@ setup-install() {
         if [ "$r" == "" ]; then
             open $DOT/conf/taylormint.terminal
         fi
-    fi
-}
-
-setup-account() {
-    if [ "$1" != "" ]; then
-        $DOT/templates/account.template "$@"
-    else
-        read -p "Add Account? " q
-        while [ "$q" == "" ]; do
-            $DOT/templates/account.template
-            read -p "Add Account? " q
-        done
     fi
 }
 
@@ -182,12 +118,8 @@ a="$1"
 shift;
 if [ "$a" == "git" ]; then
     setup-git "$@"
-elif [ "$a" == "account" ]; then
-    setup-account "$@"
 elif [ "$a" == "dot" ]; then
     setup-dot "$@"
-elif [ "$a" == "decrypt" ]; then
-    setup-decrypt "$@"
 elif [ "$a" == "osx" ]; then
     setup-osx "$@"
 elif [ "$a" == "go" ]; then
@@ -202,13 +134,9 @@ elif [ "$a" == "install" ]; then
     setup-install "$@"
 else
     echo "git: run git setup"
-    echo "account: run account setup"
     echo "dot: symlink dotfiles"
     echo "go/all: run everything"
     echo "no: run everything, ask no questions"
-    echo "me: download from drive, and setup"
+    echo "me: setup"
     echo "install: install (accepts no)"
 fi
-
-# https://github.com/odeke-em/drive
-# last meaningful update 16-7-7 12:59:7
