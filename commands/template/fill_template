@@ -2,24 +2,25 @@
 
 from collections import OrderedDict
 
+
 def parse_template(i, arg_dict):
     seen_blank = 0
-    body=""
+    body = ""
     for line in i.split("\n"):
-        if seen_blank == 0 and len(line) >0 and line[0] == "#":
+        if seen_blank == 0 and len(line) > 0 and line[0] == "#":
             pass
         elif seen_blank == 0:
             if line == "":
                 seen_blank = 1
             else:
-                splitted = line.split(": ",1)
+                splitted = line.split(": ", 1)
                 if len(splitted) == 1:
                     arg_dict[splitted[0]] = ""
                 elif len(splitted) == 2:
                     arg_dict[splitted[0]] = splitted[1]
         else:
             body += line
-            body +="\n"
+            body += "\n"
 
     return body[0:-2]
 
@@ -30,28 +31,29 @@ def ask_for_vars(arg_dict):
     val_dict = OrderedDict()
     old_in = sys.stdin
     old_out = sys.stdout
-    sys.stdin = open('/dev/tty')
-    sys.stdout = open('/dev/tty')
+    sys.stdin = open("/dev/tty")
+    sys.stdout = open("/dev/tty")
     try:
         for v in arg_dict:
             try:
-                val = input("["+v+"] "+arg_dict[v]+": ")
+                val = input("[" + v + "] " + arg_dict[v] + ": ")
             except KeyboardInterrupt:
-                sys.stdin=old_in
-                sys.stdout=old_out
+                sys.stdin = old_in
+                sys.stdout = old_out
                 return None
-            val_dict[v]=val
+            val_dict[v] = val
     except EOFError:
-        sys.stdin=old_in
-        sys.stdout=old_out
+        sys.stdin = old_in
+        sys.stdout = old_out
         return None
-    sys.stdin=old_in
-    sys.stdout=old_out
+    sys.stdin = old_in
+    sys.stdout = old_out
     return val_dict
+
 
 def replace_vars(s, values):
     for v in values:
-        s = s.replace("$"+v+"$", values[v])
+        s = s.replace("$" + v + "$", values[v])
     return s
 
 
@@ -68,8 +70,10 @@ def parse_args(in_args, flags, args, strings):
         else:
             strings += [part]
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import sys
+
     s = None
     predefined = {}
     fl = []
@@ -80,7 +84,7 @@ if __name__ == '__main__':
             with open(ins[0]) as f:
                 s = f.read()
         except Exception as e:
-            print((ins[0]+" not found"))
+            print((ins[0] + " not found"))
 
     elif not sys.stdin.isatty():
         s = sys.stdin.read()
@@ -101,9 +105,9 @@ if __name__ == '__main__':
     for pre in predefined:
         v[pre] = predefined[pre]
     s = replace_vars(s, v)
-    if 'v' in fl:
+    if "v" in fl:
         vs = []
         for i in v:
             vs.append('"--%s" "%s"' % (i, v[i]))
-        print((' '.join(vs)))
+        print((" ".join(vs)))
     print(s)
