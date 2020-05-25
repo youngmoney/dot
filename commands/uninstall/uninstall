@@ -46,8 +46,9 @@ uninstall-file() {
   correct=$(cat "$file")
   while [ "$correct" != "$($lister)" ]; do
       remove=$(leftover $file <($lister))
+      [ "$remove" == "" ] && break
       echo "Remove:"
-      echo $remove
+      echo "$remove"
       read -p "continue[y/N] " c
       [ "$c" != "y" ] && return
       while read -r i; do
