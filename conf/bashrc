@@ -41,7 +41,7 @@ if [ "$1" == "--short" ]; then return 0; fi
 
 alias gh="build github";
 alias gs="git status";
-alias gd="git diff"
+alias gd="git diff --color-words=."
 alias gc="git commit";
 alias gl='build git pretty-log'
 alias gr="git rebase"
