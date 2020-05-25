@@ -31,12 +31,13 @@ export LC_ALL="en_US.UTF-8"
 export ACCOUNTS=$LOCALDOT/accounts
 export TMUX_SOCKET=~/.local-dot/status/tmux-global
 export NOTEDIR=~/documents/notes
+[ -d "$NOTEDIR" ] || NOTEDIR=~/Documents/notes
 # echo "UPDATESTARTUPTTY" | gpg-connect-agent > /dev/null 2>&1
 export GPG_TTY=`tty`
 export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_ANALYTICS=1
 alias khal="khal -c ~/.khal"
-todo() { (cd ~/documents/notes; build list --list '*.md' "$@"); }
+todo() { (cd "$NOTEDIR"; build list --list '*.md' "$@"); }
 
 SHORT_BASH_IMPORT="$LOCALDOT/conf/short.bash"
 [ -f "$SHORT_BASH_IMPORT" ] && . "$SHORT_BASH_IMPORT"
