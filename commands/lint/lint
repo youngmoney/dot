@@ -65,7 +65,7 @@ lint::fix::python() {
 }
 
 lint::lint::shell() {
-  shellcheck -o all "$1"
+  shellcheck -f gcc -o require-variable-braces,add-default-case,avoid-nullary-conditions,check-unassigned-uppercase "$1"
 }
 
 lint::fix::shell() {
@@ -73,7 +73,11 @@ lint::fix::shell() {
   BASE=$(basename "${1}")
   (
     cd "${DIR}" || exit;
-    shellcheck -o all -f diff "${BASE}" | patch -p1 -s
+    # Apply SC2086 (quoting) first.
+    # SC2086 & SC2164 fighting
+    # https://github.com/koalaman/shellcheck/issues/1911
+    shellcheck -i SC2086 -f diff "${BASE}" | patch -p1 -s
+    shellcheck -e SC2086 -o require-variable-braces,add-default-case,avoid-nullary-conditions,check-unassigned-uppercase -f diff "${BASE}" | patch -p1 -s
   )
 }
 
