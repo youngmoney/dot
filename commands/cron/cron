@@ -1,48 +1,48 @@
 #!/usr/bin/env bash
 
 id_from_name() {
-    name="$@"
-    filename=$(basename "$name")
-    echo ' # Crontab Installed With Build: '"$name"
+    name="$*"
+    echo ' # Crontab Installed With Build: '"${name}"
 }
 
 install_cron() {
     name="$1"
-    if [ "$name" == "" ]; then exit; fi
-    uninstall_cron "$name"
-    id="`id_from_name $name`"
-    now="`crontab -l`"
+    if [ "${name}" == "" ]; then exit; fi
+    uninstall_cron "${name}"
+    id="$(id_from_name "${name}")"
+    now="$(crontab -l)"
     sep="
 "
-    tab="`cat $name | sed -e "s|$|${id}|"`"
-    c="$now$sep$tab"
-    echo "$c" | crontab -
+    tab="$(sed -e "s|$|${id}|" "${name}")"
+    c="${now}${sep}${tab}"
+    echo "${c}" | crontab -
 }
 
 uninstall_cron() {
     name="$1"
-    if [ "$name" == "" ]; then exit; fi
-    id="`id_from_name $name`"
-    crontab -l | grep -v "$id" | crontab - > /dev/null 2>&1
+    if [ "${name}" == "" ]; then exit; fi
+    id="$(id_from_name "${name}")"
+    crontab -l | grep -v "${id}" | crontab - > /dev/null 2>&1
 }
 
 edit_cron() {
     name="$1"
-    if [ "$name" == "" ]; then name=~/.cron; fi
-    $EDITOR $name
-    install_cron "$name"
+    if [ "${name}" == "" ]; then name=~/.cron; fi
+    # shellcheck disable=SC2154
+    ${EDITOR} ${name}
+    install_cron "${name}"
 }
 
 
 
 a="$1"
 shift
-if [ "$a" == "install" ]; then
-    install_cron $@
-elif [ "$a" == "uninstall" ]; then
-    uninstall_cron $@
-elif [ "$a" == "edit" ]; then
-    edit_cron $@
+if [ "${a}" == "install" ]; then
+    install_cron "$@"
+elif [ "${a}" == "uninstall" ]; then
+    uninstall_cron "$@"
+elif [ "${a}" == "edit" ]; then
+    edit_cron "$@"
 else
     echo "install file: installs file into the crontab (or updates)"
     echo "uninstall file: uninstalls the file"
