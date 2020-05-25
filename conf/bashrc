@@ -23,20 +23,14 @@ pathadd /usr/bin
 
 export EDITOR=`which vim`; export VISUAL=$EDITOR
 export BROWSER="build system open-url"
-export MAILDIR=~/.mail
-export KHARD_CONFIG=~/.khard
 export LOCALDOT=~/.local-dot
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
-export ACCOUNTS=$LOCALDOT/accounts
 export TMUX_SOCKET=~/.local-dot/status/tmux-global
 export NOTEDIR=~/documents/notes
 [ -d "$NOTEDIR" ] || NOTEDIR=~/Documents/notes
-# echo "UPDATESTARTUPTTY" | gpg-connect-agent > /dev/null 2>&1
-export GPG_TTY=`tty`
 export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_ANALYTICS=1
-alias khal="khal -c ~/.khal"
 todo() { (cd "$NOTEDIR"; build list --list '*.md' "$@"); }
 
 SHORT_BASH_IMPORT="$LOCALDOT/conf/short.bash"
@@ -45,14 +39,7 @@ SHORT_BASH_IMPORT="$LOCALDOT/conf/short.bash"
 if [ "$1" == "--short" ]; then return 0; fi
 
 
-alias today="status today -l 20";
-alias muttr="status mail"
-alias agenda="status agenda | head -25"
-
-alias pass="build pass"
-
 alias gh="build github";
-alias gt="build gitolite"
 alias gs="git status";
 alias gd="git diff"
 alias gc="git commit";
@@ -66,7 +53,6 @@ alias s="build search content";
 alias f="build search file"
 
 alias ssh-share="build ssh share"
-alias sup="build vagrant sup";
 
 alias dc="cd";
 alias ls="ls -1F"

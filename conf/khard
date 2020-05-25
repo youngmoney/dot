@@ -1,8 +1,0 @@
-[addressbooks]
-[[contacts]]
-path = ~/.contacts/me/default
-
-[general]
-default_action = list
-editor = vim
-merge_editor = vimdiff
