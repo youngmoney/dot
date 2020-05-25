@@ -4,5 +4,6 @@ git
 pandoc
 python3
 reattach-to-user-namespace
+shellcheck
 tmux
 vim

@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+lint::lint() {
+  local FIX=0
+  if [ "${1}" == "--fix" ] || [ "${1}" == "-f" ]; then
+      shift
+      FIX=1
+  fi
+  for FILE in "$@"; do
+      TYPE=$(lint::detect "${FILE}")
+      if [ "${TYPE}" == "" ]; then
+          echo "Ignoring: ${FILE}"
+      else
+          if [[ ${FIX} -eq 0 ]]; then
+              COMMAND="lint::lint::${TYPE}"
+              ${COMMAND} "${FILE}"
+          else
+              COMMAND="lint::fix::${TYPE}"
+              ${COMMAND} "${FILE}"
+          fi
+      fi
+  done
+
+}
+
+lint::detect() {
+  local FILE
+  FILE="$1"
+  if [ ! -f "${FILE}" ]; then
+      echo "not a valid file: ${FILE}"
+      return 1
+  fi
+  local FIRST
+  FIRST=$(head -1 "${FILE}" | grep '^#!')
+  EXTENTION=${FILE##*.}
+  ALL="${FIRST} ${EXTENTION}"
+  for part in ${ALL}; do
+    case "${part}" in
+        "py" | python*)
+            echo "python"
+            return 0
+            ;;
+        *sh)
+            echo "shell"
+            return 0
+            ;;
+        *) continue
+            ;;
+    esac
+  done
+  return 1
+}
+
+lint::lint::python() {
+  black --check -v --safe "$1"
+}
+
+lint::fix::python() {
+  DIR=$(dirname "${1}")
+  BASE=$(basename "${1}")
+  (
+    cd "${DIR}" || exit;
+    black -q "${BASE}"
+  )
+}
+
+lint::lint::shell() {
+  shellcheck -o all "$1"
+}
+
+lint::fix::shell() {
+  DIR=$(dirname "${1}")
+  BASE=$(basename "${1}")
+  (
+    cd "${DIR}" || exit;
+    shellcheck -o all -f diff "${BASE}" | patch -p1 -s
+  )
+}
+
+a="${1}"
+shift
+
+if [ "${a}" == "lint" ]; then
+    lint::lint "$@"
+elif [ "${a}" == "fix" ]; then
+    lint::lint --fix "$@"
+else
+    echo 'lint file [file...]'
+    echo 'fix file [file...]'
+fi
