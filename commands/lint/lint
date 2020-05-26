@@ -1,94 +1,159 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
+from argparse import ArgumentParser
+import sys, os, subprocess
+import re
+import yaml
 
-lint::lint() {
-  local FIX=0
-  if [ "${1}" == "--fix" ] || [ "${1}" == "-f" ]; then
-      shift
-      FIX=1
-  fi
-  for FILE in "$@"; do
-      TYPE=$(lint::detect "${FILE}")
-      if [ "${TYPE}" == "" ]; then
-          echo "Ignoring: ${FILE}"
-      else
-          if [[ ${FIX} -eq 0 ]]; then
-              COMMAND="lint::lint::${TYPE}"
-              ${COMMAND} "${FILE}"
-          else
-              COMMAND="lint::fix::${TYPE}"
-              ${COMMAND} "${FILE}"
-          fi
-      fi
-  done
+LANGUAGE_PYTHON = "python"
+LANGUAGE_SHELL = "shell"
 
-}
 
-lint::detect() {
-  local FILE
-  FILE="$1"
-  if [ ! -f "${FILE}" ]; then
-      echo "not a valid file: ${FILE}"
-      return 1
-  fi
-  local FIRST
-  FIRST=$(head -1 "${FILE}" | grep '^#!')
-  EXTENTION=${FILE##*.}
-  ALL="${FIRST} ${EXTENTION}"
-  for part in ${ALL}; do
-    case "${part}" in
-        "py" | python*)
-            echo "python"
-            return 0
-            ;;
-        *sh)
-            echo "shell"
-            return 0
-            ;;
-        *) continue
-            ;;
-    esac
-  done
-  return 1
-}
+def parse():
+    parser = ArgumentParser(description="Lint and Fix code in all files!")
+    subparsers = parser.add_subparsers(title="commands", dest="command")
+    lint_parser = subparsers.add_parser("lint")
+    lint_parser.add_argument("filenames", nargs="+")
 
-lint::lint::python() {
-  black --check -v --safe "$1"
-}
+    fix_parser = subparsers.add_parser("fix")
+    fix_parser.add_argument("filenames", help="filenames", nargs="+")
+    return parser.parse_args()
 
-lint::fix::python() {
-  DIR=$(dirname "${1}")
-  BASE=$(basename "${1}")
-  (
-    cd "${DIR}" || exit;
-    black -q "${BASE}"
-  )
-}
 
-lint::lint::shell() {
-  shellcheck -f gcc -o require-variable-braces,add-default-case,avoid-nullary-conditions,check-unassigned-uppercase "$1"
-}
+def run():
+    args = parse()
+    if args.command == "lint":
+        return lint(args.filenames)
+    elif args.command == "fix":
+        return fix(args.filenames)
+    print("unknown command")
+    return 1
 
-lint::fix::shell() {
-  DIR=$(dirname "${1}")
-  BASE=$(basename "${1}")
-  (
-    cd "${DIR}" || exit;
+
+def string_find(pattern, string):
+    result = re.fullmatch(pattern, string)
+    if result:
+        return result.group(1)
+    return None
+
+
+def first_line(filename):
+    try:
+        with open(filename, "r") as file:
+            return file.readline().rstrip("\n")
+    except:
+        return None
+
+
+def detect_language(filename):
+    first = first_line(filename) or ""
+    ext = string_find(".*\.(\w+)", filename) or ""
+    if re.fullmatch(".*python.*", first) or ext == "py":
+        return LANGUAGE_PYTHON
+    elif re.fullmatch(".*sh", first) or re.fullmatch(".*sh", ext):
+        return LANGUAGE_SHELL
+    return None
+
+
+def run_command(command, stderr=False, **kwargs):
+    errpipe = subprocess.PIPE if stderr else subprocess.STDOUT
+    if "cwd" in kwargs and len(kwargs["cwd"]) == 0:
+        del kwargs["cwd"]
+    return subprocess.run(
+        command, stdout=subprocess.PIPE, stderr=errpipe, text=True, **kwargs
+    )
+
+
+def print_result(resultcode, filename, output):
+    if resultcode == 0:
+        return
+    print()
+    print(filename)
+    print(output)
+    print()
+
+
+def lint(filenames):
+    fail = 0
+    for filename in filenames:
+        language = detect_language(filename)
+        if language == LANGUAGE_PYTHON:
+            fail |= lint_python(filename)
+        elif language == LANGUAGE_SHELL:
+            fail |= lint_shell(filename)
+        else:
+            print("Ignoring: ", filename)
+    return fail
+
+
+def fix(filenames):
+    fail = 0
+    for filename in filenames:
+        language = detect_language(filename)
+        if language == LANGUAGE_PYTHON:
+            fail |= fix_python(filename)
+        elif language == LANGUAGE_SHELL:
+            fail |= fix_shell(filename)
+        else:
+            print("Ignoring: ", filename)
+    return fail
+
+
+def lint_python(filename):
+    result = run_command(["black", "--check", "-v", "--safe", filename])
+    print_result(result.returncode, filename, result.stdout)
+    return result.returncode
+
+
+def fix_python(filename):
+    name = os.path.basename(filename)
+    directory = os.path.dirname(filename)
+
+    result = run_command(["black", "-q", "--safe", name], cwd=directory)
+    print_result(result.returncode, filename, result.stdout)
+    return result.returncode
+
+
+SHELLCHECK_OPTIONALS = "require-variable-braces,add-default-case,avoid-nullary-conditions,check-unassigned-uppercase"
+
+
+def lint_shell(filename):
+    result = run_command(
+        ["shellcheck", "-f", "gcc", "-o", SHELLCHECK_OPTIONALS, filename]
+    )
+    print_result(result.returncode, filename, result.stdout)
+    return result.returncode
+
+
+def fix_shell_and_patch(filename, args):
+    name = os.path.basename(filename)
+    directory = os.path.dirname(filename)
+
+    diff_result = run_command(
+        ["shellcheck", "-f", "diff"] + args + [name], stderr=True, cwd=directory
+    )
+    if len(diff_result.stderr) > 0:
+        pass
+        ## print_result(diff_result.returncode, filename, diff_result.stderr)
+        # return 1
+
+    if len(diff_result.stdout) > 0:
+        patch_result = run_command(
+            ["patch", "-p1", "-s"], input=diff_result.stdout, cwd=directory
+        )
+        if patch_result.returncode != 0:
+            print_result(patch_result.returncode, filename, patch_result.stdout)
+            return 1
+    return 0
+
+
+def fix_shell(filename):
     # Apply SC2086 (quoting) first.
     # SC2086 & SC2164 fighting
     # https://github.com/koalaman/shellcheck/issues/1911
-    shellcheck -i SC2086 -f diff "${BASE}" | patch -p1 -s
-    shellcheck -e SC2086 -o require-variable-braces,add-default-case,avoid-nullary-conditions,check-unassigned-uppercase -f diff "${BASE}" | patch -p1 -s
-  )
-}
+    if fix_shell_and_patch(filename, ["-i", "SC2086"]) != 0:
+        return 1
+    return fix_shell_and_patch(filename, ["-e", "SC2086", "-o", SHELLCHECK_OPTIONALS])
 
-a="${1}"
-shift
 
-if [ "${a}" == "lint" ]; then
-    lint::lint "$@"
-elif [ "${a}" == "fix" ]; then
-    lint::lint --fix "$@"
-else
-    echo 'lint file [file...]'
-    echo 'fix file [file...]'
-fi
+if __name__ == "__main__":
+    exit(run())
