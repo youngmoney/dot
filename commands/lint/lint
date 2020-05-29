@@ -3,6 +3,8 @@ from argparse import ArgumentParser
 import sys, os, subprocess
 import re
 import yaml
+import settings as settings_lib
+import shlex
 
 LANGUAGE_PYTHON = "python"
 LANGUAGE_SHELL = "shell"
@@ -21,10 +23,11 @@ def parse():
 
 def run():
     args = parse()
+    settings = settings_lib.get()
     if args.command == "lint":
-        return lint(args.filenames)
+        return lint(args.filenames, settings)
     elif args.command == "fix":
-        return fix(args.filenames)
+        return fix(args.filenames, settings)
     print("unknown command")
     return 1
 
@@ -63,6 +66,19 @@ def run_command(command, stderr=False, **kwargs):
     )
 
 
+def run_linter(command, stderr=False, **kwargs):
+    errpipe = subprocess.PIPE if stderr else subprocess.STDOUT
+    if "cwd" in kwargs and len(kwargs["cwd"]) == 0:
+        del kwargs["cwd"]
+    return subprocess.run(
+        shlex.split(command),
+        stdout=subprocess.PIPE,
+        stderr=errpipe,
+        text=True,
+        **kwargs
+    )
+
+
 def print_result(resultcode, filename, output):
     if resultcode == 0:
         return
@@ -72,34 +88,36 @@ def print_result(resultcode, filename, output):
     print()
 
 
-def lint(filenames):
+def lint(filenames, settings):
     fail = 0
     for filename in filenames:
-        language = detect_language(filename)
-        if language == LANGUAGE_PYTHON:
-            fail |= lint_python(filename)
-        elif language == LANGUAGE_SHELL:
-            fail |= lint_shell(filename)
+        linter = settings.get_linter(filename)
+        if linter:
+            command = linter.get_command(filename)
+            result = run_linter(command)
+            print_result(result.returncode, filename, result.stdout)
+            fail |= min(1, result.returncode)
         else:
             print("Ignoring: ", filename)
     return fail
 
 
-def fix(filenames):
+def fix(filenames, settings):
     fail = 0
     for filename in filenames:
-        language = detect_language(filename)
-        if language == LANGUAGE_PYTHON:
-            fail |= fix_python(filename)
-        elif language == LANGUAGE_SHELL:
-            fail |= fix_shell(filename)
+        fixer = settings.get_fixer(filename)
+        if fixer:
+            command = fixer.get_command(filename)
+            result = run_linter(command)
+            print_result(result.returncode, filename, result.stdout)
+            fail |= min(1, result.returncode)
         else:
             print("Ignoring: ", filename)
     return fail
 
 
 def lint_python(filename):
-    result = run_command(["black", "--check", "-v", "--safe", filename])
+    result = run_command(["black", "--check", "-v", filename])
     print_result(result.returncode, filename, result.stdout)
     return result.returncode
 
