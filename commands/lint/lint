@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
-from argparse import ArgumentParser
-import sys, os, subprocess
-import re
-import yaml
-import settings as settings_lib
-import shlex
 
-LANGUAGE_PYTHON = "python"
-LANGUAGE_SHELL = "shell"
+from argparse import ArgumentParser
+import os, subprocess
+import settings as settings_lib
 
 
 def parse():
@@ -32,50 +27,12 @@ def run():
     return 1
 
 
-def string_find(pattern, string):
-    result = re.fullmatch(pattern, string)
-    if result:
-        return result.group(1)
-    return None
-
-
-def first_line(filename):
-    try:
-        with open(filename, "r") as file:
-            return file.readline().rstrip("\n")
-    except:
-        return None
-
-
-def detect_language(filename):
-    first = first_line(filename) or ""
-    ext = string_find(".*\.(\w+)", filename) or ""
-    if re.fullmatch(".*python.*", first) or ext == "py":
-        return LANGUAGE_PYTHON
-    elif re.fullmatch(".*sh", first) or re.fullmatch(".*sh", ext):
-        return LANGUAGE_SHELL
-    return None
-
-
 def run_command(command, stderr=False, **kwargs):
     errpipe = subprocess.PIPE if stderr else subprocess.STDOUT
     if "cwd" in kwargs and len(kwargs["cwd"]) == 0:
         del kwargs["cwd"]
     return subprocess.run(
-        command, stdout=subprocess.PIPE, stderr=errpipe, text=True, **kwargs
-    )
-
-
-def run_linter(command, stderr=False, **kwargs):
-    errpipe = subprocess.PIPE if stderr else subprocess.STDOUT
-    if "cwd" in kwargs and len(kwargs["cwd"]) == 0:
-        del kwargs["cwd"]
-    return subprocess.run(
-        shlex.split(command),
-        stdout=subprocess.PIPE,
-        stderr=errpipe,
-        text=True,
-        **kwargs
+        command, stdout=subprocess.PIPE, stderr=errpipe, shell=True, text=True, **kwargs
     )
 
 
@@ -93,8 +50,8 @@ def lint(filenames, settings):
     for filename in filenames:
         linter = settings.get_linter(filename)
         if linter:
-            command = linter.get_command(filename)
-            result = run_linter(command)
+            command = linter.get_command(os.path.basename(filename))
+            result = run_command(command, cwd=os.path.dirname(filename))
             print_result(result.returncode, filename, result.stdout)
             fail |= min(1, result.returncode)
         else:
@@ -107,70 +64,13 @@ def fix(filenames, settings):
     for filename in filenames:
         fixer = settings.get_fixer(filename)
         if fixer:
-            command = fixer.get_command(filename)
-            result = run_linter(command)
+            command = fixer.get_command(os.path.basename(filename))
+            result = run_command(command, cwd=os.path.dirname(filename))
             print_result(result.returncode, filename, result.stdout)
             fail |= min(1, result.returncode)
         else:
             print("Ignoring: ", filename)
     return fail
-
-
-def lint_python(filename):
-    result = run_command(["black", "--check", "-v", filename])
-    print_result(result.returncode, filename, result.stdout)
-    return result.returncode
-
-
-def fix_python(filename):
-    name = os.path.basename(filename)
-    directory = os.path.dirname(filename)
-
-    result = run_command(["black", "-q", "--safe", name], cwd=directory)
-    print_result(result.returncode, filename, result.stdout)
-    return result.returncode
-
-
-SHELLCHECK_OPTIONALS = "require-variable-braces,add-default-case,avoid-nullary-conditions,check-unassigned-uppercase"
-
-
-def lint_shell(filename):
-    result = run_command(
-        ["shellcheck", "-f", "gcc", "-o", SHELLCHECK_OPTIONALS, filename]
-    )
-    print_result(result.returncode, filename, result.stdout)
-    return result.returncode
-
-
-def fix_shell_and_patch(filename, args):
-    name = os.path.basename(filename)
-    directory = os.path.dirname(filename)
-
-    diff_result = run_command(
-        ["shellcheck", "-f", "diff"] + args + [name], stderr=True, cwd=directory
-    )
-    if len(diff_result.stderr) > 0:
-        pass
-        ## print_result(diff_result.returncode, filename, diff_result.stderr)
-        # return 1
-
-    if len(diff_result.stdout) > 0:
-        patch_result = run_command(
-            ["patch", "-p1", "-s"], input=diff_result.stdout, cwd=directory
-        )
-        if patch_result.returncode != 0:
-            print_result(patch_result.returncode, filename, patch_result.stdout)
-            return 1
-    return 0
-
-
-def fix_shell(filename):
-    # Apply SC2086 (quoting) first.
-    # SC2086 & SC2164 fighting
-    # https://github.com/koalaman/shellcheck/issues/1911
-    if fix_shell_and_patch(filename, ["-i", "SC2086"]) != 0:
-        return 1
-    return fix_shell_and_patch(filename, ["-e", "SC2086", "-o", SHELLCHECK_OPTIONALS])
 
 
 if __name__ == "__main__":
