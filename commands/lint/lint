@@ -48,7 +48,7 @@ def print_result(resultcode, filename, output):
 def lint(filenames, settings):
     fail = 0
     for filename in filenames:
-        linter = settings.get_linter(filename)
+        linter = settings.get_linter(os.path.abspath(filename))
         if linter:
             command = linter.get_command(os.path.basename(filename))
             result = run_command(command, cwd=os.path.dirname(filename))
@@ -62,7 +62,7 @@ def lint(filenames, settings):
 def fix(filenames, settings):
     fail = 0
     for filename in filenames:
-        fixer = settings.get_fixer(filename)
+        fixer = settings.get_fixer(os.path.abspath(filename))
         if fixer:
             command = fixer.get_command(os.path.basename(filename))
             result = run_command(command, cwd=os.path.dirname(filename))
