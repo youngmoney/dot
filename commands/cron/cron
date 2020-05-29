@@ -25,12 +25,29 @@ uninstall_cron() {
     crontab -l | grep -v "${id}" | crontab - > /dev/null 2>&1
 }
 
+edit_file() {
+    name="$1"
+    if [ ! -f "${name}" ]; then
+        echo "${name} does not exist"
+        return
+    fi
+    # shellcheck disable=SC2154
+    "${EDITOR}" "${name}"
+    install_cron "${name}"
+}
+
 edit_cron() {
     name="$1"
-    if [ "${name}" == "" ]; then name=~/.cron; fi
-    # shellcheck disable=SC2154
-    ${EDITOR} ${name}
-    install_cron "${name}"
+    if [ "${name}" == "" ]; then
+        while IFS= read -r file <&3; do
+            read -p "edit ${file} [y/N]" should
+            if [[ "${should}" =~ [Yy].* ]]; then
+                edit_file "${file}"
+            fi
+        done 3< <(echo ~/.cron; ls ~/.local-dot/conf/*.cron 2>/dev/null)
+    else
+        edit_file "${name}"
+    fi
 }
 
 
