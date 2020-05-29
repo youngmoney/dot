@@ -1,40 +1,40 @@
 #!/usr/bin/env bash
-[ -n "$ZSH_VERSION" ] && bash && exit
+[ -n "${ZSH_VERSION}" ] && bash && exit
 if command -v realpath >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(realpath "${BASH_SOURCE[0]}" 2>/dev/null))"
 elif command -v readlink >/dev/null 2>&1 \
     && readlink --canonicalize-existing ~ >/dev/null 2>&1; then
-    SCRIPTS="$(dirname $(readlink --canonicalize-existing ${BASH_SOURCE[0]}))"
+    SCRIPTS="$(dirname $(readlink --canonicalize-existing "${BASH_SOURCE[0]}"))"
 elif command -v readlink >/dev/null 2>&1; then
-    SCRIPTS="$(dirname $(readlink ${BASH_SOURCE[0]}) 2>/dev/null)"
+    SCRIPTS="$(dirname $(readlink "${BASH_SOURCE[0]}") 2>/dev/null)"
 fi
-if [ "$SCRIPTS" == "" ] || [ "$SCRIPTS" == "${HOME}" ]; then
+if [ "${SCRIPTS}" == "" ] || [ "${SCRIPTS}" == "${HOME}" ]; then
     SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)
-    if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; fi
+    if [ "${SCRIPTS}" == "${HOME}" ]; then echo "Where am I"; fi
 fi
-DOT="$(cd $SCRIPTS/..; pwd -P)"
-pathadd() { [[ ":$PATH:" != *":$1:"* ]] && export PATH="${PATH:+"$PATH:"}$1"; }
-pathaddfirst() { [[ ":$PATH:" != *":$1:"* ]] && export PATH="$1${PATH:+":$PATH"}"; }
+DOT="$(cd "${SCRIPTS}"/.. || exit; pwd -P)"
+pathadd() { [[ ":${PATH}:" != *":$1:"* ]] && export PATH="${PATH:+"${PATH}:"}$1"; }
+pathaddfirst() { [[ ":${PATH}:" != *":$1:"* ]] && export PATH="$1${PATH:+":${PATH}"}"; }
 
-pathaddfirst $(cd $SCRIPTS/../bin; pwd -P)
+pathaddfirst $(cd "${SCRIPTS}"/../bin || exit; pwd -P)
 pathaddfirst /usr/local/bin
 pathadd /usr/texbin
 pathadd /usr/bin
 
-export EDITOR=`which vim`; export VISUAL=$EDITOR
+export EDITOR=$(which vim); export VISUAL=${EDITOR}
 export BROWSER="build system open-url"
 export LOCALDOT=~/.local-dot
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 export TMUX_SOCKET=~/.local-dot/status/tmux-global
 export NOTEDIR=~/documents/notes
-[ -d "$NOTEDIR" ] || NOTEDIR=~/Documents/notes
+[ -d "${NOTEDIR}" ] || NOTEDIR=~/Documents/notes
 export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_ANALYTICS=1
-todo() { (cd "$NOTEDIR"; build list --list '*.md' "$@"); }
+todo() { (cd "${NOTEDIR}" || exit; build list --list '*.md' "$@"); }
 
-SHORT_BASH_IMPORT="$LOCALDOT/conf/short.bash"
-[ -f "$SHORT_BASH_IMPORT" ] && . "$SHORT_BASH_IMPORT"
+SHORT_BASH_IMPORT="${LOCALDOT}/conf/short.bash"
+[ -f "${SHORT_BASH_IMPORT}" ] && . "${SHORT_BASH_IMPORT}"
 
 if [ "$1" == "--short" ]; then return 0; fi
 
@@ -56,28 +56,28 @@ alias ssh-share="build ssh share"
 
 alias dc="cd";
 cs() {
-    cd $@
+    cd $@ || exit
     ls
 }
 alias ls="ls -1F"
 
 alias refresh=". ~/.bash_profile"
 
-alias n="cd $NOTEDIR && vim scratch.md"
-alias d="cd $NOTEDIR && vim scratch.md"
-alias note="cd $NOTEDIR && vim scratch.md"
-alias no="cd $NOTEDIR && vim scratch.md"
+alias n="cd ${NOTEDIR} && vim scratch.md"
+alias d="cd ${NOTEDIR} && vim scratch.md"
+alias note="cd ${NOTEDIR} && vim scratch.md"
+alias no="cd ${NOTEDIR} && vim scratch.md"
 alias vess="vim -R -";
 
 ssh-add ~/.ssh/*_rsa > /dev/null 2>&1
 command -v launchctl >/dev/null 2>&1 && launchctl unload -w /System/Library/LaunchAgents/com.apple.rcd.plist  > /dev/null 2>&1
-command -v brew >/dev/null 2>&1 && source `brew --prefix`/etc/bash_completion
+command -v brew >/dev/null 2>&1 && source $(brew --prefix)/etc/bash_completion
 
 # Git...
 git config --global user.name "Taylor L Money"
-git config --global core.excludesfile "$SCRIPTS/gitignore"
+git config --global core.excludesfile "${SCRIPTS}/gitignore"
 git config --global color.ui true
-if [ "`git version | cut -d. -f1 | cut '-d ' -f3`" == "1" ]; then
+if [ "$(git version | cut -d. -f1 | cut '-d ' -f3)" == "1" ]; then
     git config --global push.default matching
 else
     git config --global push.default simple
@@ -92,35 +92,35 @@ check_start() {
     export command_start=${command_start:-$(check_date)}
 }
 check_end() {
-    local runtime=$(($(date +%s)  - $command_timer))
+    local runtime=$(($(date +%s)  - ${command_timer}))
     export command_runtime="from ${command_start} to $(check_date) in ${runtime}s"
-    if [[ "$runtime" -ge 10 ]]; then
+    if [[ "${runtime}" -ge 10 ]]; then
         tput bel
     fi
     unset command_timer
     unset command_start
 }
-if [ ! -f $LOCALDOT/status/home.me ]; then COMPNAME="\e[31m@$(hostname | cut -c 1-10)\e[0m"; fi
-current_path() { pwd | sed 's:^'${HOME}':~:'; }; get_current_path() { current_path; }
-get_jobs() { [ "$(jobs | wc -l | grep -v '^ *0$')" ] && echo '&'; }
+if [ ! -f ${LOCALDOT}/status/home.me ]; then COMPNAME="\e[31m@$(hostname | cut -c 1-10)\e[0m"; fi
+current_path() { pwd | sed 's:^'"${HOME}"':~:'; }; get_current_path() { current_path; }
+get_jobs() { [ -n "$(jobs | wc -l | grep -v '^ *0$')" ] && echo '&'; }
 command_line_extras() {
-    IFS=: read -r -d '' -a extras < <(printf '%s:\0' "$COMMAND_LINE_EXTRAS")
+    IFS=: read -r -d '' -a extras < <(printf '%s:\0' "${COMMAND_LINE_EXTRAS}")
     prev=""
     for extra in "${extras[@]}"; do
-      out=$($extra)
-      if [ "$out" != "" ]; then
-        if [ "$prev" != "" ]; then
+      out=$(${extra})
+      if [ "${out}" != "" ]; then
+        if [ "${prev}" != "" ]; then
             echo -n " | "
         fi
-        prev="$out"
+        prev="${out}"
       fi
-      echo -n "$out"
+      echo -n "${out}"
     done
 }
 COMMAND_LINE_EXTRAS=""
-clextraadd() { [[ ":$COMMAND_LINE_EXTRAS:" != *":$1:"* ]] && export COMMAND_LINE_EXTRAS="${COMMAND_LINE_EXTRAS:+"$COMMAND_LINE_EXTRAS:"}$1"; }
+clextraadd() { [[ ":${COMMAND_LINE_EXTRAS}:" != *":$1:"* ]] && export COMMAND_LINE_EXTRAS="${COMMAND_LINE_EXTRAS:+"${COMMAND_LINE_EXTRAS}:"}$1"; }
 export PS1="\[\033[0;90m\]\${command_runtime}
-\[\033[36m\]\u\[\033[m\]$COMPNAME:\[\033[33;1m\]\$(get_current_path)\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\] \[\e[0;33,\]\$(command_line_extras)\[\e[0;39m\]
+\[\033[36m\]\u\[\033[m\]${COMPNAME}:\[\033[33;1m\]\$(get_current_path)\[\033[m\]\$(build virtualenv prompt-str)\[\e[1;35m\]\$(build git state)\[\e[0;39m\] \[\e[0;33m\]\$(command_line_extras)\[\e[0;39m\]
 \[\033[0;90m\]\$(get_jobs)$\[\033[0;0m\] "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
 . build --completion
@@ -132,20 +132,20 @@ shopt -s histappend
 export HISTSIZE= HISTFILESIZE=
 export HISTFILE=~/.bash_eternal_history
 
-commandadd() { grep "$1" <<< "$PROMPT_COMMAND" >/dev/null || PROMPT_COMMAND="$1; $PROMPT_COMMAND"; }
+commandadd() { grep "$1" <<< "${PROMPT_COMMAND}" >/dev/null || PROMPT_COMMAND="$1; ${PROMPT_COMMAND}"; }
 commandadd "check_end"
 commandadd ". build virtualenv auto-activate"
 commandadd "history -a"
 commandadd "refresh"
 
 ssh-setup() {
-    ssh-share $1;
-    ssh $1 "mkdir -p $DOT";
-    scp -r $SCRIPTS/../* $1:$DOT;
-    ssh $1 "
-        echo '. "$DOT"/conf/bashrc'>>.bash_profile;
-        echo 'source "$DOT"/conf/vimrc'>>.vimrc;
-        echo 'source-file "$DOT"/conf/tmux'>>.tmux.conf;
+    ssh-share "$1";
+    ssh "$1" "mkdir -p ${DOT}";
+    scp -r "${SCRIPTS}"/../* "$1":"${DOT}";
+    ssh "$1" "
+        echo '. ""${DOT}""/conf/bashrc'>>.bash_profile;
+        echo 'source ""${DOT}""/conf/vimrc'>>.vimrc;
+        echo 'source-file ""${DOT}""/conf/tmux'>>.tmux.conf;
     ";
 }
 
@@ -153,15 +153,15 @@ ssh-setup() {
 # export TERM="xterm-256color";
 alias tmux='tmux -2'; HISTCONTROL=ignoreboth;
 if command -v tmux>/dev/null && \
-   [ -f $LOCALDOT/status/home.me ] && \
-   [[ ! $TERM =~ screen ]] && \
-   [ -z "$TMUX" ] && \
-   [ "$USER" != "root" ]; then
-       tmux -S "$TMUX_SOCKET" has-session \
-       && exec tmux -S "$TMUX_SOCKET" attach \
+   [ -f ${LOCALDOT}/status/home.me ] && \
+   [[ ! ${TERM} =~ screen ]] && \
+   [ -z "${TMUX}" ] && \
+   [ "${USER}" != "root" ]; then
+       tmux -S "${TMUX_SOCKET}" has-session \
+       && exec tmux -S "${TMUX_SOCKET}" attach \
        || (command -v exec_new_tmux > /dev/null 2>&1 \
-       && exec_new_tmux "$TMUX_SOCKET" \
-       || exec tmux -S "$TMUX_SOCKET" new -s Global)
+       && exec_new_tmux "${TMUX_SOCKET}" \
+       || exec tmux -S "${TMUX_SOCKET}" new -s Global)
 fi
 
-for f in $LOCALDOT/conf/*.bash; do [ -f "$f" ] && [ "$f" != "$SHORT_BASH_IMPORT" ] && . "$f"; done
+for f in ${LOCALDOT}/conf/*.bash; do [ -f "${f}" ] && [ "${f}" != "${SHORT_BASH_IMPORT}" ] && . "${f}"; done

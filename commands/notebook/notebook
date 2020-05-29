@@ -268,7 +268,7 @@ def block(marks):
         last_i = j + 1
 
     if last_i < len(lines):
-        blocks.append(Item(lines[last_i:i]))
+        blocks.append(Item(lines[last_i:]))
     return blocks
 
 
@@ -390,6 +390,9 @@ def expand(filename, meta, full_meta):
 
             if command_string == block_name:
                 type = "none"
+
+            if type == "hide":
+                continue
 
             print("```" + block_name)
             if not type:
