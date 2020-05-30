@@ -101,7 +101,7 @@ check_end() {
     unset command_start
 }
 if [ ! -f ${LOCALDOT}/status/home.me ]; then COMPNAME="\e[31m@$(hostname | cut -c 1-10)\e[0m"; fi
-current_path() { pwd | sed 's:^'"${HOME}"':~:'; }; get_current_path() { current_path; }
+current_path() { pwd | sed 's:^'"${HOME}"':~:'; }; get_current_path() { build workspace path; }
 get_jobs() { [ -n "$(jobs | wc -l | grep -v '^ *0$')" ] && echo '&'; }
 command_line_extras() {
     IFS=: read -r -d '' -a extras < <(printf '%s:\0' "${COMMAND_LINE_EXTRAS}")

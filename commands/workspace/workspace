@@ -1,0 +1,202 @@
+#!/usr/bin/env python3
+
+from argparse import ArgumentParser
+import re
+import os, subprocess, sys
+import settings as settings_lib
+
+
+def parse():
+    parser = ArgumentParser(description="Manage your workspace.")
+    subparsers = parser.add_subparsers(title="commands", dest="command")
+    change = subparsers.add_parser("change", help="Change locations.")
+    change.add_argument("location")
+    change.add_argument(
+        "current_path",
+        nargs="?",
+        default=os.getcwd(),
+        help="The path to change. Defaults to the current directory.",
+    )
+    change.add_argument(
+        "-r",
+        "--runnable_command",
+        default=False,
+        action="store_true",
+        help="Output a shell command if there is a path.",
+    )
+    change.add_argument(
+        "-c",
+        "--create",
+        default=False,
+        action="store_true",
+        help="If the path cannot be changed, create it.",
+    )
+    change.add_argument(
+        "-f",
+        "--force",
+        default=False,
+        action="store_true",
+        help="Do not confirm creation.",
+    )
+
+    create = subparsers.add_parser("create", help="Create a new workspace.")
+    create.add_argument("creator")
+    create.add_argument(
+        "-r",
+        "--runnable_command",
+        default=False,
+        action="store_true",
+        help="Output a shell command if there is a path.",
+    )
+    create.add_argument(
+        "-f",
+        "--force",
+        default=False,
+        action="store_true",
+        help="Do not confirm creation.",
+    )
+
+    path = subparsers.add_parser("path", help="Get the current path, stylized.")
+    path.add_argument(
+        "current_path",
+        nargs="?",
+        default=os.getcwd(),
+        help="Defaults to the current directory.",
+    )
+    path.add_argument(
+        "-a",
+        "--absolute",
+        default=False,
+        action="store_true",
+        help="Do not shorten the path (i.e. don't add ~).",
+    )
+
+    return parser.parse_args()
+
+
+def run():
+    args = parse()
+    settings = settings_lib.get()
+    if args.command == "change":
+        return change(
+            args.location,
+            args.current_path,
+            settings,
+            runnable_command=args.runnable_command,
+            force=args.force,
+            should_create=args.create,
+        )
+    elif args.command == "create":
+        return create(
+            args.creator,
+            settings,
+            runnable_command=args.runnable_command,
+            force=args.force,
+        )
+    elif args.command == "path":
+        return path(args.current_path, settings, absolute=args.absolute)
+    print("unknown command")
+    return 1
+
+
+def run_path_generation(command, input=""):
+    result = subprocess.run(
+        command,
+        input=input,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=True,
+        text=True,
+    )
+    return result.returncode, result.stdout.rstrip("\n")
+
+
+def parse_output(returncode, output, runnable_command=False, check_dir=True):
+    is_dir = os.path.isdir(output)
+    is_one_line = len(output.split("\n")) == 1
+    ok = is_dir if check_dir else is_one_line
+    errored = 0 if ok else 1
+    out = ""
+    if not (errored and runnable_command):
+        out = f"cd {output}" if runnable_command else f"{output}"
+    return max(returncode, errored), out
+
+
+def change(
+    name,
+    current_path,
+    settings,
+    runnable_command=False,
+    force=False,
+    should_create=False,
+):
+    location = settings.get_location_named(name)
+    if not location:
+        print(f"No location named {name}.")
+        return 1
+    expanded_regex = os.path.expanduser(location.change_path_regex)
+    if (
+        location
+        and re.fullmatch(expanded_regex, current_path)
+        and location.change_path_command
+    ):
+        returncode, output = run_path_generation(
+            location.change_path_command, input=current_path,
+        )
+        if not (returncode == 0 and output == "" and should_create):
+            parsed_returncode, parsed_output = parse_output(
+                returncode, output, runnable_command=runnable_command
+            )
+            print(parsed_output)
+            return parsed_returncode
+
+    if location and should_create and location.creator_name:
+        if not force:
+            okay = input(f"Create the workspace using {location.creator_name} [yN]: ")
+            if not okay.lower().startswith("y"):
+                return 1
+        return create(
+            location.creator_name, settings, runnable_command=runnable_command,
+        )
+    return 1
+
+
+def create(name, settings, runnable_command=False):
+    creator = settings.get_creator_named(name)
+    if not creator:
+        print(f"No creator named {name}.")
+        return 1
+    if not creator.command:
+        return 1
+    returncode, output = run_path_generation(creator.command)
+    parsed_returncode, parsed_output = parse_output(
+        returncode, output, runnable_command=runnable_command
+    )
+    print(parsed_output)
+    return parsed_returncode
+
+
+def path(current_path, settings, absolute=False):
+    location = settings.get_path_location(os.path.abspath(current_path))
+    path = current_path
+    fail = 0
+    if location and location.current_path_command:
+        returncode, output = run_path_generation(
+            location.current_path_command, input=current_path
+        )
+        parsed_returncode, parsed_output = parse_output(
+            returncode, output, check_dir=False
+        )
+        if parsed_returncode == 0:
+            path = parsed_output
+        fail = parsed_returncode
+
+    user = os.path.expanduser("~")
+    if not absolute and path.startswith(user):
+        path = "~" + path[len(user) :]
+    print(path)
+    return fail
+
+
+if __name__ == "__main__":
+    exit(run())
