@@ -151,7 +151,7 @@ ssh-setup() {
 }
 
 layout() { eval "$(build workspace layout $@)"; }
-goto() { eval "$(build workspace change -r -c $@)"; }
+change() { eval "$(build workspace change -r -c $@)"; }
 create() { eval "$(build workspace create $@)"; }
 
 # tmux
