@@ -71,6 +71,16 @@ def parse():
         help="Do not shorten the path (i.e. don't add ~).",
     )
 
+    layout = subparsers.add_parser("layout", help="Layout a workspace (tmux).")
+    layout.add_argument("layout")
+    layout.add_argument(
+        "-p",
+        "--position",
+        help="Repeated path of children to follow.",
+        type=int,
+        action="append",
+    )
+
     return parser.parse_args()
 
 
@@ -95,7 +105,8 @@ def run():
         )
     elif args.command == "path":
         return path(args.current_path, settings, absolute=args.absolute)
-    print("unknown command")
+    elif args.command == "layout":
+        return layout(args.layout, args.position, settings)
     return 1
 
 
@@ -122,6 +133,12 @@ def parse_output(returncode, output, runnable_command=False, check_dir=True):
     return max(returncode, errored), out
 
 
+def print_runnable(s, runnable=True):
+    if runnable:
+        s = f"echo '{s}'"
+    print(s)
+
+
 def change(
     name,
     current_path,
@@ -132,14 +149,10 @@ def change(
 ):
     location = settings.get_location_named(name)
     if not location:
-        print(f"No location named {name}.")
+        print_runnable(f"No location named {name}.", runnable_command)
         return 1
     expanded_regex = os.path.expanduser(location.change_path_regex)
-    if (
-        location
-        and re.fullmatch(expanded_regex, current_path)
-        and location.change_path_command
-    ):
+    if re.fullmatch(expanded_regex, current_path) and location.change_path_command:
         returncode, output = run_path_generation(
             location.change_path_command, input=current_path,
         )
@@ -150,7 +163,7 @@ def change(
             print(parsed_output)
             return parsed_returncode
 
-    if location and should_create and location.creator_name:
+    if should_create and location.creator_name:
         if not force:
             okay = input(f"Create the workspace using {location.creator_name} [yN]: ")
             if not okay.lower().startswith("y"):
@@ -164,7 +177,7 @@ def change(
 def create(name, settings, runnable_command=False):
     creator = settings.get_creator_named(name)
     if not creator:
-        print(f"No creator named {name}.")
+        print_runnable(f"No creator named {name}.", runnable_command)
         return 1
     if not creator.command:
         return 1
@@ -196,6 +209,60 @@ def path(current_path, settings, absolute=False):
         path = "~" + path[len(user) :]
     print(path)
     return fail
+
+
+def get_at_position(l, p):
+    for i in p:
+        if not l.children or i >= len(l.children):
+            return None
+        l = l.children[i]
+    return l
+
+
+def direction_flags(direction):
+    if direction == settings_lib.Direction.up:
+        return "-v -b"
+    elif direction == settings_lib.Direction.down:
+        return "-v"
+    elif direction == settings_lib.Direction.left:
+        return "-h -b"
+    else:
+        return "-h"
+
+
+def layout(name, position, settings):
+    layout = settings.get_layout_named(name)
+    if not layout:
+        print_runnable(f"No layout named {name}.")
+        return 1
+
+    child = layout
+    if position:
+        child = get_at_position(layout, position)
+
+    if not child:
+        print_runnable(f"No position at {position}.")
+        return 1
+
+    for index, split_child in enumerate(child.children):
+        directions = direction_flags(split_child.direction)
+        command = f"build workspace layout {name}"
+        if position:
+            for p in position:
+                command += f" -p {p}"
+        command += f" -p {index}"
+        pane = os.getenv("TMUX_PANE")
+        command = f'eval "$({command})"'
+        percent = split_child.percent
+        print(
+            f"new=$(tmux split-window -p {percent} -d {directions} -t {pane} -P -F '#{{pane_id}}')"
+        )
+        print(f"tmux send-keys -t \"$new\" '{command}' Enter")
+    if child.location_name:
+        change(child.location_name, os.getcwd(), settings, runnable_command=True)
+    print("clear")
+    if child.command:
+        print(child.command)
 
 
 if __name__ == "__main__":

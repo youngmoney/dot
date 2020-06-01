@@ -1,5 +1,5 @@
 class DataType(type):
-    SELF_TYPE = "SELF_TYPE"
+    Self = type("<self>", (object,), {})
 
     def __new__(cls, name, bases, attrs):
         inst = super().__new__(cls, name, bases, attrs)
@@ -39,9 +39,9 @@ class DataType(type):
                         f"DataType '{field}' invalid: specify a dictionary as {{str:<value type>}}."
                     )
                 validate_field(field + ".value_type", value_type)
-            elif isinstance(field_type, type):
+            elif field_type == DataType.Self:
                 return
-            elif field_type == DataType.SELF_TYPE:
+            elif isinstance(field_type, type):
                 return
             else:
                 raise TypeError(
@@ -53,7 +53,7 @@ class DataType(type):
             validate_field(field, field_type)
 
         def apply_type(key, field_type, value):
-            if field_type == DataType.SELF_TYPE:
+            if field_type == DataType.Self:
                 return inst(value)
             if not isinstance(field_type, type):
                 raise TypeError(
@@ -63,7 +63,7 @@ class DataType(type):
                 return field_type(value)
             except:
                 raise TypeError(
-                    f"Error parsing '{key}': cannot convert '{value}' to '{field_type}'"
+                    f"Error parsing '{key}': cannot convert '{value}' to '{field_type.__name__}'"
                 )
 
         original_init = attrs["__init__"] if "__init__" in attrs else None
@@ -169,12 +169,85 @@ class DataType(type):
         return inst
 
 
+class Option(type):
+    def __new__(cls, name, bases, attrs):
+        inst = super().__new__(cls, name, bases, attrs)
+        values = []
+        inverse_values = {}
+        values_normal = []
+        upper_to_name = {}
+        for a in attrs:
+            if a.startswith("_"):
+                continue
+            values.append(a.upper())
+            values_normal.append(a)
+            upper_to_name[a.upper()] = a
+            if attrs[a] is not None:
+                if attrs[a] in inverse_values:
+                    raise TypeError(
+                        f"Option {name} cannot add '{a}' with value '{attrs[a]}' because it is already in use."
+                    )
+                else:
+                    inverse_values[attrs[a]] = a.upper()
+
+        def init(self, input_value):
+            if input_value in inverse_values:
+                input_value = inverse_values[input_value]
+            if isinstance(input_value, str):
+                value = input_value.upper()
+                if value in values:
+                    self._value = value
+                    return
+            if isinstance(input_value, self.__class__):
+                self._value = input_value._value
+                return
+
+            raise TypeError(f"Unable to parse option '{input_value}'.")
+
+        inst.__init__ = init
+
+        def get(self):
+            if not self._value in values:
+                raise TypeError(f"Current value is invalid: {self._value}.")
+            return self._value
+
+        inst.value = get
+
+        def rep(self):
+            normal = upper_to_name[self.value()]
+            return f"{name}.{normal}"
+
+        inst.__repr__ = rep
+
+        def eq(self, other):
+            if isinstance(other, self.__class__):
+                return self._value == other._value
+            try:
+                opt = inst(other)
+                return self == opt
+            except:
+                pass
+            return False
+
+        inst.__eq__ = eq
+
+        for v in values_normal:
+            setattr(inst, v, inst(v))
+
+        return inst
+
+
+class Opts(metaclass=Option):
+    opt1 = 0
+    opt2 = 1
+
+
 class Test(metaclass=DataType):
     datatype_a = int
     datatype_b = str
     datatype_c = [int]
     datatype_d = {str: int}
-    datatype_recurse = {str: DataType.SELF_TYPE}
+    datatype_recurse = {str: DataType.Self}
 
     def __init__(self, b="hello", c=[1, 2]):
         if self.a is not None:
