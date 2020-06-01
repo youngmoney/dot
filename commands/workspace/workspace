@@ -38,6 +38,14 @@ def parse():
         action="store_true",
         help="Do not confirm creation.",
     )
+    change.add_argument(
+        "-l",
+        "--layout",
+        dest="do_layout",
+        default=False,
+        action="store_true",
+        help="If true then use the layout.",
+    )
 
     create = subparsers.add_parser("create", help="Create a new workspace.")
     create.add_argument("creator", nargs="?")
@@ -107,6 +115,7 @@ def run():
             runnable_command=args.runnable_command,
             force=args.force,
             should_create=args.create,
+            do_layout=args.do_layout,
         )
     elif args.command == "create":
         if args.creator is None:
@@ -157,6 +166,22 @@ def print_runnable(s, runnable=True):
     print(s)
 
 
+def attempt_change(
+    expanded_regex, current_path, might_create, location, runnable_command
+):
+    if re.fullmatch(expanded_regex, current_path) and location.change_path_command:
+        returncode, output = run_path_generation(
+            location.change_path_command, input=current_path,
+        )
+        if not (returncode == 0 and output == "" and might_create):
+            parsed_returncode, parsed_output = parse_output(
+                returncode, output, runnable_command=runnable_command
+            )
+            print(parsed_output)
+            return parsed_returncode
+    return 1
+
+
 def change(
     name,
     current_path,
@@ -164,32 +189,38 @@ def change(
     runnable_command=False,
     force=False,
     should_create=False,
+    do_layout=False,
 ):
     location = settings.get_location_named(name)
     if not location:
         print_runnable(f"No location named {name}.", runnable_command)
         return 1
     expanded_regex = os.path.expanduser(location.change_path_regex)
-    if re.fullmatch(expanded_regex, current_path) and location.change_path_command:
-        returncode, output = run_path_generation(
-            location.change_path_command, input=current_path,
-        )
-        if not (returncode == 0 and output == "" and should_create):
-            parsed_returncode, parsed_output = parse_output(
-                returncode, output, runnable_command=runnable_command
-            )
-            print(parsed_output)
-            return parsed_returncode
+    result = attempt_change(
+        expanded_regex, current_path, should_create, location, runnable_command
+    )
 
-    if should_create and location.creator_name:
+    if result != 0 and should_create and location.creator_name:
         if not force:
             okay = input(f"Create the workspace using {location.creator_name} [yN]: ")
             if not okay.lower().startswith("y"):
                 return 1
-        return create(
+        result = create(
             location.creator_name, settings, runnable_command=runnable_command,
         )
-    return 1
+        if result != 0:
+            return result
+        result = attempt_change(
+            expanded_regex, current_path, False, location, runnable_command
+        )
+        if result != 0:
+            return result
+    elif result != 0:
+        return result
+    if do_layout and location.layout_name:
+        return layout(location.layout_name, [], settings)
+
+    return 0
 
 
 def create(name, settings, runnable_command=False):

@@ -27,6 +27,7 @@ class Location(metaclass=DataType):
     datatype_creator_name = str
     datatype_current_path_regex = str
     datatype_current_path_command = str
+    datatype_layout_name = str
 
     def __init__(self, change_path_regex=".*"):
         if not self.name:
