@@ -10,7 +10,7 @@ def parse():
     parser = ArgumentParser(description="Manage your workspace.")
     subparsers = parser.add_subparsers(title="commands", dest="command")
     change = subparsers.add_parser("change", help="Change locations.")
-    change.add_argument("location")
+    change.add_argument("location", nargs="?")
     change.add_argument(
         "current_path",
         nargs="?",
@@ -40,7 +40,7 @@ def parse():
     )
 
     create = subparsers.add_parser("create", help="Create a new workspace.")
-    create.add_argument("creator")
+    create.add_argument("creator", nargs="?")
     create.add_argument(
         "-r",
         "--runnable_command",
@@ -72,7 +72,7 @@ def parse():
     )
 
     layout = subparsers.add_parser("layout", help="Layout a workspace (tmux).")
-    layout.add_argument("layout")
+    layout.add_argument("layout", nargs="?")
     layout.add_argument(
         "-p",
         "--position",
@@ -84,10 +84,20 @@ def parse():
     return parser.parse_args()
 
 
+def print_all_names(l, runnable_command=False):
+    if not l:
+        return
+    for item in l:
+        print_runnable(item.name, runnable_command)
+
+
 def run():
     args = parse()
     settings = settings_lib.get()
     if args.command == "change":
+        if args.location is None:
+            print_all_names(settings.locations, args.runnable_command)
+            return 1
         return change(
             args.location,
             args.current_path,
@@ -97,6 +107,9 @@ def run():
             should_create=args.create,
         )
     elif args.command == "create":
+        if args.creator is None:
+            print_all_names(settings.creators, args.runnable_command)
+            return 1
         return create(
             args.creator,
             settings,
@@ -106,6 +119,9 @@ def run():
     elif args.command == "path":
         return path(args.current_path, settings, absolute=args.absolute)
     elif args.command == "layout":
+        if args.layout is None:
+            print_all_names(settings.layouts)
+            return 1
         return layout(args.layout, args.position, settings)
     return 1
 
