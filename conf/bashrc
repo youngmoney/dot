@@ -153,6 +153,16 @@ ssh-setup() {
 layout() { eval "$(build workspace layout $@)"; }
 change() { eval "$(build workspace change -r -c $@)"; }
 create() { eval "$(build workspace create $@)"; }
+_workspace_completion() {
+  COMPREPLY=($(compgen -W "$(build workspace "$1")" -- "${COMP_WORDS[${#COMP_WORDS[@]}-1]}"))
+}
+_layout_completion() { _workspace_completion layout; }
+complete -F _layout_completion layout
+_change_completion() { _workspace_completion change; }
+complete -F _change_completion change
+_create_completion() { _workspace_completion create; }
+complete -F _create_completion create
+
 
 # tmux
 # export TERM="xterm-256color";

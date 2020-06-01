@@ -87,8 +87,10 @@ def parse():
 def print_all_names(l, runnable_command=False):
     if not l:
         return
+    names = []
     for item in l:
-        print_runnable(item.name, runnable_command)
+        names.append(item.name)
+    print_runnable(" ".join(names), runnable_command)
 
 
 def run():
