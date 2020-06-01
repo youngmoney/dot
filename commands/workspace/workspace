@@ -205,8 +205,11 @@ def change(
             okay = input(f"Create the workspace using {location.creator_name} [yN]: ")
             if not okay.lower().startswith("y"):
                 return 1
-        result = create(
-            location.creator_name, settings, runnable_command=runnable_command,
+        result, current_path = create(
+            location.creator_name,
+            settings,
+            runnable_command=runnable_command,
+            return_path=True,
         )
         if result != 0:
             return result
@@ -223,7 +226,7 @@ def change(
     return 0
 
 
-def create(name, settings, runnable_command=False):
+def create(name, settings, runnable_command=False, return_path=False):
     creator = settings.get_creator_named(name)
     if not creator:
         print_runnable(f"No creator named {name}.", runnable_command)
@@ -235,6 +238,8 @@ def create(name, settings, runnable_command=False):
         returncode, output, runnable_command=runnable_command
     )
     print(parsed_output)
+    if return_path:
+        return parsed_returncode, os.path.abspath(parsed_output.replace("cd ", ""))
     return parsed_returncode
 
 
