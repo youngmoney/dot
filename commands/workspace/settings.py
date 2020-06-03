@@ -11,13 +11,28 @@ def get_path():
     return path
 
 
-def get():
-    path = get_path()
+def get_defaults_path(name="defaults.yaml"):
+    script_directory, script_name = os.path.split(os.path.realpath(__file__))
+    return os.path.join(script_directory, name)
+
+
+def get_settings(path):
     if os.path.exists(path):
         contents = "\n".join(open(path, "r").readlines())
         obj = yaml.safe_load(contents)
         return Settings(obj)
     return None
+
+
+def get():
+    defaults = get_settings(get_defaults_path())
+    settings = get_settings(get_path())
+    if not settings:
+        return defaults
+    settings.creators += defaults.creators
+    settings.locations += defaults.locations
+    settings.layouts += defaults.layouts
+    return settings
 
 
 class Location(metaclass=DataType):
@@ -63,7 +78,7 @@ class Layout(metaclass=DataType):
     datatype_command = str
     datatype_children = [Pane]
 
-    def __init__(self):
+    def __init__(self, children=[]):
         if not self.name:
             raise TypeError("Layout must have a name.")
 
@@ -73,25 +88,22 @@ class Settings(metaclass=DataType):
     datatype_creators = [Creator]
     datatype_layouts = [Layout]
 
+    def __init__(self, locations=[], creators=[], layouts=[]):
+        pass
+
     def get_location_named(self, name):
-        if not self.locations:
-            return None
         for location in self.locations:
             if location.name == name:
                 return location
         return None
 
     def get_creator_named(self, name):
-        if not self.creators:
-            return None
         for creator in self.creators:
             if creator.name == name:
                 return creator
         return None
 
     def get_path_location(self, path):
-        if not self.locations:
-            return None
         for location in self.locations:
             if not location.current_path_regex:
                 continue
@@ -100,8 +112,6 @@ class Settings(metaclass=DataType):
         return None
 
     def get_layout_named(self, name):
-        if not self.layouts:
-            return None
         for layout in self.layouts:
             if layout.name == name:
                 return layout

@@ -32,7 +32,6 @@ export NOTEDIR=~/documents/notes
 export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_ANALYTICS=1
 export BASH_SILENCE_DEPRECATION_WARNING=1
-todo() { (cd "${NOTEDIR}" || exit; build list --list '*.md' "$@"); }
 
 SHORT_BASH_IMPORT="${LOCALDOT}/conf/short.bash"
 [ -f "${SHORT_BASH_IMPORT}" ] && . "${SHORT_BASH_IMPORT}"
@@ -64,10 +63,9 @@ alias ls="ls -1F"
 
 alias refresh=". ~/.bash_profile"
 
-alias n="cd ${NOTEDIR} && vim scratch.md"
-alias d="cd ${NOTEDIR} && vim scratch.md"
-alias note="cd ${NOTEDIR} && vim scratch.md"
-alias no="cd ${NOTEDIR} && vim scratch.md"
+alias note="change -l notes"
+alias d="change -l notes"
+todo() { (cd "${NOTEDIR}" || exit; build list --list '*.md' "$@"); }
 alias vess="vim -R -";
 
 ssh-add ~/.ssh/*_rsa > /dev/null 2>&1
@@ -151,8 +149,8 @@ ssh-setup() {
 }
 
 layout() { eval "$(build workspace layout $@)"; }
-change() { eval "$(build workspace change -r -c $@)"; }
-create() { eval "$(build workspace create $@)"; }
+change() { eval "$(build workspace change -r $@)"; }
+create() { eval "$(build workspace create -r $@)"; }
 _workspace_completion() {
   COMPREPLY=($(compgen -W "$(build workspace "$1")" -- "${COMP_WORDS[${#COMP_WORDS[@]}-1]}"))
 }

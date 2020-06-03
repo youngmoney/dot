@@ -1,0 +1,22 @@
+locations:
+    - name: dot
+      change_path_regex: .*
+      change_path_command: echo ~/local/dot
+      current_path_regex: ~/local/dot.*
+      current_path_command: sed 's:.*local/dot:[dot]:'
+      layout_name: vim-ctrlp
+    - name: local
+      change_path_regex: .*
+      change_path_command: echo ~/.local-dot
+      current_path_regex: ~/.local-dot.*
+      current_path_command: sed 's:.*\.local-dot:[local]:'
+      layout_name: vim-ctrlp
+    - name: notes
+      change_path_regex: .*
+      change_path_command: '[ -d ~/Documents/notes ] && echo ~/Documents/notes || echo ~/documents/notes'
+      current_path_regex: ~/[Dd]ocuments/notes.*
+      current_path_command: sed 's:.*ocuments/notes:[notes]:'
+      layout_name: vim-ctrlp
+layouts:
+    - name: vim-ctrlp
+      command: vim +CtrlP
