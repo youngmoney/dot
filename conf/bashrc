@@ -163,6 +163,7 @@ complete -F _create_completion create
 _command_completion() { _workspace_completion command; }
 complete -F _command_completion workspace_command
 
+alias tl="workspace_command test-log-loop --"
 
 # tmux
 # export TERM="xterm-256color";
