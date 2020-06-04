@@ -1,0 +1,12 @@
+[user]
+	name = Taylor L Money
+[core]
+	excludesfile = ~/.gitignore
+[color]
+	ui = true
+[pull]
+	rebase = false
+[push]
+	default = simple
+[include]
+    path = .local-dot/conf/config.git
