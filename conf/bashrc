@@ -83,6 +83,7 @@ command -v brew >/dev/null 2>&1 && source $(brew --prefix)/etc/bash_completion
 git config --global user.name "Taylor L Money"
 git config --global core.excludesfile "${SCRIPTS}/gitignore"
 git config --global color.ui true
+git config --global pull.rebase false
 if [ "$(git version | cut -d. -f1 | cut '-d ' -f3)" == "1" ]; then
     git config --global push.default matching
 else
