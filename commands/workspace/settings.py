@@ -32,6 +32,7 @@ def get():
     settings.creators += defaults.creators
     settings.locations += defaults.locations
     settings.layouts += defaults.layouts
+    settings.commands += defaults.commands
     return settings
 
 
@@ -83,12 +84,24 @@ class Layout(metaclass=DataType):
             raise TypeError("Layout must have a name.")
 
 
+class Command(metaclass=DataType):
+    datatype_name = str
+    datatype_command = str
+    datatype_path_regex = str
+    datatype_path_command = str
+
+    def __init__(self, path_regex=".*"):
+        if not self.name:
+            raise TypeError("Command must have a name.")
+
+
 class Settings(metaclass=DataType):
     datatype_locations = [Location]
     datatype_creators = [Creator]
     datatype_layouts = [Layout]
+    datatype_commands = [Command]
 
-    def __init__(self, locations=[], creators=[], layouts=[]):
+    def __init__(self, locations=[], creators=[], layouts=[], commands=[]):
         pass
 
     def get_location_named(self, name):
@@ -115,4 +128,10 @@ class Settings(metaclass=DataType):
         for layout in self.layouts:
             if layout.name == name:
                 return layout
+        return None
+
+    def get_command_named(self, name):
+        for command in self.commands:
+            if command.name == name:
+                return command
         return None

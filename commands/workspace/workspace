@@ -12,8 +12,7 @@ def parse():
     change = subparsers.add_parser("change", help="Change locations.")
     change.add_argument("location", nargs="?")
     change.add_argument(
-        "current_path",
-        nargs="?",
+        "--current_path",
         default=os.getcwd(),
         help="The path to change. Defaults to the current directory.",
     )
@@ -52,8 +51,7 @@ def parse():
 
     path = subparsers.add_parser("path", help="Get the current path, stylized.")
     path.add_argument(
-        "current_path",
-        nargs="?",
+        "--current_path",
         default=os.getcwd(),
         help="Defaults to the current directory.",
     )
@@ -73,6 +71,15 @@ def parse():
         help="Repeated path of children to follow.",
         type=int,
         action="append",
+    )
+
+    command = subparsers.add_parser("command", help="Run a per workspace command.")
+    command.add_argument("command_name", nargs="?")
+    command.add_argument("arguments", nargs="*", default=[])
+    command.add_argument(
+        "--current_path",
+        default=os.getcwd(),
+        help="Defaults to the current directory.",
     )
 
     return parser.parse_args()
@@ -114,6 +121,11 @@ def run():
             print_all_names(settings.layouts)
             return 1
         return layout(args.layout, args.position, settings)
+    elif args.command == "command":
+        if args.command_name is None:
+            print_all_names(settings.commands)
+            return 1
+        return command(args.current_path, args.command_name, args.arguments, settings)
     return 1
 
 
@@ -292,6 +304,43 @@ def layout(name, position, settings):
     print("clear")
     if child.command:
         print(child.command)
+
+
+def command(current_path, name, args, settings):
+    matched_command = None
+    for command in settings.commands:
+        if command.name != name:
+            continue
+        if command.path_regex and not re.fullmatch(
+            os.path.expanduser(command.path_regex), current_path
+        ):
+            continue
+        if command.path_command:
+            result = subprocess.run(
+                command.path_command.format(current_path=current_path),
+                input=current_path,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+                text=True,
+            )
+            if result.returncode != 0:
+                continue
+
+        matched_command = command
+        break
+
+    if not matched_command:
+        return 1
+
+    if matched_command.command:
+        args_formatted = " ".join([f"'{a}'" for a in args])
+        command_formatted = matched_command.command.format(
+            command=name, args=args_formatted
+        )
+        print(command_formatted)
+
+    return 0
 
 
 if __name__ == "__main__":

@@ -20,3 +20,7 @@ locations:
 layouts:
     - name: vim-ctrlp
       command: vim +CtrlP
+commands:
+    - name: simple-state
+      command: build git state
+      path_command: git -C {current_path} rev-parse
