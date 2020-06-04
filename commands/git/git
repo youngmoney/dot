@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 branch-name() {
-state=`git branch 2>/dev/null | sed -e '/^\*/!d' -e 's/[()]//g' -e 's/no branch, //g' -e 's/^..//' -e 's/rebasing \(.*\)/rebasing \1/'`
-    if [ -n $"$state" ]; then echo "$state"; fi
+state=$(git branch 2>/dev/null | sed -e '/^\*/!d' -e 's/[()]//g' -e 's/no branch, //g' -e 's/^..//' -e 's/rebasing \(.*\)/rebasing \1/')
+    if [ -n $"${state}" ]; then echo "${state}"; fi
 }
 
 branch-relationship() {
-    state=`git branch -v 2>/dev/null | sed -e '/^\*.*\[/!d' -e 's/.*\[\(.*\)\].*/\1/g' -e 's/ahead [0-9]*/↑/' -e 's/behind [0-9]*/↓/' -e 's/, //g'`
-    if [ -n $"$state" ]; then echo "$state"; fi
+    state=$(git branch -v 2>/dev/null | sed -e '/^\*.*\[/!d' -e 's/.*\[\(.*\)\].*/\1/g' -e 's/ahead [0-9]*/↑/' -e 's/behind [0-9]*/↓/' -e 's/, //g')
+    if [ -n $"${state}" ]; then echo "${state}"; fi
 }
 
 branch-file-status() {
@@ -18,29 +18,29 @@ branch-file-status() {
     # local untracked=$(git diff --no-ext-diff --quiet 2>dev/null && exit 1 || exit 0)
     local unmerged=$(git ls-files --unmerged 2>/dev/null | grep -c '')
     local out=""
-    if [ "$stage" ] && [ "$stage" != "0" ]; then
-        if [ "$number" ]; then
+    if [ -n "${stage}" ] && [ "${stage}" != "0" ]; then
+        if [ -n "${number}" ]; then
             out="${out}●${stage}"
         else
             out="${out}●"
         fi
     fi
-    if [ "$unmerged" ] && [ "$unmerged" != "0" ]; then
-        if [ "$number" ]; then
+    if [ -n "${unmerged}" ] && [ "${unmerged}" != "0" ]; then
+        if [ -n "${number}" ]; then
             out="${out}☓${unmerged}"
         else
             out="${out}⚘" # ☌☍
         fi
     fi
-    if [ "$modified" ] && [ "$modified" != "0" ]; then
-        if [ "$number" ]; then
+    if [ -n "${modified}" ] && [ "${modified}" != "0" ]; then
+        if [ -n "${number}" ]; then
             out="${out}○${modified}"
         else
             out="${out}○"
         fi
     fi
-    if [ "$untracked" ] && [ "$untracked" != "0" ]; then
-        if [ "$number" ]; then
+    if [ -n "${untracked}" ] && [ "${untracked}" != "0" ]; then
+        if [ -n "${number}" ]; then
             out="${out}·${untracked}"
         else
             out="${out}·"
@@ -49,19 +49,19 @@ branch-file-status() {
     if git rev-parse --verify --quiet refs/stash >/dev/null; then
         out="${out}⍊"
     fi
-    echo $out
+    echo "${out}"
 }
 
 state() {
     state=""
-    name=`branch-name`
-    if [ "$name" != "" ]; then state="$state $name"; else exit; fi
-    rela=`branch-relationship`
-    if [ "$rela" != "" ]; then state="$state $rela"; fi
+    name=$(branch-name)
+    if [ "${name}" != "" ]; then state="${state} ${name}"; else exit; fi
+    rela=$(branch-relationship)
+    if [ "${rela}" != "" ]; then state="${state} ${rela}"; fi
     cur=$(branch-file-status)
-    if [ "$cur" ]; then state="$state $cur"; fi
+    if [ -n "${cur}" ]; then state="${state} ${cur}"; fi
     #if [ "$1" == "-c" ]; then state="\e[1;35m\]\$state\[\e[0;39m\]"; fi
-    echo "$state"
+    echo "${state}" | xargs
 }
 
 search() {
@@ -71,7 +71,7 @@ search() {
 git::find() {
     git rev-list --all | (
         while read revision; do
-            git grep -F "${@}" $revision
+            git grep -F "${@}" "${revision}"
         done
     )
 }
@@ -82,15 +82,15 @@ ls-all() {
 
 cat-last() {
     file="$1"
-    rev="`git log -1 --pretty=format:%h -- \"$file\"`"
-    if [ "$rev" == "" ]; then
+    rev="$(git log -1 --pretty=format:%h -- \${"${fil}"}e\")"
+    if [ "${rev}" == "" ]; then
         echo "not found"
     else
-        out="`git show $rev:"$file" 2>&1`"
+        out="$(git show "${rev}":"${file}" 2>&1)"
         if [ "$?" == "0" ]; then
-            echo "$out"
+            echo "${out}"
         else
-            git show $rev^1:"$file"
+            git show "${rev}"^1:"${file}"
         fi
     fi
 }
@@ -100,84 +100,84 @@ pretty-log () {
 }
 
 ls-branch-relations() {
-    current_dir="`pwd`"
-    cd "$current_dir"
+    current_dir="$(pwd)"
+    cd "${current_dir}" || exit
     find . -name ".git" -print0 | while IFS= read -r -d $'\0' line; do
-        cd "$current_dir"
-        if [ -d "$line" ]; then
-            cd "$line"
+        cd "${current_dir}" || exit
+        if [ -d "${line}" ]; then
+            cd "${line}" || exit
             cd ..
-            state="`branch-relationship`"
-            if [ "$state" != "" ]; then
-                d="`echo $line | sed -e 's/\.\///' -e 's/\/.git//'`"
-                echo "$d" "$state"
+            state="$(branch-relationship)"
+            if [ "${state}" != "" ]; then
+                d="$(echo "${line}" | sed -e 's/\.\///' -e 's/\/.git//')"
+                echo "${d}" "${state}"
             fi
         fi
     done;
 }
 
 autocommit() {
-    current_dir="`pwd`"
-    cd "$current_dir"
+    current_dir="$(pwd)"
+    cd "${current_dir}" || exit
     find . -name ".git" -print0 | while IFS= read -r -d $'\0' line; do
-        cd "$current_dir"
-        if [ -d "$line" ]; then
-            cd "$line"
+        cd "${current_dir}" || exit
+        if [ -d "${line}" ]; then
+            cd "${line}" || exit
             cd ..
-            every="`git config autocommit.every`"
-            remote="`git config autocommit.remote`"
-            branch="`git config autocommit.branch`"
-            if [ "$branch" == "" ]; then branch="master"; fi
-            toadd="`git config autocommit.add`"
-            if [ "$add" == "" ]; then add='*'; fi
-            pushforce="`git config autocommit.force`"
-            if [ "$pushforce" != "" ]; then pushargs="-f"; fi
-            add=$toadd
+            every="$(git config autocommit.every)"
+            remote="$(git config autocommit.remote)"
+            branch="$(git config autocommit.branch)"
+            if [ "${branch}" == "" ]; then branch="master"; fi
+            toadd="$(git config autocommit.add)"
+            if [ "${add}" == "" ]; then add='*'; fi
+            pushforce="$(git config autocommit.force)"
+            if [ "${pushforce}" != "" ]; then pushargs="-f"; fi
+            add=${toadd}
 
             commited=""
-            if [ "$every" ] || [ "$toadd" ]; then
-                git add --all $add
-                git commit -a -m "`date`" -q
+            if [ -n "${every}" ] || [ -n "${toadd}" ]; then
+                git add --all "${add}"
+                git commit -a -m "$(date)" -q
                 commited="commited"
             fi
 
-            if [ "$remote" ]; then
-                if [ "$commited" == "" ]; then
-                    git add --all $add
-                    git commit -a -m "`date`" -q
+            if [ -n "${remote}" ]; then
+                if [ "${commited}" == "" ]; then
+                    git add --all "${add}"
+                    git commit -a -m "$(date)" -q
                     commited="commited"
                 fi
-                git push $pushargs "$remote" "$branch" -q
+                git push ${pushargs} "${remote}" "${branch}" -q
             fi
 
         fi
     done;
-    cd "$current_dir"
+    cd "${current_dir}" || exit
 }
 
 a=$1
 shift
-if [ "$a" == "branch-name" ]; then
+if [ "${a}" == "branch-name" ]; then
     branch-name $@
-elif [ "$a" == "branch-relationship" ]; then
+elif [ "${a}" == "branch-relationship" ]; then
     branch-relationship $@
-elif [ "$a" == "state" ]; then
+elif [ "${a}" == "state" ]; then
     state $@
-elif [ "$a" == "pretty-log" ]; then
+elif [ "${a}" == "pretty-log" ]; then
     pretty-log $@
-elif [ "$a" == "ls-relations" ]; then
+elif [ "${a}" == "ls-relations" ]; then
     ls-branch-relations $@
-elif [ "$a" == "autocommit" ]; then
+elif [ "${a}" == "autocommit" ]; then
     autocommit $@
-elif [ "$a" == "search" ]; then
+elif [ "${a}" == "search" ]; then
     search $@
-elif [ "$a" == "find" ]; then
+elif [ "${a}" == "find" ]; then
     git::find $@
-elif [ "$a" == "ls-all" ]; then
+elif [ "${a}" == "ls-all" ]; then
     ls-all $@
-elif [ "$a" == "cat" ]; then
+elif [ "${a}" == "cat" ]; then
     cat-last "$@"
-elif [ "$a" == "branch-status" ]; then
+elif [ "${a}" == "branch-status" ]; then
     branch-file-status "$@"
 else
     echo "branch-name: active branch name"
