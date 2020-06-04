@@ -32,13 +32,6 @@ def parse():
         help="If the path cannot be changed, create it.",
     )
     change.add_argument(
-        "-f",
-        "--force",
-        default=False,
-        action="store_true",
-        help="Do not confirm creation.",
-    )
-    change.add_argument(
         "-l",
         "--layout",
         dest="do_layout",
@@ -55,13 +48,6 @@ def parse():
         default=False,
         action="store_true",
         help="Output a shell command if there is a path.",
-    )
-    create.add_argument(
-        "-f",
-        "--force",
-        default=False,
-        action="store_true",
-        help="Do not confirm creation.",
     )
 
     path = subparsers.add_parser("path", help="Get the current path, stylized.")
@@ -113,7 +99,6 @@ def run():
             args.current_path,
             settings,
             runnable_command=args.runnable_command,
-            force=args.force,
             should_create=args.create,
             do_layout=args.do_layout,
         )
@@ -121,12 +106,7 @@ def run():
         if args.creator is None:
             print_all_names(settings.creators, args.runnable_command)
             return 1
-        return create(
-            args.creator,
-            settings,
-            runnable_command=args.runnable_command,
-            force=args.force,
-        )
+        return create(args.creator, settings, runnable_command=args.runnable_command,)
     elif args.command == "path":
         return path(args.current_path, settings, absolute=args.absolute)
     elif args.command == "layout":
@@ -187,7 +167,6 @@ def change(
     current_path,
     settings,
     runnable_command=False,
-    force=False,
     should_create=False,
     do_layout=False,
 ):
@@ -201,10 +180,6 @@ def change(
     )
 
     if result != 0 and should_create and location.creator_name:
-        if not force:
-            okay = input(f"Create the workspace using {location.creator_name} [yN]: ")
-            if not okay.lower().startswith("y"):
-                return 1
         result, current_path = create(
             location.creator_name,
             settings,

@@ -206,8 +206,7 @@ function! NewNote()
     call inputrestore()
     exec ':e ' . strftime("%y.%m.%d") . '_' . name . '.md'
 endfunction
-
-autocmd FileType markdown map <leader>nn :call NewNote()<return>
+command! NewNote :call NewNote()
 
 function! RunNotebook(mode) range
     write

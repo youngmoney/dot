@@ -38,6 +38,13 @@ SHORT_BASH_IMPORT="${LOCALDOT}/conf/short.bash"
 
 if [ "$1" == "--short" ]; then return 0; fi
 
+if [ ! -d . ]; then
+    cd .
+    if [ ! -d . ]; then
+        echo "leaving non-existent directory: $(pwd)"
+        cd ~ || exit
+    fi
+fi
 
 alias gh="build github";
 alias gs="git status";
@@ -46,8 +53,8 @@ alias gc="git commit";
 alias gl='build git pretty-log'
 alias gr="git rebase"
 
-alias el='cd ~/.local-dot; vim'
-alias ed='cd ~/local/dot; vim'
+alias el='change -l local'
+alias ed='change -l dot'
 
 alias s="build search content";
 alias f="build search file"
@@ -151,6 +158,7 @@ ssh-setup() {
 layout() { eval "$(build workspace layout $@)"; }
 change() { eval "$(build workspace change -r $@)"; }
 create() { eval "$(build workspace create -r $@)"; }
+new() { eval "$(build workspace change -r -c -l $@)"; }
 _workspace_completion() {
   COMPREPLY=($(compgen -W "$(build workspace "$1")" -- "${COMP_WORDS[${#COMP_WORDS[@]}-1]}"))
 }
@@ -160,6 +168,8 @@ _change_completion() { _workspace_completion change; }
 complete -F _change_completion change
 _create_completion() { _workspace_completion create; }
 complete -F _create_completion create
+_change_completion() { _workspace_completion change; }
+complete -F _change_completion new
 
 
 # tmux
