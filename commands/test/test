@@ -97,9 +97,15 @@ def test(names, run_all, loop, current_path, settings):
     print("sleep 1")
     print(test.pre_test_command)
     if run_all:
-        print("echo all")
+        if not test.test_all_command:
+            print("echo no all command; return 1")
+            return 1
+        print(test.test_all_command)
     else:
-        print(f"echo {args}")
+        if not test.test_command:
+            print("echo no test command; return 1")
+            return 1
+        print(test.test_command.format(args=args))
     if test.failed_log_list_command:
         print('FAILED_LOG_LIST="$(mktemp)"')
         print(f"({test.failed_log_list_command}) > $FAILED_LOG_LIST")
