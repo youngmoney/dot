@@ -74,6 +74,8 @@ class DataType(type):
                 input_object = kwargs
             elif len(vargs) == 1 and isinstance(vargs[0], dict):
                 input_object = vargs[0]
+            elif len(vargs) == 1 and vargs[0] is None:
+                input_object = {}
             else:
                 raise TypeError(
                     "ParseError: DataType must be constructed with either a dictionary or keyword arguments."
