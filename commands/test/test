@@ -54,7 +54,7 @@ def run_path_generation(command, input=""):
 def test(names, run_all, loop, current_path, settings):
     if not run_all and not names:
         return 1
-    args = "" if run_all else shlex.join(names)
+    args = "" if run_all else " ".join([shlex.quote(a) for a in names])
     if loop:
         all_arg = "-a" if run_all else ""
         args = "" if run_all else " ".join([f"'{n}'" for n in names])
