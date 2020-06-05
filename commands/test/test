@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+
+from argparse import ArgumentParser
+import re
+import os, subprocess, sys
+import settings as settings_lib
+import shlex
+
+
+def parse():
+    parser = ArgumentParser(description="Run tests.")
+    subparsers = parser.add_subparsers(title="commands", dest="command")
+    test = subparsers.add_parser("test", help="Change locations.")
+    test.add_argument("test_name", nargs="*")
+    test.add_argument(
+        "-a", "--all", default=False, action="store_true", help="Run all tests."
+    )
+    test.add_argument(
+        "-l",
+        "--loop",
+        default=False,
+        action="store_true",
+        help="Run the test, show the logs, and loop.",
+    )
+    test.add_argument(
+        "--current_path",
+        default=os.getcwd(),
+        help="The path to change. Defaults to the current directory.",
+    )
+
+    return parser.parse_args()
+
+
+def run():
+    args = parse()
+    settings = settings_lib.get()
+    if args.command == "test":
+        return test(args.test_name, args.all, args.loop, args.current_path, settings)
+    return 1
+
+
+def run_path_generation(command, input=""):
+    result = subprocess.run(
+        command,
+        input=input,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=True,
+        text=True,
+    )
+    return result.returncode, result.stdout.rstrip("\n")
+
+
+def test(names, run_all, loop, current_path, settings):
+    if not run_all and not names:
+        return 1
+    args = "" if run_all else shlex.join(names)
+    if loop:
+        all_arg = "-a" if run_all else ""
+        args = "" if run_all else " ".join([f"'{n}'" for n in names])
+        print("while :; do")
+        print(
+            f'(eval "$(build test test {all_arg} {args})") || read -p "\n\n[continue]"'
+        )
+        print("done")
+        return 0
+
+    test = None
+    for t in settings.tests:
+        if t.match_path_regex and not re.fullmatch(
+            os.path.expanduser(t.match_path_regex), current_path
+        ):
+            continue
+        if t.match_command:
+            result = subprocess.run(
+                t.match_command,
+                cwd=current_path,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+                text=True,
+            )
+            if result.returncode != 0:
+                continue
+
+        test = t
+        break
+
+    if not test:
+        print("return 1")
+        return 1
+
+    print("echo")
+    print("echo ***************")
+    print("echo")
+    print("clear")
+    print("sleep 1")
+    print(test.pre_test_command)
+    if run_all:
+        print("echo all")
+    else:
+        print(f"echo {args}")
+    if test.failed_log_list_command:
+        print('FAILED_LOG_LIST="$(mktemp)"')
+        print(f"({test.failed_log_list_command}) > $FAILED_LOG_LIST")
+        print("NUM_FAILED_LOGS=$(grep -c '.*' \"$FAILED_LOG_LIST\")")
+        print("[[ $NUM_FAILED_LOGS -eq 0 ]] && return 1")
+        print(
+            "[[ $NUM_FAILED_LOGS -eq 1 ]] && vim -c \"let g:ctrlp_user_command='echo %s > /dev/null; cat $FAILED_LOG_LIST'\" $(head -1 $FAILED_LOG_LIST)"
+        )
+        print(
+            "[[ $NUM_FAILED_LOGS -gt 1 ]] && vim -c \"let g:ctrlp_user_command='echo %s > /dev/null; cat $FAILED_LOG_LIST'\" +CtrlP"
+        )
+        print("return 0")
+
+    return 0
+
+
+if __name__ == "__main__":
+    exit(run())
