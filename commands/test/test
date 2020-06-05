@@ -59,9 +59,8 @@ def test(names, run_all, loop, current_path, settings):
         all_arg = "-a" if run_all else ""
         args = "" if run_all else " ".join([f"'{n}'" for n in names])
         print("while :; do")
-        print(
-            f'(eval "$(build test test {all_arg} {args})") || read -p "\n\n[continue]"'
-        )
+        print(f'(eval "$(build test test {all_arg} {args})") && break')
+        print('[[ $? -ne 12 ]] && read -p "\n\n[continue]"')
         print("done")
         return 0
 
@@ -99,14 +98,15 @@ def test(names, run_all, loop, current_path, settings):
         print(f"({test.pre_test_command})")
     if run_all:
         if not test.test_all_command:
-            print("echo no all command; return 1")
+            print("echo no all command; return 0")
             return 1
         print(test.test_all_command)
     else:
         if not test.test_command:
-            print("echo no test command; return 1")
+            print("echo no test command; return 0")
             return 1
         print(test.test_command.format(args=args))
+    print("[[ $? -eq 0 ]] && return 0")
     if test.failed_log_list_command:
         print('FAILED_LOG_LIST="$(mktemp)"')
         print(f"({test.failed_log_list_command}) > $FAILED_LOG_LIST")
@@ -118,7 +118,9 @@ def test(names, run_all, loop, current_path, settings):
         print(
             "[[ $NUM_FAILED_LOGS -gt 1 ]] && vim -c \"let g:ctrlp_user_command='echo %s > /dev/null; cat $FAILED_LOG_LIST'\" +CtrlP"
         )
-        print("return 0")
+        print("return 12")
+    else:
+        print("return 1")
 
     return 0
 
