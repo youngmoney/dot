@@ -39,7 +39,7 @@ SHORT_BASH_IMPORT="${LOCALDOT}/conf/short.bash"
 if [ "$1" == "--short" ]; then return 0; fi
 
 if [ ! -d . ]; then
-    cd .
+    cd . 2>/dev/null
     if [ ! -d . ]; then
         echo "leaving non-existent directory: $(pwd)"
         cd ~ || exit
