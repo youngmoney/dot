@@ -95,7 +95,8 @@ def test(names, run_all, loop, current_path, settings):
     print("echo")
     print("clear")
     print("sleep 1")
-    print(test.pre_test_command)
+    if test.pre_test_command:
+        print(f"({test.pre_test_command})")
     if run_all:
         if not test.test_all_command:
             print("echo no all command; return 1")
