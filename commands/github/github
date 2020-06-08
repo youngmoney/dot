@@ -11,17 +11,21 @@ from github import GitHub
 def confirm(prompt):
     while True:
         try:
-            i = input(prompt+" ")
+            i = input(prompt + " ")
         except KeyboardInterrupt:
             return False
-        if i.lower() in ('yes','y', ''): return True
-        elif i.lower() in ('no','n'): return False
+        if i.lower() in ("yes", "y", ""):
+            return True
+        elif i.lower() in ("no", "n"):
+            return False
+
 
 def prompt(prompt):
     try:
-        return input(prompt+" ")
+        return input(prompt + " ")
     except KeyboardInterrupt:
         return ""
+
 
 def getRepoName(repo, gh=None):
     if not repo and gh is not None:
@@ -30,43 +34,45 @@ def getRepoName(repo, gh=None):
             repo = potential
     if not repo:
         repo = os.path.basename(os.getcwd())
-        if not confirm("Use repo named "+repo+"?"):
+        if not confirm("Use repo named " + repo + "?"):
             repo = prompt("Use repo named:")
     if not "/" in repo:
         repo = gh.username + "/" + repo
     return repo
 
+
 def getMessage(initial_message=""):
-    EDITOR = os.environ.get('EDITOR', 'vim')
+    EDITOR = os.environ.get("EDITOR", "vim")
     message = ""
-    tmp_name=""
+    tmp_name = ""
     with tempfile.NamedTemporaryFile(suffix=".tmp", delete=False) as tmp:
         tmp.write(initial_message)
         tmp.flush()
-        tmp_name=tmp.name
+        tmp_name = tmp.name
     subprocess.call([EDITOR, tmp.name])
     with open(tmp_name) as tmp:
         tmp.seek(0)
         message = tmp.read()
     os.unlink(tmp_name)
 
-    message_lines = [l for l in message.split('\n') if not l.startswith('#')]
+    message_lines = [l for l in message.split("\n") if not l.startswith("#")]
     first_line = -1
     for i in reversed(list(range(len(message_lines)))):
         if message_lines[i].strip() != "":
             first_line = i
             break
-    message_lines = message_lines[:first_line+1]
+    message_lines = message_lines[: first_line + 1]
     if len(message_lines) < 3:
         return None, None
     title = message_lines[0]
-    body = ''
+    body = ""
     for l in message_lines[2:]:
-        if body == '':
+        if body == "":
             body = l
         else:
-            body += '\n'+l
+            body += "\n" + l
     return title, body
+
 
 def repoCommand(args, gh):
     verb = args.verb[0]
@@ -77,7 +83,7 @@ def repoCommand(args, gh):
         for repo in repos:
             if repo["private"]:
                 print(repo["full_name"] + " (private)")
-            else :
+            else:
                 print(repo["full_name"])
         return True
 
@@ -88,14 +94,13 @@ def repoCommand(args, gh):
             return True
 
         if verb == "open":
-            url = "https://github.com/"+repo
+            url = "https://github.com/" + repo
             print(url)
             subprocess.call(["open", url])
             return True
 
-
         if verb == "delete":
-            if confirm("Delete repo "+repo+"?"):
+            if confirm("Delete repo " + repo + "?"):
                 return gh.repo_delete(repo)
             return True
 
@@ -109,7 +114,6 @@ def repoCommand(args, gh):
         if args.description:
             description = "".join(args.description)
 
-
         if verb == "create":
             if private == None:
                 private = False
@@ -120,7 +124,15 @@ def repoCommand(args, gh):
                 org = None
             if gh.repo_create(repo, private=private, description=description, org=org):
                 if confirm("Add github as remote gh?"):
-                    subprocess.call(["git", "remote", "add", "gh", "git@github.com:"+org_name+"/"+repo+".git"])
+                    subprocess.call(
+                        [
+                            "git",
+                            "remote",
+                            "add",
+                            "gh",
+                            "git@github.com:" + org_name + "/" + repo + ".git",
+                        ]
+                    )
                     if confirm("Push master to github?"):
                         subprocess.call(["git", "push", "gh", "master"])
                 return True
@@ -131,6 +143,7 @@ def repoCommand(args, gh):
             return gh.repo_edit(repo, private=private, description=description)
 
     return True
+
 
 def collabCommand(args, gh):
     verb = args.verb[0]
@@ -150,14 +163,15 @@ def collabCommand(args, gh):
                 print(collab["login"])
         return True
 
-    if verb in ['add', 'remove']:
+    if verb in ["add", "remove"]:
         collab = args.collab
         if not collab:
             collab = prompt("Who is this collaborator?")
             if not collab:
                 print("No collab given")
                 return True
-        return gh.repo_collab(repo, collab, verb == 'remove')
+        return gh.repo_collab(repo, collab, verb == "remove")
+
 
 def keyCommand(args, gh):
     verb = args.verb[0]
@@ -169,7 +183,7 @@ def keyCommand(args, gh):
             print(key["title"] + "\t" + key["key"])
         return True
 
-    if verb in ['add', 'remove']:
+    if verb in ["add", "remove"]:
 
         title = args.name
         if not title:
@@ -178,7 +192,7 @@ def keyCommand(args, gh):
                 print("No name given")
                 return True
 
-        if verb == 'add':
+        if verb == "add":
             key = args.key
             if type(key) == list:
                 key = " ".join(key)
@@ -189,7 +203,7 @@ def keyCommand(args, gh):
                     return True
             return gh.key_create(title, key)
 
-        if verb == 'remove':
+        if verb == "remove":
             keys = gh.key_list()
             if not keys:
                 return False
@@ -209,8 +223,17 @@ def forkCommand(args, gh):
     if fork and confirm("Add fork as remote fork?"):
         org = gh.username
         repo = project.split("/")[1]
-        subprocess.call(["git", "remote", "add", "fork", "git@github.com:"+org+"/"+repo+".git"])
+        subprocess.call(
+            [
+                "git",
+                "remote",
+                "add",
+                "fork",
+                "git@github.com:" + org + "/" + repo + ".git",
+            ]
+        )
     return fork
+
 
 def pullCommand(args, gh):
     project = getRepoName(None, gh)
@@ -223,7 +246,11 @@ def pullCommand(args, gh):
         if pulls is None:
             return False
         for pull in pulls:
-            p = '{:<4} {} ({})'.format(pull["number"], pull["title"].encode('utf-8'), pull["user"]["login"].encode('utf-8'))
+            p = "{:<4} {} ({})".format(
+                pull["number"],
+                pull["title"].encode("utf-8"),
+                pull["user"]["login"].encode("utf-8"),
+            )
             print(p)
 
     if verb == "request":
@@ -239,7 +266,7 @@ def pullCommand(args, gh):
             return False
 
         if verb == "diff" or verb == "patch":
-            diffpatch = pull[verb+"_url"]
+            diffpatch = pull[verb + "_url"]
             response = urllib.request.urlopen(diffpatch)
             diffpatch = response.read()
             print(diffpatch)
@@ -250,17 +277,23 @@ def pullCommand(args, gh):
             branch = pull["head"]["ref"]
             repo = "git@github.com:%s/%s.git" % (user, repo)
 
-            subprocess.call(["git", "remote", "add", "--no-tags", user, repo], stderr=PIPE)
+            subprocess.call(
+                ["git", "remote", "add", "--no-tags", user, repo], stderr=PIPE
+            )
             subprocess.call(["git", "remote", "set-branches", "--add", user, branch])
             err = subprocess.call(["git", "fetch", user])
             if err:
                 return False
-            err = subprocess.call(["git", "checkout", user+"/"+branch], stdout=PIPE, stderr=PIPE)
+            err = subprocess.call(
+                ["git", "checkout", user + "/" + branch], stdout=PIPE, stderr=PIPE
+            )
             if err:
-                err = subprocess.call(["git", "checkout", branch], stdout=PIPE, stderr=PIPE)
+                err = subprocess.call(
+                    ["git", "checkout", branch], stdout=PIPE, stderr=PIPE
+                )
                 if err:
                     return False
-            subprocess.call(["git", "checkout", "-b", user+"-"+branch])
+            subprocess.call(["git", "checkout", "-b", user + "-" + branch])
 
     if verb == "info":
         if not args.request:
@@ -282,6 +315,7 @@ def pullCommand(args, gh):
 
     return True
 
+
 def issueCommand(args, gh):
     project = getRepoName(None, gh)
     if project is None:
@@ -289,12 +323,14 @@ def issueCommand(args, gh):
         return False
     verb = args.verb[0]
     if verb == "create":
-        title, body = getMessage("""
+        title, body = getMessage(
+            """
 
 
 # write the issue up like a commit
 # comments and blank lines at the end are ignored
-""")
+"""
+        )
         if title is None or body is None:
             print("incomplete issue")
             return False
@@ -309,8 +345,14 @@ def issueCommand(args, gh):
             return False
         for issue in issues:
             pr = "PR - " if "pull_request" in issue else ""
-            if pr: continue
-            i = '{:<4} {}{} ({})'.format(issue["number"], pr, issue["title"].encode('utf-8'), issue["user"]["login"].encode('utf-8'))
+            if pr:
+                continue
+            i = "{:<4} {}{} ({})".format(
+                issue["number"],
+                pr,
+                issue["title"].encode("utf-8"),
+                issue["user"]["login"].encode("utf-8"),
+            )
             print(i)
 
     if verb == "info":
@@ -334,16 +376,17 @@ def issueCommand(args, gh):
 
     return True
 
+
 def issue_comment(gh, project, issue, pull=False):
     info = issue_info(gh, project, issue, pull)
     if not info:
         return False
-    initial_message = ["# "+l for l in info.splitlines()]
+    initial_message = ["# " + l for l in info.splitlines()]
     initial_message.insert(0, "Comment - line ignored")
     initial_message.insert(1, "")
     initial_message.insert(1, "")
     initial_message.append("# Comment below (leave blank line)")
-    title, body = getMessage('\n'.join(initial_message))
+    title, body = getMessage("\n".join(initial_message))
     if not body:
         print("no comment")
         return False
@@ -353,101 +396,128 @@ def issue_comment(gh, project, issue, pull=False):
 
 
 def issue_info(gh, project, issue, pull=False):
-        issue = str(issue)
-        def get_white(s):
-            return ' '*(len(s) - len(s.lstrip()))
-        if pull:
-            info = gh.pull_info(project, issue)
-        else:
-            info = gh.issue_info(project, issue)
-        if info is None:
-            return False
-        if not info:
-            print(("are you sure this is an {}?".format("pull" if pull else "issue")))
-            return False
-        width = 100
-        under = ('{:^'+str(width)+'}').format('-'*width)
-        fill = ('\n{:^'+str(width)+'}\n').format('-'*(width-10))
-        import textwrap
-        comments = gh.issue_comments(project, issue)
-        events = gh.issue_events(project, issue)
-        comments += events
-        comments = sorted(comments, key=lambda x: x["created_at"])
-        lines = []
-        title = '{} {}'.format(info["number"], info["title"].encode('utf-8'))
-        lines.extend(title.splitlines())
-        lines.append(under)
-        lines.append("")
-        try:
-            body = info["body"].encode('utf-8')
-        except:
-            body = ""
-        body = '{}\n\n - {}'.format(body, info["user"]["login"].encode('utf-8'))
-        lines.extend(body.splitlines())
-        for comment in comments:
-            if "body" in comment:
-                lines.append(fill)
-                i = '{}\n\n - {}'.format(comment["body"].encode('utf-8'), comment["user"]["login"].encode('utf-8'))
-            elif "event" in comment:
-                event = comment["event"].encode('utf-8')
-                if event in ["subscribed", "mentioned"]:
-                    continue
-                lines.append(fill)
-                detail = ""
-                if "labeled" in event: detail = comment["label"]["name"]
-                if "milestone" in event: detail = comment["milstone"]["title"]
-                if "assign" in event: detail = comment["assignee"]["login"]
-                if "reference" in event: detail = "{:.16}".format(comment["commit_id"])
-                if detail: detail = ": {}".format(detail)
-                i = '{}{} - {}'.format(event, detail, comment["actor"]["login"].encode('utf-8'))
-            lines.extend(i.splitlines())
+    issue = str(issue)
 
-        lines.append("")
-        lines.append(under)
+    def get_white(s):
+        return " " * (len(s) - len(s.lstrip()))
 
-        if pull:
-            mergable = "mergeable" if info["mergeable"] else "unmergeable"
-            if info["merged"]: mergable = "merged"
-            locked = " - locked" if info["locked"] else ""
-            ref = info["head"]["sha"]
-            ref_repo = info["base"]["repo"]["full_name"]
-            status = gh.ref_status(ref_repo, ref)
-            statuses = {}
-            for s in status["statuses"]:
-                if s["context"] not in statuses:
-                    statuses[s["context"]] = s["description"]
-            statuses = (["{}: {}".format(s, statuses[s]) for s in statuses])
-            state = {"success":" - passing", "pending":" - pending", "failure":" - failing"}[status["state"]]
-            if not statuses: state = ""
-            status = '{}{} - {}{}'.format(info["state"], state, mergable, locked)
-            lines.append(status)
-            lines.extend(statuses)
-        else:
-            locked = " - locked" if info["locked"] else ""
-            labels = []
-            state = info["state"]
-            for l in info["labels"]:
-                labels.append("#"+l["name"])
-            labels = "("+" ".join(labels)+")" if labels else ""
-            pr = "PR - " if "pull_request" in info else ""
-            lines.append("{}{} {}".format(pr, state, locked, labels))
+    if pull:
+        info = gh.pull_info(project, issue)
+    else:
+        info = gh.issue_info(project, issue)
+    if info is None:
+        return False
+    if not info:
+        print(("are you sure this is an {}?".format("pull" if pull else "issue")))
+        return False
+    width = 100
+    under = ("{:^" + str(width) + "}").format("-" * width)
+    fill = ("\n{:^" + str(width) + "}\n").format("-" * (width - 10))
+    import textwrap
 
-        return '\n'.join([textwrap.fill(l, width, subsequent_indent=get_white(l)) for l in lines])
+    comments = gh.issue_comments(project, issue)
+    events = gh.issue_events(project, issue)
+    comments += events
+    comments = sorted(comments, key=lambda x: x["created_at"])
+    lines = []
+    title = "{} {}".format(info["number"], info["title"].encode("utf-8"))
+    lines.extend(title.splitlines())
+    lines.append(under)
+    lines.append("")
+    try:
+        body = info["body"].encode("utf-8")
+    except:
+        body = ""
+    body = "{}\n\n - {}".format(body, info["user"]["login"].encode("utf-8"))
+    lines.extend(body.splitlines())
+    for comment in comments:
+        if "body" in comment:
+            lines.append(fill)
+            i = "{}\n\n - {}".format(
+                comment["body"].encode("utf-8"),
+                comment["user"]["login"].encode("utf-8"),
+            )
+        elif "event" in comment:
+            event = comment["event"].encode("utf-8")
+            if event in ["subscribed", "mentioned"]:
+                continue
+            lines.append(fill)
+            detail = ""
+            if "labeled" in event:
+                detail = comment["label"]["name"]
+            if "milestone" in event:
+                detail = comment["milstone"]["title"]
+            if "assign" in event:
+                detail = comment["assignee"]["login"]
+            if "reference" in event:
+                detail = "{:.16}".format(comment["commit_id"])
+            if detail:
+                detail = ": {}".format(detail)
+            i = "{}{} - {}".format(
+                event, detail, comment["actor"]["login"].encode("utf-8")
+            )
+        lines.extend(i.splitlines())
+
+    lines.append("")
+    lines.append(under)
+
+    if pull:
+        mergable = "mergeable" if info["mergeable"] else "unmergeable"
+        if info["merged"]:
+            mergable = "merged"
+        locked = " - locked" if info["locked"] else ""
+        ref = info["head"]["sha"]
+        ref_repo = info["base"]["repo"]["full_name"]
+        status = gh.ref_status(ref_repo, ref)
+        statuses = {}
+        for s in status["statuses"]:
+            if s["context"] not in statuses:
+                statuses[s["context"]] = s["description"]
+        statuses = ["{}: {}".format(s, statuses[s]) for s in statuses]
+        state = {
+            "success": " - passing",
+            "pending": " - pending",
+            "failure": " - failing",
+        }[status["state"]]
+        if not statuses:
+            state = ""
+        status = "{}{} - {}{}".format(info["state"], state, mergable, locked)
+        lines.append(status)
+        lines.extend(statuses)
+    else:
+        locked = " - locked" if info["locked"] else ""
+        labels = []
+        state = info["state"]
+        for l in info["labels"]:
+            labels.append("#" + l["name"])
+        labels = "(" + " ".join(labels) + ")" if labels else ""
+        pr = "PR - " if "pull_request" in info else ""
+        lines.append("{}{} {}".format(pr, state, locked, labels))
+
+    return "\n".join(
+        [textwrap.fill(l, width, subsequent_indent=get_white(l)) for l in lines]
+    )
+
 
 def pull_request(gh, project, base, head):
     if base is None:
         base = "master"
     if head is None:
-        (head, stderr) = Popen(["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                               stdout=PIPE, stderr=PIPE).communicate()
-        head=head.strip()
+        (head, stderr) = Popen(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], stdout=PIPE, stderr=PIPE
+        ).communicate()
+        head = head.strip()
         if stderr or head == "HEAD":
-            (head, stderr) = Popen(["git", "rev-parse", "--verify", "--short", "HEAD"],
-                                   stdout=PIPE, stderr=PIPE).communicate()
-            head=head.strip()
+            (head, stderr) = Popen(
+                ["git", "rev-parse", "--verify", "--short", "HEAD"],
+                stdout=PIPE,
+                stderr=PIPE,
+            ).communicate()
+            head = head.strip()
 
-    (changes, stderr) = Popen(["git", "log", "--oneline",  base+".."+head],
-                              stdout=PIPE, stderr=PIPE).communicate()
+    (changes, stderr) = Popen(
+        ["git", "log", "--oneline", base + ".." + head], stdout=PIPE, stderr=PIPE
+    ).communicate()
     if stderr:
         print("base and head are not real")
         return False
@@ -457,70 +527,88 @@ def pull_request(gh, project, base, head):
         print("no project found")
         return False
 
-    initial_message = """
+    initial_message = (
+        """
 
 
 # please title and explain this pull request
 # in normal git format
 # comments will not be shown
-# """+head+" onto "+base+"""
+# """
+        + head
+        + " onto "
+        + base
+        + """
 #
-"""+changes
+"""
+        + changes
+    )
 
     title, body = getMessage(initial_message)
     if title is None or body is None:
         print("incomplete message")
         return False
 
-    head = gh.username+":"+head
+    head = gh.username + ":" + head
     # base = gh.username+":"+base
-    request = gh.pull_request(base=base, head=head, title=title, body=body, repo_name=project)
+    request = gh.pull_request(
+        base=base, head=head, title=title, body=body, repo_name=project
+    )
     if request:
         print((request["number"]))
     return request
+
 
 def parseArgs():
     parser = argparse.ArgumentParser("github")
     parser.add_argument("--debug", action="store_true")
     subparsers = parser.add_subparsers()
 
-    repoParser = subparsers.add_parser('repo')
-    repoParser.add_argument('verb', choices=['create', 'delete', 'edit', 'list', 'open'], nargs=1)
-    repoParser.add_argument('--private', action="store_true")
-    repoParser.add_argument('--public', action="store_true")
-    repoParser.add_argument('--description', type=str)
-    repoParser.add_argument('repo', type=str, nargs="?")
+    repoParser = subparsers.add_parser("repo")
+    repoParser.add_argument(
+        "verb", choices=["create", "delete", "edit", "list", "open"], nargs=1
+    )
+    repoParser.add_argument("--private", action="store_true")
+    repoParser.add_argument("--public", action="store_true")
+    repoParser.add_argument("--description", type=str)
+    repoParser.add_argument("repo", type=str, nargs="?")
     repoParser.set_defaults(func=repoCommand)
 
-    collabParser = subparsers.add_parser('collab')
-    collabParser.add_argument('verb', choices=['add', 'remove', 'list'], nargs=1)
-    collabParser.add_argument('--repo', type=str)
-    collabParser.add_argument('collab', type=str, nargs="?")
+    collabParser = subparsers.add_parser("collab")
+    collabParser.add_argument("verb", choices=["add", "remove", "list"], nargs=1)
+    collabParser.add_argument("--repo", type=str)
+    collabParser.add_argument("collab", type=str, nargs="?")
     collabParser.set_defaults(func=collabCommand)
 
-    keyParser = subparsers.add_parser('key')
-    keyParser.add_argument('verb', choices=['add', 'remove', 'list'], nargs=1)
-    keyParser.add_argument('--key', type=str)
-    keyParser.add_argument('name', type=str, nargs="?")
+    keyParser = subparsers.add_parser("key")
+    keyParser.add_argument("verb", choices=["add", "remove", "list"], nargs=1)
+    keyParser.add_argument("--key", type=str)
+    keyParser.add_argument("name", type=str, nargs="?")
     keyParser.set_defaults(func=keyCommand)
 
-    forkParser = subparsers.add_parser('fork')
+    forkParser = subparsers.add_parser("fork")
     forkParser.set_defaults(func=forkCommand)
 
-    pullParser = subparsers.add_parser('pull')
-    pullParser.add_argument('verb', choices=['request', 'list', 'checkout', 'diff', 'patch', 'info', 'comment'], nargs=1)
-    pullParser.add_argument('--base', type=str)
-    pullParser.add_argument('--head', type=str)
-    pullParser.add_argument('request', nargs="?")
+    pullParser = subparsers.add_parser("pull")
+    pullParser.add_argument(
+        "verb",
+        choices=["request", "list", "checkout", "diff", "patch", "info", "comment"],
+        nargs=1,
+    )
+    pullParser.add_argument("--base", type=str)
+    pullParser.add_argument("--head", type=str)
+    pullParser.add_argument("request", nargs="?")
     pullParser.set_defaults(func=pullCommand)
 
-    issueParser = subparsers.add_parser('issue')
-    issueParser.add_argument('verb', choices=['create', 'list', 'info', 'comment'], nargs=1)
-    issueParser.add_argument('issue', nargs='?')
+    issueParser = subparsers.add_parser("issue")
+    issueParser.add_argument(
+        "verb", choices=["create", "list", "info", "comment"], nargs=1
+    )
+    issueParser.add_argument("issue", nargs="?")
     issueParser.set_defaults(func=issueCommand)
 
-    setupParser = subparsers.add_parser('setup')
-    setupParser.set_defaults(func=lambda a,g: GitHub.setup_config())
+    setupParser = subparsers.add_parser("setup")
+    setupParser.set_defaults(func=lambda a, g: GitHub.setup_config())
 
     args = parser.parse_args()
     return args
@@ -534,10 +622,9 @@ if __name__ == "__main__":
             args = parseArgs()
             if args.debug:
                 gh.debug = True
-            if not args.func(args,gh):
+            if not args.func(args, gh):
                 print("Error")
         else:
             GitHub.setup_config()
     except KeyboardInterrupt:
         pass
-
