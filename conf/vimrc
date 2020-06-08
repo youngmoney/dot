@@ -12,6 +12,7 @@ Bundle 'gmarik/vundle'
 
 "Navigation
 Bundle 'kien/ctrlp.vim'
+Bundle 'youngmoney/vim-ctrlp-modified'
 Bundle 'djoshea/vim-autoread'
 Bundle 'tpope/vim-eunuch'
 Bundle 'kshenoy/vim-signature'
@@ -87,6 +88,8 @@ let g:ulti_expand_or_jump_res = 0
 let g:ctrlp_extensions = ['tag']
 let g:ctrlp_open_new_file = 'r'
 let g:ctrlp_custom_ignore = 'documents/notes/.*\.html'
+let g:ctrlp_modified_command = 'eval "$(build workspace command ctrlp-modified-files)"'
+map <C-n> :CtrlPModified<CR>
 
 "Slime
 let g:slimux_select_from_current_window = 1
