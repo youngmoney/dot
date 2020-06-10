@@ -23,11 +23,8 @@ def get():
 class Linter(metaclass=DataType):
     datatype_name = str
     datatype_command = str
-    datatype_Defaults = {
-        "command": "",
-    }
 
-    def __init__(self):
+    def __init__(self, command=""):
         if not self.name:
             raise TypeError("Linter must have a name.")
 
@@ -43,10 +40,9 @@ class Matcher(metaclass=DataType):
     datatype_shebang_regex = str
     datatype_linter_name = str
     datatype_fixer_name = str
-    datatype_Defaults = {
-        "path_regex": ".*",
-        "shebang_regex": ".*",
-    }
+
+    def __init__(self, path_regex=".*", shebang_regex=".*"):
+        pass
 
     def match(self, path, shebang) -> bool:
         return re.fullmatch(self.path_regex, path) and re.fullmatch(
@@ -67,7 +63,10 @@ class Settings(metaclass=DataType):
         for fixer in self.fixers:
             fixer_names.append(fixer.name)
         for matcher in self.matchers:
-            if matcher.linter_name is not None and not matcher.linter_name in linter_names:
+            if (
+                matcher.linter_name is not None
+                and not matcher.linter_name in linter_names
+            ):
                 raise TypeError(
                     f"Matcher references nonexistant linter: {matcher.linter_name}"
                 )
