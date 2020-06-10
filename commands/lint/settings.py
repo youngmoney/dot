@@ -1,7 +1,7 @@
 import re
 import yaml
 import os
-from datatype import DataType
+import datatype
 
 
 def get_path():
@@ -20,7 +20,7 @@ def get():
     return None
 
 
-class Linter(metaclass=DataType):
+class Linter(metaclass=datatype.Object):
     datatype_name = str
     datatype_command = str
 
@@ -35,7 +35,7 @@ class Linter(metaclass=DataType):
         return self.command.format(filename=filename)
 
 
-class Matcher(metaclass=DataType):
+class Matcher(metaclass=datatype.Object):
     datatype_path_regex = str
     datatype_shebang_regex = str
     datatype_linter_name = str
@@ -50,7 +50,7 @@ class Matcher(metaclass=DataType):
         )
 
 
-class Settings(metaclass=DataType):
+class Settings(metaclass=datatype.Object):
     datatype_linters = [Linter]
     datatype_fixers = [Linter]
     datatype_matchers = [Matcher]

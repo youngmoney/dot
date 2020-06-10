@@ -1,6 +1,6 @@
 import yaml
 import os
-from datatype import DataType, Option
+import datatype
 import re
 
 
@@ -36,7 +36,7 @@ def get():
     return settings
 
 
-class Location(metaclass=DataType):
+class Location(metaclass=datatype.Object):
     datatype_name = str
     datatype_change_path_regex = str
     datatype_change_path_command = str
@@ -50,30 +50,30 @@ class Location(metaclass=DataType):
             raise TypeError("Location must have a name.")
 
 
-class Creator(metaclass=DataType):
+class Creator(metaclass=datatype.Object):
     datatype_name = str
     datatype_command = str
 
 
-class Direction(metaclass=Option):
+class Direction(metaclass=datatype.Option):
     up = None
     down = None
     left = None
     right = None
 
 
-class Pane(metaclass=DataType):
+class Pane(metaclass=datatype.Object):
     datatype_location_name = str
     datatype_command = str
     datatype_direction = Direction
     datatype_percent = int
-    datatype_children = [DataType.Self]
+    datatype_children = [datatype.Object.Self]
 
     def __init__(command="", direction=Direction.right, percent=50, children=[]):
         pass
 
 
-class Layout(metaclass=DataType):
+class Layout(metaclass=datatype.Object):
     datatype_name = str
     datatype_location_name = str
     datatype_command = str
@@ -84,7 +84,7 @@ class Layout(metaclass=DataType):
             raise TypeError("Layout must have a name.")
 
 
-class Command(metaclass=DataType):
+class Command(metaclass=datatype.Object):
     datatype_name = str
     datatype_command = str
     datatype_path_regex = str
@@ -95,7 +95,7 @@ class Command(metaclass=DataType):
             raise TypeError("Command must have a name.")
 
 
-class Settings(metaclass=DataType):
+class Settings(metaclass=datatype.Object):
     datatype_locations = [Location]
     datatype_creators = [Creator]
     datatype_layouts = [Layout]

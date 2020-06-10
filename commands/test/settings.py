@@ -1,6 +1,6 @@
 import yaml
 import os
-from datatype import DataType, Option
+import datatype
 import re
 
 
@@ -33,7 +33,7 @@ def get():
     return settings
 
 
-class Test(metaclass=DataType):
+class Test(metaclass=datatype.Object):
     datatype_match_path_regex = str
     datatype_match_command = str
     datatype_pre_test_command = str
@@ -47,7 +47,7 @@ class Test(metaclass=DataType):
         pass
 
 
-class Settings(metaclass=DataType):
+class Settings(metaclass=datatype.Object):
     datatype_tests = [Test]
 
     def __init__(self, tests=[]):
