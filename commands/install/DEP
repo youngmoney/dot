@@ -1,8 +1,6 @@
-build:system
-~pacakge:cask
-~package:apt
-~package:brew
-~package:pip2
-~package:pip3
-~pip2:pipdeptree
-~pip3:pipdeptree
+build system
+optional package cask
+optional package apt
+optional package brew
+optional python3 pip3
+optional python3 pipdeptree

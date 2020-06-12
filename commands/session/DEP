@@ -1,3 +1,3 @@
-package:python3
-pip3:flask
-pip3:requests
+package python3
+python3 Flask
+python3 requests

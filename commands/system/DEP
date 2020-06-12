@@ -1,3 +1,3 @@
-build:etc
-~build:central
-~package:urlscan
+build etc
+optional build central
+optional package urlscan
