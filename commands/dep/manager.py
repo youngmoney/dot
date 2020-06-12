@@ -131,6 +131,12 @@ class Python3(Manager):
             p = re.sub("^.*/", "", p)
         return p
 
+    def _install_name(self, package):
+        p = Manager._install_name(self, package)
+        if "/" in package:
+            p = "git+https://" + p
+        return p
+
     def _get_list(self):
         return self._run_as_list(["pip3", "list", "--format", "freeze"])
 
