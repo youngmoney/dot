@@ -18,12 +18,6 @@ cask scribus
 cask adobe-creative-cloud
 
 python3 black
-python3 pipdeptree
-python3 PyYAML
-python3 Flask
-python3 requests
-python3 setuptools
-python3 wheel
 python3 github.com/youngmoney/py-datatype
 
 include ~/local/dot/commands/**/DEP

@@ -188,6 +188,9 @@ def parse():
         action="store_true",
         help="Do not ask for confirmation before installing.",
     )
+    clean = subparsers.add_parser(
+        "clean", help="Evaluate DEP and remove unneeded packages."
+    )
 
     return parser.parse_args()
 
