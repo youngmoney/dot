@@ -1,4 +1,5 @@
 import re
+import sys
 import subprocess
 import pty
 
@@ -22,9 +23,6 @@ class Manager(CLI_Wrapper):
     def get_leaves(self):
         return self._filter_list(self._get_leaves())
 
-    def is_installed(self, package):
-        return self._package_name(package) in self.get_list()
-
     def package_name(self, package):
         return self._package_name(package)
 
@@ -36,6 +34,9 @@ class Manager(CLI_Wrapper):
 
     def ignore(self, package):
         return self._ignore(self._package_name(package))
+
+    def _is_mac(self):
+        return sys.platform == "darwin"
 
     def _package_version_delimiter(self):
         return "@"
@@ -102,8 +103,14 @@ class Manager(CLI_Wrapper):
 
 
 class Brew(Manager):
+    def ignore(self, package):
+        if not self._is_mac():
+            return True
+
+        return Manager.ignore(self, package)
+
     def _ignored_packages(self):
-        return ["pip3", "python3", "brew"]
+        return ["pip3", "python3", "pip", "python", "apt", "brew"]
 
     def _get_list(self):
         return self._run_as_list(["brew", "list"])
@@ -138,18 +145,20 @@ class Python3(Manager):
         return p
 
     def _get_list(self):
-        return self._run_as_list(["pip3", "list", "--format", "freeze"])
+        return self._run_as_list(["python3", "-m", "pip", "list", "--format", "freeze"])
 
     def _get_leaves(self):
         return self._run_as_list(
-            ["pip3", "list", "--not-required", "--format", "freeze"]
+            ["python3", "-m", "pip", "list", "--not-required", "--format", "freeze"]
         )
 
     def _install(self, package):
-        return self._run_manager_command(["pip3", "install", package])
+        return self._run_manager_command(["python3", "-m", "pip", "install", package])
 
     def _uninstall(self, package):
-        return self._run_manager_command(["pip3", "uninstall", "-y", package])
+        return self._run_manager_command(
+            ["python3", "-m", "pip", "uninstall", "-y", package]
+        )
 
 
 class Cask(Manager):
@@ -164,8 +173,47 @@ class Cask(Manager):
 
 
 class Apt(Manager):
+    def _ignored_packages(self):
+        return ["apt", "brew", "pip", "pip3", "python", "python3"]
+
     def ignore(self, package):
-        return True
+        if self._is_mac():
+            return True
+
+        return Manager.ignore(self, package)
+
+    def _get_list(self):
+        return self._run_as_list(["apt", "list", "--installed"])
+        l = self._run_as_list(["dpkg", "--get-selections"])
+        i = []
+        for item in l:
+            parts = item.split()
+            if len(parts) < 2:
+                continue
+            if parts[1] != "install":
+                continue
+            i.append(parts[0])
+        return i
+
+    def _get_leaves(self):
+        return []
+
+    def _get_install(self, package):
+        return self._run_manager_command(
+            [
+                "sudo",
+                "env",
+                "DEBIAN_FRONTEND=noninteractive",
+                "apt-get",
+                "-y",
+                "install",
+                "-qq",
+                package,
+            ]
+        )
+
+    def _uninstall(self, package):
+        return False
 
 
 class Build(Manager):

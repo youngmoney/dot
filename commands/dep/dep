@@ -3,7 +3,6 @@
 from argparse import ArgumentParser
 import os
 import glob
-import sys
 from package import Package
 from manager import Manager
 from manager import get_managers
@@ -32,12 +31,17 @@ def get_all(base="~/.DEP"):
             for f in glob.glob(os.path.expanduser(package.name), recursive=True):
                 packages += get_all(f)
         else:
+            if package.manager == "package":
+                package.manager = "brew"
+
+                second = Package()
+                second.manager = "apt"
+                second.name = package.name
+                second.optional = package.optional
+                packages.append(second)
+
             packages.append(package)
     return packages
-
-
-def ismac():
-    return sys.platform == "darwin"
 
 
 def get_deps():
@@ -49,9 +53,7 @@ def get_deps():
             continue
 
         manager = package.manager
-        if manager == "package":
-            manager = "brew" if ismac() else "apt"
-        if manager == "" or not manager in managers.keys():
+        if not manager in managers.keys():
             print(f"skipping unknown {package}")
             continue
         if managers[manager].ignore(package.name):
@@ -68,9 +70,10 @@ def install(managers, desired, yes=False):
     install = {}
     for m in desired:
         manager = managers[m]
+        installed = manager.get_list()
         wanted = desired[m]
         for w in wanted:
-            if manager.is_installed(w):
+            if manager.package_name(w) in installed:
                 continue
             if not m in install:
                 install[m] = []
