@@ -4,10 +4,12 @@ package pandoc
 package shellcheck
 package tmux
 package vim
-apt texlive
-brew mactex
+
 brew duti
 brew reattach-to-user-namespace
+
+apt texlive
+cask mactex-no-gui
 
 cask blender
 cask gimp
