@@ -77,7 +77,7 @@ bootstrap-git() {
 
 a="$1"
 shift;
-if [ "${a}" == "g0" ]; then
+if [ "${a}" == "go" ]; then
     bootstrap-go "$@"
 elif [ "${a}" == "dot" ]; then
     bootstrap-dot "$@"
