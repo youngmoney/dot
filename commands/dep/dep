@@ -6,6 +6,7 @@ import glob
 from package import Package
 from manager import Manager
 from manager import get_managers
+from manager import bootstrap
 
 
 def get_file(filename):
@@ -200,6 +201,8 @@ def parse():
 
 def run():
     args = parse()
+    if not bootstrap():
+        return False
     if args.command == "install":
         return install(get_managers(), get_deps(), yes=args.yes)
     elif args.command == "clean":

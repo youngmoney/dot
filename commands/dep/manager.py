@@ -1,7 +1,7 @@
 import re
 import sys
 import subprocess
-import pty
+import shutil
 
 
 class CLI_Wrapper:
@@ -17,7 +17,9 @@ class CLI_Wrapper:
 
 
 class Manager(CLI_Wrapper):
-    def get_list(self):
+    def get_list(self, all=False):
+        if all:
+            return self._get_list()
         return self._filter_list(self._get_list())
 
     def get_leaves(self):
@@ -34,9 +36,6 @@ class Manager(CLI_Wrapper):
 
     def ignore(self, package):
         return self._ignore(self._package_name(package))
-
-    def _is_mac(self):
-        return sys.platform == "darwin"
 
     def _package_version_delimiter(self):
         return "@"
@@ -104,7 +103,7 @@ class Manager(CLI_Wrapper):
 
 class Brew(Manager):
     def ignore(self, package):
-        if not self._is_mac():
+        if not is_mac():
             return True
 
         return Manager.ignore(self, package)
@@ -177,7 +176,7 @@ class Apt(Manager):
         return ["apt", "brew", "pip", "pip3", "python", "python3"]
 
     def ignore(self, package):
-        if self._is_mac():
+        if is_mac():
             return True
 
         return Manager.ignore(self, package)
@@ -221,6 +220,10 @@ class Build(Manager):
         return True
 
 
+def is_mac():
+    return sys.platform == "darwin"
+
+
 def get_managers():
     return {
         "python3": Python3(),
@@ -229,3 +232,59 @@ def get_managers():
         "apt": Apt(),
         "build": Build(),
     }
+
+
+def run(args, shell=False):
+    result = subprocess.run(
+        args,
+        input=text,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=shell,
+    )
+    returncode = result.returncode
+    out = result.stdout
+    if returncode != 0:
+        if not out:
+            out = "(no logs)"
+        else:
+            out = out.rstrip("\n")
+        print(f"-------\nRunning `{' '.join(args)}` failed with:\n{out}\n-------")
+        return False
+    return True
+
+
+def update():
+    if is_mac():
+        pass
+    else:
+        run(["sudo", "apt-get", "update", "-qq"])
+
+
+def bootstrap():
+    if is_mac():
+        if not shutil.which("brew"):
+            print("installing brew...")
+            if not run(
+                'ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"'
+            ):
+                return False
+        brew = Brew()
+        all_brew = brew.get_list(all=True)
+        if "python" not in all_brew:
+            print("installing python (3)...")
+            if not brew.install("python"):
+                return False
+    else:
+        apt = Apt()
+        all_apt = apt.get_list(all=True)
+        if not "python3" in all_apt:
+            print("installing python3...")
+            if not apt.install("python3"):
+                return False
+        if not "python3-pip" in all_apt:
+            print("installing pip3...")
+            if not apt.install("python3-pip"):
+                return False
+    return True
