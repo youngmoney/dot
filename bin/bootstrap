@@ -22,11 +22,11 @@ LOCALDOT=~/.local-dot
 mkdir -p ~/.tmp
 
 bootstrap-go() {
+    mkdir -p ${LOCALDOT}/{status,conf,commands}
+
     read -p "make home?[Y/n]" q
     if [ "${q}" == "" ]; then touch ${LOCALDOT}/status/home.me;
     else rm -f ${LOCALDOT}/status/home.me; fi
-
-    mkdir -p ${LOCALDOT}/{status,conf,commands}
 
     bootstrap-move && bootstrap-dot && bootstrap-install && bootstrap-git
 }
@@ -34,7 +34,7 @@ bootstrap-go() {
 bootstrap-move() {
     mkdir -p "${DOT_DEST}"
     if [ "${DOT_DEST}" != "${DOT}" ]; then
-        build symc safe-cp "${DOT}" "${DOT_DEST}"
+        build symc safe-cp "${DOT}" "${DOT_DEST}" || return 1
         DOT="${DOT_DEST}"
         SCRIPTS="${DOT}/bin"
     fi
@@ -43,7 +43,7 @@ bootstrap-move() {
 }
 
 bootstrap-dot() {
-    build symc link-dir "${DOT}"/conf ~/. # || return 1
+    build symc link-dir "${DOT}"/conf ~/. || return 1
     build cron install ~/.cron
     build system is-mac && build mac dud mail
     build system is-mac && bash "${DOT}"/conf/osx;

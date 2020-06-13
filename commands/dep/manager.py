@@ -296,6 +296,16 @@ def bootstrap():
                 return False
         if not "python3-pip" in all_apt:
             print("installing pip3...")
+            run(
+                [
+                    "sudo",
+                    "env",
+                    "DEBIAN_FRONTEND=noninteractive",
+                    "apt-get",
+                    "update",
+                    "-qq",
+                ]
+            )
             if not apt.install("python3-pip"):
                 return False
     return True
