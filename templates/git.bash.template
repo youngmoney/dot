@@ -1,8 +1,0 @@
-email: git email
-username: github
-token: github
-
-git config --global user.email $email$
-git config --global github.user $username$
-git config --global github.token $token$
-export GITHUB_USER="$username"
