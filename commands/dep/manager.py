@@ -270,6 +270,7 @@ def bootstrap():
                 'ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"'
             ):
                 return False
+        run(["brew", "update"])
         brew = Brew()
         all_brew = brew.get_list(all=True)
         if "python" not in all_brew:
