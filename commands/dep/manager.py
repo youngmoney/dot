@@ -197,7 +197,7 @@ class Apt(Manager):
     def _get_leaves(self):
         return []
 
-    def _get_install(self, package):
+    def _install(self, package):
         return self._run_manager_command(
             [
                 "sudo",
