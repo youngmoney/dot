@@ -46,7 +46,7 @@ bootstrap-dot() {
     build symc link-dir "${DOT}"/conf ~/. || return 1
     build cron install ~/.cron
     build system is-mac && build mac dud mail
-    build system is-mac && bash "${DOT}"/conf/osx;
+    build system is-mac && bash "${DOT}"/conf/osx >/dev/null;
     . ~/.bashrc --short
     return 0
 }
