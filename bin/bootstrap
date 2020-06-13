@@ -21,14 +21,14 @@ LOCALDOT=~/.local-dot
 
 mkdir -p ~/.tmp
 
-go() {
+bootstrap-go() {
     read -p "make home?[Y/n]" q
     if [ "${q}" == "" ]; then touch ${LOCALDOT}/status/home.me;
     else rm -f ${LOCALDOT}/status/home.me; fi
 
     mkdir -p ${LOCALDOT}/{status,conf,commands}
 
-    bootstrap-move && bootstap-dot && bootstap-install && bootstrap-git
+    bootstrap-move && bootstrap-dot && bootstrap-install && bootstrap-git
 }
 
 bootstrap-move() {
@@ -47,12 +47,12 @@ bootstrap-dot() {
     build system is-mac && build mac dud mail
     build system is-mac && bash "${DOT}"/conf/osx;
     . ~/.bashrc
+    return 0
 }
 
 bootstrap-install() {
-   build dep install -y
-
    build system is-mac && open ${DOT}/conf/taylormint.terminal
+   build dep install -y
 }
 
 

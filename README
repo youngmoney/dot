@@ -1,7 +1,0 @@
-```
-sudo apt-get install -qq git
-git clone https://github.com/youngmoney/dot
-cd dot && . bin/setup no
-```
-
-or setup go if you want it all
