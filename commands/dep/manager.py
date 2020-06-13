@@ -188,7 +188,6 @@ class Apt(Manager):
         return Manager.ignore(self, package)
 
     def _get_list(self):
-        return self._run_as_list(["apt", "list", "--installed"])
         l = self._run_as_list(["dpkg", "--get-selections"])
         i = []
         for item in l:

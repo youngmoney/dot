@@ -104,6 +104,8 @@ def install(managers, desired, yes=False):
             print(f"failed to install {f}")
         return False
 
+    return True
+
 
 def clean(managers, desired):
     round_one = True
