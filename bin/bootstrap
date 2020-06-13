@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+if command -v realpath >/dev/null 2>&1; then
+    SCRIPTS="$(dirname $(realpath "${BASH_SOURCE[0]}" 2>/dev/null))"
+elif command -v readlink >/dev/null 2>&1 \
+    && readlink --canonicalize-existing ~ >/dev/null 2>&1; then
+    SCRIPTS="$(dirname $(readlink --canonicalize-existing "${BASH_SOURCE[0]}"))"
+elif command -v readlink >/dev/null 2>&1; then
+    SCRIPTS="$(dirname $(readlink "${BASH_SOURCE[0]}") 2>/dev/null)"
+fi
+
+if [ "${SCRIPTS}" == "" ] || [ "${SCRIPTS}" == "${HOME}" ]; then
+    SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)
+    if [ "${SCRIPTS}" == "${HOME}" ]; then echo "Where am I"; fi
+fi
+pathadd() { [[ ":${PATH}:" != *":$1:"* ]] && export PATH="${PATH:+"${PATH}:"}$1"; }
+pathaddfirst() { [[ ":${PATH}:" != *":$1:"* ]] && export PATH="$1${PATH:+":${PATH}"}"; }
+pathadd "${SCRIPTS}"
+DOT="$(cd "${SCRIPTS}"/.. || exit; pwd -P)"
+DOT_DEST=~/local/dot
+LOCALDOT=~/.local-dot
+
+mkdir -p ~/.tmp
+
+go() {
+    read -p "make home?[Y/n]" q
+    if [ "${q}" == "" ]; then touch ${LOCALDOT}/status/home.me;
+    else rm -f ${LOCALDOT}/status/home.me; fi
+
+    mkdir -p ${LOCALDOT}/{status,conf,commands}
+
+    bootstrap-move && bootstap-dot && bootstap-install && bootstrap-git
+}
+
+bootstrap-move() {
+    mkdir -p "${DOT_DEST}"
+    if [ "${DOT_DEST}" != "${DOT}" ]; then
+        build symc safe-cp "${DOT}" "${DOT_DEST}"
+        DOT="${DOT_DEST}"
+        SCRIPTS="${DOT}/bin"
+    fi
+    hash -r; pathaddfirst "${SCRIPTS}"
+}
+
+bootstrap-dot() {
+    build symc link-dir "${DOT}"/conf ~/.
+    build cron install ~/.cron
+    build system is-mac && build mac dud mail
+    build system is-mac && bash "${DOT}"/conf/osx;
+    . ~/.bashrc
+}
+
+bootstrap-install() {
+   build dep install -y
+
+   build system is-mac && open ${DOT}/conf/taylormint.terminal
+}
+
+
+git-prompt() {
+    field="$1"
+    default="$2"
+    default_prompt=""
+    [ "${default}" != "" ] && default_prompt=" [${default}]"
+    read -p "${field}${default_prompt}: " value
+    if [ "${value}" == "" ]; then value="${default}"; fi
+    if [ "${value}" == "" ]; then return; fi
+    config="${LOCALDOT}/conf/config.git"
+    git config --file="${config}" "${field}" "${value}"
+}
+
+bootstrap-git() {
+    git-prompt user.email git@taylorlmoney.com
+    git-prompt github.user
+    git-prompt github.token
+}
+
+
+a="$1"
+shift;
+if [ "${a}" == "g0" ]; then
+    bootstrap-go "$@"
+elif [ "${a}" == "dot" ]; then
+    bootstrap-dot "$@"
+elif [ "${a}" == "install" ]; then
+    bootstrap-install "$@"
+elif [ "${a}" == "git" ]; then
+    bootstrap-git "$@"
+else
+    echo "go: bootstrap everything"
+    echo "dot: symlink dotfiles"
+    echo "install: install packages and more"
+    echo "git: setup git config"
+fi
