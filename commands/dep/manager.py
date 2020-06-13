@@ -242,12 +242,7 @@ def get_managers():
 
 def run(args, shell=False):
     result = subprocess.run(
-        args,
-        input=text,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        shell=shell,
+        args, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=shell,
     )
     returncode = result.returncode
     out = result.stdout
