@@ -161,6 +161,12 @@ class Python3(Manager):
 
 
 class Cask(Manager):
+    def ignore(self, package):
+        if not is_mac():
+            return True
+
+        return Manager.ignore(self, package)
+
     def _get_list(self):
         return self._run_as_list(["brew", "cask", "list"])
 
@@ -277,6 +283,16 @@ def bootstrap():
             if not brew.install("python"):
                 return False
     else:
+        run(
+            [
+                "sudo",
+                "env",
+                "DEBIAN_FRONTEND=noninteractive",
+                "apt-get",
+                "update",
+                "-qq",
+            ]
+        )
         apt = Apt()
         all_apt = apt.get_list(all=True)
         if not "python3" in all_apt:

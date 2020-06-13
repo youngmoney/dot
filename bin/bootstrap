@@ -39,10 +39,11 @@ bootstrap-move() {
         SCRIPTS="${DOT}/bin"
     fi
     hash -r; pathaddfirst "${SCRIPTS}"
+    return 0
 }
 
 bootstrap-dot() {
-    build symc link-dir "${DOT}"/conf ~/.
+    build symc link-dir "${DOT}"/conf ~/. # || return 1
     build cron install ~/.cron
     build system is-mac && build mac dud mail
     build system is-mac && bash "${DOT}"/conf/osx;
