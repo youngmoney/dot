@@ -15,7 +15,6 @@ cask blender
 cask gimp
 cask inkscape
 cask scribus
-cask adobe-creative-cloud
 
 python3 black
 python3 github.com/youngmoney/py-datatype

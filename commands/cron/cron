@@ -10,7 +10,7 @@ install_cron() {
     if [ "${name}" == "" ]; then exit; fi
     uninstall_cron "${name}"
     id="$(id_from_name "${name}")"
-    now="$(crontab -l)"
+    now="$(crontab -l 2>/dev/null)"
     sep="
 "
     tab="$(sed -e "s|$|${id}|" "${name}")"
@@ -22,7 +22,7 @@ uninstall_cron() {
     name="$1"
     if [ "${name}" == "" ]; then exit; fi
     id="$(id_from_name "${name}")"
-    crontab -l | grep -v "${id}" | crontab - > /dev/null 2>&1
+    crontab -l 2>/dev/null | grep -v "${id}" | crontab - > /dev/null 2>&1
 }
 
 edit_file() {
