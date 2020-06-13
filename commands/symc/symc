@@ -5,41 +5,41 @@ symc::readlink() {
     # http://stackoverflow.com/questions/1055671/how-can-i-
     # get-the-behavior-of-gnus-readlink-f-on-a-mac
     local TARGET_FILE="$1"
-    cd $(dirname "$TARGET_FILE")
-    TARGET_FILE=`basename $TARGET_FILE`
+    cd $(dirname "${TARGET_FILE}") || exit
+    TARGET_FILE=$(basename "${TARGET_FILE}")
 
     # Iterate down a (possible) chain of symlinks
-    while [ -L "$TARGET_FILE" ]
+    while [ -L "${TARGET_FILE}" ]
     do
-        TARGET_FILE=$(readlink "$TARGET_FILE")
-        if [ -e `dirname "$TARGET_FILE"` ]; then
-            cd $(dirname "$TARGET_FILE")
+        TARGET_FILE=$(readlink "${TARGET_FILE}")
+        if [ -e $(dirname "${TARGET_FILE}") ]; then
+            cd $(dirname "${TARGET_FILE}") || exit
         else
             echo "/dev/filedoesnotexist"
             exit 1
         fi
-        TARGET_FILE=$(basename "$TARGET_FILE")
+        TARGET_FILE=$(basename "${TARGET_FILE}")
     done
 
     # Compute the canonicalized name by finding the physical path 
     # for the directory we're in and appending the target file.
     local PHYS_DIR=$(pwd -P)
-    local RESULT=$PHYS_DIR/$TARGET_FILE
-    echo $RESULT
+    local RESULT=${PHYS_DIR}/${TARGET_FILE}
+    echo "${RESULT}"
 }
 
 symc::create-backup-dir() {
-    if [ "$SYMCBACKUPDIR" == "" ]; then
+    if [ "${SYMCBACKUPDIR}" == "" ]; then
         SYMCBACKUPDIR=~/backup/$(date +%Y-%m-%d-%H-%M-%S)
-        mkdir -p "$SYMCBACKUPDIR"
+        mkdir -p "${SYMCBACKUPDIR}"
     fi
-    echo $SYMCBACKUPDIR
+    echo "${SYMCBACKUPDIR}"
 }
 
 symc::_backup() {
     symc::create-backup-dir > /dev/null
-    mv "$@" "$SYMCBACKUPDIR"
-    symc::is-empty "$SYMCBACKUPDIR" && rm -rf "$SYMCBACKUPDIR"
+    mv "$@" "${SYMCBACKUPDIR}"
+    symc::is-empty "${SYMCBACKUPDIR}" && rm -rf "${SYMCBACKUPDIR}"
     symc::is-empty ~/backup && rm -rf ~/backup
 }
 
@@ -61,7 +61,7 @@ symc::safe-mv() {
     if [ -d "$2" ] && symc::is-empty "$2"; then
         rm -rf "$2"
     elif [ -e "$2" ]; then
-        symc::_backup "$@"
+        symc::_backup "$2"
     fi
     mv "$1" "$2"
 }
@@ -70,7 +70,7 @@ symc::safe-cp() {
     if [ -d "$2" ] && symc::is-empty "$2"; then
         rm -rf "$2"
     elif [ -e "$2" ]; then
-        symc::_backup "$@"
+        symc::_backup "$2"
     fi
     cp -r "$1" "$2"
 }
@@ -92,12 +92,12 @@ symc::clean-link() {
     if [ "$1" == "--dry" ]; then shift; dry="dry"; fi
     if [ "$1" == "" ]; then 1="./"; fi
     for f in "$1"/{.,}*; do
-        local unlinked=$(symc::readlink "$f")
-        if [ ! -e  "$unlinked" ]; then
-            if [ "$dry" ]; then
-                echo "$f"
+        local unlinked=$(symc::readlink "${f}")
+        if [ ! -e  "${unlinked}" ]; then
+            if [ -n "${dry}" ]; then
+                echo "${f}"
             else
-                rm -rf "$f"
+                rm -rf "${f}"
             fi
         fi
     done
@@ -109,24 +109,24 @@ symc::abstract-dir() {
     if [ "$1" == "--dry" ]; then shift; dry="dry"; fi
     local dir="$1"
     local dest="$2"
-    if [ "$dir" == "" ] || [ "$dest" == "" ]; then
+    if [ "${dir}" == "" ] || [ "${dest}" == "" ]; then
         echo "no dir or dest"
         return 1
     fi
-    dir=$(cd $dir; pwd -P)
-    if [ $(echo "$dest" | sed -n '/\.$/p') ]; then
+    dir=$(cd "${dir}" || exit; pwd -P)
+    if [ -n $(echo "${dest}" | sed -n '/\.$/p') ]; then
         local dot="/."
     else
         local dot=""
     fi
-    dest=$(cd $dest; pwd -P)
+    dest=$(cd "${dest}" || exit; pwd -P)
     local f
-    for f in "$dir"/*; do
-        local new=$(echo "$f" | sed -e "s:${dir}:${dest}${dot}:" -e 's://:/:' -e 's:/\./:/.:')
-        if [ "$dry" ]; then
-            echo "$f" "$new"
+    for f in "${dir}"/*; do
+        local new=$(echo "${f}" | sed -e "s:${dir}:${dest}${dot}:" -e 's://:/:' -e 's:/\./:/.:')
+        if [ -n "${dry}" ]; then
+            echo "${f}" "${new}"
         else
-            $dircommand "$f" "$new"
+            ${dircommand} "${f}" "${new}"
         fi
     done
 }
@@ -146,27 +146,27 @@ symc::cp-dir() {
 a="$1"
 shift
 
-if [ "$a" == "link-dir" ]; then
+if [ "${a}" == "link-dir" ]; then
     symc::link-dir "$@"
-elif [ "$a" == "mv-dir" ]; then
+elif [ "${a}" == "mv-dir" ]; then
     symc::mv-dir "$@"
-elif [ "$a" == "cp-dir" ]; then
+elif [ "${a}" == "cp-dir" ]; then
     symc::cp-dir "$@"
-elif [ "$a" == "safe-rm" ]; then
+elif [ "${a}" == "safe-rm" ]; then
     symc::safe-rm "$@"
-elif [ "$a" == "safe-mv" ]; then
+elif [ "${a}" == "safe-mv" ]; then
     symc::safe-mv "$@"
-elif [ "$a" == "safe-cp" ]; then
+elif [ "${a}" == "safe-cp" ]; then
     symc::safe-cp "$@"
-elif [ "$a" == "safe-link" ]; then
+elif [ "${a}" == "safe-link" ]; then
     symc::safe-link "$@"
-elif [ "$a" == "is-empty" ]; then
+elif [ "${a}" == "is-empty" ]; then
     symc::is-empty "$@"
-elif [ "$a" == "readlink" ]; then
+elif [ "${a}" == "readlink" ]; then
     symc::readlink "$@"
-elif [ "$a" == "backup-dir" ]; then
+elif [ "${a}" == "backup-dir" ]; then
     symc::create-backup-dir
-elif [ "$a" == "clean" ]; then
+elif [ "${a}" == "clean" ]; then
     symc::clean-link "$@"
 else
     echo "link-dir [from] [to]: symlink all files in dir (safely) (use \$1/. for dot prefix)"
