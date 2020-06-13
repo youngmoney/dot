@@ -173,7 +173,7 @@ if command -v tmux>/dev/null && \
    [[ ! ${TERM} =~ screen ]] && \
    [ -z "${TMUX}" ] && \
    [ "${USER}" != "root" ]; then
-       tmux -S "${TMUX_SOCKET}" has-session \
+       tmux -S "${TMUX_SOCKET}" has-session 2>/dev/null \
        && exec tmux -S "${TMUX_SOCKET}" attach \
        || (command -v exec_new_tmux > /dev/null 2>&1 \
        && exec_new_tmux "${TMUX_SOCKET}" \

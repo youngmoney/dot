@@ -28,7 +28,7 @@ bootstrap-go() {
     if [ "${q}" == "" ]; then touch ${LOCALDOT}/status/home.me;
     else rm -f ${LOCALDOT}/status/home.me; fi
 
-    bootstrap-move && bootstrap-dot && bootstrap-install && bootstrap-git
+    bootstrap-move && bootstrap-dot && bootstrap-install && bootstrap-git && . ~/.bashrc
 }
 
 bootstrap-move() {
@@ -47,7 +47,7 @@ bootstrap-dot() {
     build cron install ~/.cron
     build system is-mac && build mac dud mail
     build system is-mac && bash "${DOT}"/conf/osx;
-    . ~/.bashrc
+    . ~/.bashrc --short
     return 0
 }
 
