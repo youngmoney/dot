@@ -21,6 +21,12 @@ pathaddfirst /usr/local/bin
 pathadd /usr/texbin
 pathadd /usr/bin
 
+if [ -d ~/local/sh-plugin ]; then
+    . ~/local/sh-plugin/plugin init
+else
+    . ~/.plugin init
+fi
+
 export EDITOR=$(which vim); export VISUAL=${EDITOR}
 export BROWSER="build system open-url"
 export LOCALDOT=~/.local-dot

@@ -24,11 +24,19 @@ mkdir -p ~/.tmp
 bootstrap-go() {
     mkdir -p ${LOCALDOT}/{status,conf,commands}
 
-    read -p "make home?[Y/n]" q
-    if [ "${q}" == "" ]; then touch ${LOCALDOT}/status/home.me;
-    else rm -f ${LOCALDOT}/status/home.me; fi
+    bootstrap-pullboots && bootstrap-move && bootstrap-dot && bootstrap-install && bootstrap-done
+}
 
-    bootstrap-move && bootstrap-dot && bootstrap-install && bootstrap-git && . ~/.bashrc
+bootstrap-pullboots() {
+  if [ ! -d ~/.plugin ] && [ ! -d ~/local/sh-plugin ]; then
+      echo installing plugin...
+      git clone -q https://github.com/youngmoney/sh-plugin ~/.plugin > /dev/null || return 1
+  fi
+  if [ -d ~/local/sh-plugin ]; then
+      . ~/local/sh-plugin/plugin init
+  else
+      . ~/.plugin init
+  fi
 }
 
 bootstrap-move() {
@@ -56,6 +64,17 @@ bootstrap-install() {
    build dep install -y
 }
 
+bootstrap-done() {
+    read -p "make home?[Y/n]" q
+    if [ "${q}" == "" ]; then
+        touch ${LOCALDOT}/status/home.me
+        bootstrap-git
+    else
+        rm -f ${LOCALDOT}/status/home.me
+    fi
+    . ~/.bashrc
+}
+
 
 git-prompt() {
     field="$1"
@@ -80,6 +99,8 @@ a="$1"
 shift;
 if [ "${a}" == "go" ]; then
     bootstrap-go "$@"
+elif [ "${a}" == "pullboots" ]; then
+    bootstrap-pullboots "$@"
 elif [ "${a}" == "dot" ]; then
     bootstrap-dot "$@"
 elif [ "${a}" == "install" ]; then
@@ -88,6 +109,7 @@ elif [ "${a}" == "git" ]; then
     bootstrap-git "$@"
 else
     echo "go: bootstrap everything"
+    echo "pullboots: download dependencies"
     echo "dot: symlink dotfiles"
     echo "install: install packages and more"
     echo "git: setup git config"

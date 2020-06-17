@@ -119,7 +119,7 @@ defaults write com.apple.Safari NewTabBehavior 0
 defaults write com.apple.Safari NewWindowBehavior 0
 defaults write com.apple.Safari SendDoNotTrackHTTPHeader 1
 defaults write com.apple.Safari CanPromptForPushNotifications 0
-defaults write com.apple.Safari UserStyleSheetLocationURLString  '~/local/dot/conf/shutup.css'
+# defaults write com.apple.Safari UserStyleSheetLocationURLString  '~/local/dot/conf/shutup.css'
 defaults write com.apple.Safari UserStyleSheetEnabled 1
 defaults write com.apple.Safari BlockStoragePolicy 3
 defaults write com.apple.Safari SafariGeolocationPermissionPolicy 0
