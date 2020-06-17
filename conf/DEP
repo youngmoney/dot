@@ -19,5 +19,7 @@ cask scribus
 python3 black
 python3 github.com/youngmoney/py-datatype
 
+bash youngmoney/sh-copy-paste-reminder
+
 include ~/local/dot/commands/**/DEP
 include ~/.local-dot/conf/DEP
