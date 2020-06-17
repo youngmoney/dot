@@ -37,6 +37,9 @@ class Manager(CLI_Wrapper):
     def ignore(self, package):
         return self._ignore(self._package_name(package))
 
+    def supports_current_platform(self):
+        return True
+
     def _package_version_delimiter(self):
         return "@"
 
@@ -108,6 +111,9 @@ class Brew(Manager):
 
         return Manager.ignore(self, package)
 
+    def supports_current_platform(self):
+        return is_mac()
+
     def _ignored_packages(self):
         return ["pip3", "python3", "pip", "python", "apt", "brew"]
 
@@ -167,6 +173,9 @@ class Cask(Manager):
 
         return Manager.ignore(self, package)
 
+    def supports_current_platform(self):
+        return is_mac()
+
     def _get_list(self):
         return self._run_as_list(["brew", "cask", "list"])
 
@@ -186,6 +195,9 @@ class Apt(Manager):
             return True
 
         return Manager.ignore(self, package)
+
+    def supports_current_platform(self):
+        return not is_mac()
 
     def _get_list(self):
         l = self._run_as_list(["dpkg", "--get-selections"])
@@ -225,6 +237,23 @@ class Build(Manager):
         return True
 
 
+class Plugin(Manager):
+    def _package_name(self, package):
+        p = Manager._package_name(self, package)
+        if "/" in p:
+            p = re.sub("^.*/", "", p)
+        return p
+
+    def _get_list(self):
+        return self._run_as_list(["plugin", "list"])
+
+    def _install(self, package):
+        return self._run_manager_command(["plugin", "install", package])
+
+    def _uninstall(self, package):
+        return self._run_manager_command(["plugin", "uninstall", package])
+
+
 def is_mac():
     return sys.platform == "darwin"
 
@@ -236,6 +265,7 @@ def get_managers():
         "cask": Cask(),
         "apt": Apt(),
         "build": Build(),
+        "bash": Plugin(),
     }
 
 

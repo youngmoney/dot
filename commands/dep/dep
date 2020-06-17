@@ -112,6 +112,8 @@ def clean(managers, desired):
     while True:
         uninstall = {}
         for m in managers:
+            if not managers[m].supports_current_platform():
+                continue
             for i in managers[m].get_leaves():
                 found = False
                 if m in desired:
