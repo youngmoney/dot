@@ -86,12 +86,19 @@ def repoCommand(args, gh):
             else:
                 print(repo["full_name"])
         return True
+    elif verb == "link":
+        repo = getRepoName(args.repo, gh)
+        if not repo:
+            print("No repo given")
+            return False
+        org, repo = repo.split("/")
+        linkRepo(org, repo)
 
     elif verb in ["create", "edit", "delete", "open"]:
         repo = getRepoName(args.repo, gh)
         if not repo:
             print("No repo given")
-            return True
+            return False
 
         if verb == "open":
             url = "https://github.com/" + repo
@@ -123,18 +130,7 @@ def repoCommand(args, gh):
             if org == gh.username:
                 org = None
             if gh.repo_create(repo, private=private, description=description, org=org):
-                if confirm("Add github as remote gh?"):
-                    subprocess.call(
-                        [
-                            "git",
-                            "remote",
-                            "add",
-                            "gh",
-                            "git@github.com:" + org_name + "/" + repo + ".git",
-                        ]
-                    )
-                    if confirm("Push master to github?"):
-                        subprocess.call(["git", "push", "gh", "master"])
+                linkRepo(org_name, repo)
                 return True
             return False
 
@@ -143,6 +139,26 @@ def repoCommand(args, gh):
             return gh.repo_edit(repo, private=private, description=description)
 
     return True
+
+
+def linkRepo(org, repo):
+    if confirm("Add github as remote gh {}/{}?".format(org, repo)):
+        subprocess.call(
+            [
+                "git",
+                "remote",
+                "add",
+                "gh",
+                "git@github.com:" + org + "/" + repo + ".git",
+            ]
+        )
+        if confirm("Push master to github?"):
+            args = ["git", "push"]
+            if confirm("Set gh master as upstream?"):
+                args.append("--set-upstream")
+            args += ["gh", "master"]
+
+            subprocess.call(args)
 
 
 def collabCommand(args, gh):
@@ -566,7 +582,7 @@ def parseArgs():
 
     repoParser = subparsers.add_parser("repo")
     repoParser.add_argument(
-        "verb", choices=["create", "delete", "edit", "list", "open"], nargs=1
+        "verb", choices=["create", "delete", "edit", "list", "open", "link"], nargs=1
     )
     repoParser.add_argument("--private", action="store_true")
     repoParser.add_argument("--public", action="store_true")
