@@ -6,7 +6,6 @@ package tmux
 package vim
 
 brew duti
-brew reattach-to-user-namespace
 
 apt texlive
 cask mactex-no-gui

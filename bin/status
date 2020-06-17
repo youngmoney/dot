@@ -3,52 +3,21 @@ if command -v realpath >/dev/null 2>&1; then
     SCRIPTS="$(dirname $(realpath "${BASH_SOURCE[0]}" 2>/dev/null))"
 elif command -v readlink >/dev/null 2>&1 \
     && readlink --canonicalize-existing ~ >/dev/null 2>&1; then
-    SCRIPTS="$(dirname $(readlink --canonicalize-existing ${BASH_SOURCE[0]}))"
+    SCRIPTS="$(dirname $(readlink --canonicalize-existing "${BASH_SOURCE[0]}"))"
 else
     SCRIPTS=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)
-    if [ "$SCRIPTS" == "${HOME}" ]; then echo "Where am I"; exit 1; fi
+    if [ "${SCRIPTS}" == "${HOME}" ]; then echo "Where am I"; exit 1; fi
 fi
-. $SCRIPTS/../conf/bashrc --short
-
-
-notify() { if [ ! -f ~/.silent ]; then build notify notify $1; fi }
-
-the_status() {
-    s=""
-    if [[ "`build system battery`" -le 20 ]]; then s="$s ⚡︎ Low"; fi
-    rem="`todo count 2>/dev/null`"
-    if [ "$rem" -ge "1" ]; then s="$s ✓ ${high}$rem${reset}"; fi
-    s="$s |";
-    s="$s `date '+%b %d %l:%M'`"
-    s="$s "
-    echo "${reset}$s"
-}
-
-do-run() {
-    if build system exists reattach-to-user-namespace; then
-        reattach-to-user-namespace "$@"
-    else
-        if [ "$1" == "-l" ]; then shift; fi
-        $@
-    fi
-}
+. "${SCRIPTS}"/../conf/bashrc --short
 
 session() {
-    if [[ ! `ps -fA | grep 'build session server start' | grep -c ''` -ge 2 ]]; then
+    if [[ ! $(ps -fA | grep 'build session server start' | grep -c '') -ge 2 ]]; then
         nohup build session server start > /dev/null 2>&1
     fi
 }
 
 a="$1"
 shift;
-if [ "$a" == "tmux" ]; then
-    the_status $@
-elif [ "$a" == "notify" ]; then
-    notify $@
-elif [ "$a" == "run" ]; then
-    do-run $@
-elif [ "$a" == "session" ]; then
+if [ "${a}" == "session" ]; then
     session "$@"
-else
-    the_status $a $@
 fi
