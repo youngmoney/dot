@@ -48,6 +48,12 @@ edit_cron() {
     else
         edit_file "${name}"
     fi
+
+    if [ -z "$(crontab -l 2>/dev/null | grep 'SHELL=/bin/bash')" ]; then
+        c="SHELL=/bin/bash
+"
+        echo "${c}$(crontab -l 2>/dev/null)" | crontab -
+    fi
 }
 
 
