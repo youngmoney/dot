@@ -30,7 +30,7 @@ bootstrap-pullboots() {
 bootstrap-move() {
     mkdir -p "${DOT_DEST}"
     if [ "${DOT_DEST}" != "${DOT}" ]; then
-        build symc safe-cp "${DOT}" "${DOT_DEST}" || return 1
+        "${DOT}"/commands/symc/symc safe-cp "${DOT}" "${DOT_DEST}" || return 1
         DOT="${DOT_DEST}"
     fi
     plugin link "${DOT_DEST}/commands/build" build >/dev/null
