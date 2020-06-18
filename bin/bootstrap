@@ -35,7 +35,7 @@ bootstrap-pullboots() {
   if [ -d ~/local/sh-plugin ]; then
       . ~/local/sh-plugin/plugin init
   else
-      . ~/.plugin init
+      . ~/.plugin/plugin init
   fi
 }
 
