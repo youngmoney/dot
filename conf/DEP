@@ -16,6 +16,8 @@ cask scribus
 python3 black
 python3 github.com/youngmoney/py-datatype
 
+bash local/scripts
+bash local/build
 bash youngmoney/dep
 bash youngmoney/ios-icon-generator
 bash youngmoney/sh-copy-paste-reminder
