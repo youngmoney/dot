@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-bootstrap::location() {
-    (cd $(dirname $([ -L "${BASH_SOURCE}" ] && readlink "${BASH_SOURCE}" || echo "${BASH_SOURCE}")) && pwd)
+bootstrap::location() {                                                                       
+    local location="$(cd $(dirname $([ -L "${BASH_SOURCE}" ] && readlink "${BASH_SOURCE}" || echo "${BASH_SOURCE}")) && pwd)"
+    if [ -L "${location}" ]; then
+        readlink "${location}"                                                            
+    else
+        echo "${location}"
+    fi        
 }
 
 DOT="$(cd "$(bootstrap::location)"/.. || exit; pwd -P)"
@@ -32,6 +37,7 @@ bootstrap-pullboots() {
   plugin install youngmoney/symc
   plugin install youngmoney/dep
   plugin install youngmoney/syncron
+  return 0
 }
 
 bootstrap-move() {
