@@ -47,8 +47,8 @@ alias gr="git rebase"
 alias el='change -l local'
 alias ed='change -l dot'
 
-alias s="build search content";
-alias f="build search file"
+alias s="search content";
+alias f="search file"
 
 alias ssh-share="build ssh share"
 
