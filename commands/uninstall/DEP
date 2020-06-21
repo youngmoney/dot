@@ -1,3 +1,0 @@
-package brew
-package pip3
-python3 pipdeptree
