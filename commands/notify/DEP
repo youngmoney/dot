@@ -1,5 +1,0 @@
-optional apt notify-send
-build etc
-build system
-package tmux
-optional build central
