@@ -5,8 +5,6 @@ package shellcheck
 package tmux
 package vim
 
-brew duti
-
 apt texlive
 cask mactex-no-gui
 
