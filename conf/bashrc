@@ -41,7 +41,7 @@ alias gh="build github";
 alias gs="git status";
 alias gd="git diff --color-words=."
 alias gc="git commit";
-alias gl='build git pretty-log'
+alias gl='git helper pretty-log'
 alias gr="git rebase"
 
 alias el='change -l local'

@@ -22,7 +22,7 @@ layouts:
       command: vim +CtrlP
 commands:
     - name: simple-state
-      command: build git state
+      command: git helper state
       path_command: git -C {current_path} rev-parse
     - name: ctrlp-modified-files
       command: git status --porcelain -z --untracked-files=all | tr '\0' '\n' | cut -c 4-
