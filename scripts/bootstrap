@@ -38,13 +38,13 @@ bootstrap-move() {
         DOT="${DOT_DEST}"
     fi
     plugin link "${DOT_DEST}/commands/build" build >/dev/null
+    plugin link "${DOT_DEST}/scripts" scripts > /dev/null
     return 0
 }
 
 bootstrap-dot() {
     build symc link-dir "${DOT}"/conf ~/. || return 1
     build cron install ~/.cron
-    bootstrap::is-mac && build mac dud mail
     bootstrap::is-mac && bash "${DOT}"/conf/osx >/dev/null;
     . ~/.bashrc --short
     return 0
