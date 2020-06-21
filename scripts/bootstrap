@@ -30,6 +30,7 @@ bootstrap-pullboots() {
       . ~/.plugin/plugin init
   fi
   plugin install youngmoney/symc
+  plugin install youngmoney/dep
 }
 
 bootstrap-move() {
@@ -53,7 +54,7 @@ bootstrap-dot() {
 
 bootstrap-install() {
    bootstrap::is-mac && open ${DOT}/conf/taylormint.terminal
-   build dep install -y
+   dep install -y
 }
 
 bootstrap-done() {
