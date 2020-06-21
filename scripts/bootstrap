@@ -29,12 +29,13 @@ bootstrap-pullboots() {
   else
       . ~/.plugin/plugin init
   fi
+  plugin install youngmoney/symc
 }
 
 bootstrap-move() {
     mkdir -p "${DOT_DEST}"
     if [ "${DOT_DEST}" != "${DOT}" ]; then
-        "${DOT}"/commands/symc/symc safe-cp "${DOT}" "${DOT_DEST}" || return 1
+        symc safe-cp "${DOT}" "${DOT_DEST}" || return 1
         DOT="${DOT_DEST}"
     fi
     plugin link "${DOT_DEST}/commands/build" build >/dev/null
@@ -43,7 +44,7 @@ bootstrap-move() {
 }
 
 bootstrap-dot() {
-    build symc link-dir "${DOT}"/conf ~/. || return 1
+    symc link-dir "${DOT}"/conf ~/. || return 1
     build cron install ~/.cron
     bootstrap::is-mac && bash "${DOT}"/conf/osx >/dev/null;
     . ~/.bashrc --short
