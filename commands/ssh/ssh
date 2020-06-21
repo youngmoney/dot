@@ -1,60 +1,21 @@
 #!/usr/bin/env bash
 
-ssh::share() {
+ssh-share() {
     REMOTE="$1"
     PUB="$2"
-    if [ "$REMOTE" == "" ]; then echo "Specify a remote"; exit; fi
-    if [ "$PUB" == "" ]; then
+    if [ "${REMOTE}" == "" ]; then echo "Specify a remote"; exit; fi
+    if [ "${PUB}" == "" ]; then
         echo "Available Keys:"
         ls -1 ~/.ssh/*.pub
         echo
         read -p "Public Key (default ~/.ssh/id_rsa): " pub
-        if [ "$pub" == "" ]; then pub=~/.ssh/id_rsa; fi
-        PUB="$pub"
-        eval PUB=$PUB
+        if [ "${pub}" == "" ]; then pub=~/.ssh/id_rsa; fi
+        PUB="${pub}"
+        eval PUB=${PUB}
     fi
-    if [ ! -f "$PUB" ]; then echo "$PUB not a valid public key"; exit; fi
+    if [ ! -f "${PUB}" ]; then echo "${PUB} not a valid public key"; exit; fi
 
-    cat "$PUB".pub | ssh $REMOTE 'cat - > .tempKey; mkdir -p ~/.ssh; cat .tempKey >> ~/.ssh/authorized_keys; rm .tempKey';
+    cat "${PUB}".pub | ssh "${REMOTE}" 'cat - > .tempKey; mkdir -p ~/.ssh; cat .tempKey >> ~/.ssh/authorized_keys; rm .tempKey';
 }
 
-ssh::with-agent() {
-    sshINFO=`ssh-agent -s`
-    eval "$sshINFO" > /dev/null
-    ssh-add ~/.ssh/*_rsa > /dev/null 2>&1
-    "$@"
-    kill $SSH_AGENT_PID
-}
-
-ssh::store() {
-    d="$1"
-    cd ~/
-    zip -r "$d/keys.zip" .ssh
-    if [ "$SSH_STORE_PASSPHRASE" != "" ]; then
-        gpg --symmetric --passphrase "$SSH_STORE_PASSPHRASE" "$d/keys.zip"
-        rm "$d/keys.zip"
-    fi
-
-}
-
-ssh::restore() {
-    d="$1"
-    if [ "$SSH_STORE_PASSPHRASE" != "" ]; then
-        gpg --passphrase "$SSH_STORE_PASSPHRASE" "$d/keys.zip.gpg"
-    fi
-    unzip "$d/keys.zip" -d ~/
-}
-
-arg=$1
-shift
-if [ "$arg" == "share" ]; then
-    ssh::share $@
-elif [ "$arg" == "with-agent" ]; then
-    ssh::with-agent "$@"
-elif [ "$arg" == "store" ]; then
-    ssh::store $@
-elif [ "$arg" == "restore" ]; then
-    ssh::restore $@
-else
-    echo "share <remote> [<key.pub>]: sends the key to the remote"
-fi
+ssh-share "$@"
