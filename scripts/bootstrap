@@ -31,6 +31,7 @@ bootstrap-pullboots() {
   fi
   plugin install youngmoney/symc
   plugin install youngmoney/dep
+  plugin install youngmoney/syncron
 }
 
 bootstrap-move() {
@@ -46,7 +47,7 @@ bootstrap-move() {
 
 bootstrap-dot() {
     symc link-dir "${DOT}"/conf ~/. || return 1
-    build cron install ~/.cron
+    syncron install ~/.cron
     bootstrap::is-mac && bash "${DOT}"/conf/osx >/dev/null;
     . ~/.bashrc --short
     return 0
