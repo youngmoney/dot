@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
 
-system::online() {
-    echo -e "GET http://google.com HTTP/1.0\n\n" | build etc timeout --preserve-status 5 nc google.com 80 > /dev/null 2>&1 && exit 0 || exit 1
-}
-
 system::exists() {
     command -v $@ >/dev/null 2>&1
 }
 
 system::is-mac() {
-    if [ "$1" ]; then
+    if [ -n "$1" ]; then
         [ "$(system::os)" == "Mac" ] && exit 0 || exit 1
     else
         [ "$(system::os)" == "Mac" ] && return 0 || return 1
@@ -90,25 +86,23 @@ system::tmux-url() {
 a="$1"
 shift
 
-if [ "$a" == "battery" ]; then
+if [ "${a}" == "battery" ]; then
     system::battery $@
-elif [ "$a" == "os" ]; then
+elif [ "${a}" == "os" ]; then
     system::os "$@"
-elif [ "$a" == "is-mac" ]; then
+elif [ "${a}" == "is-mac" ]; then
     system::is-mac "$@" --exit
-elif [ "$a" == "desktop" ]; then
+elif [ "${a}" == "desktop" ]; then
     system::desktop "$@"
-elif [ "$a" == "online" ]; then
-    system::online "$@"
-elif [ "$a" == "exists" ]; then
+elif [ "${a}" == "exists" ]; then
     system::exists "$@"
-elif [ "$a" == "copy" ]; then
+elif [ "${a}" == "copy" ]; then
     system::copy "$@"
-elif [ "$a" == "open-url" ]; then
+elif [ "${a}" == "open-url" ]; then
     system::open-url "$@"
-elif [ "$a" == "find-url" ]; then
+elif [ "${a}" == "find-url" ]; then
     system::find-url "$@"
-elif [ "$a" == "tmux-url" ]; then
+elif [ "${a}" == "tmux-url" ]; then
     system::tmux-url "$@"
 else
     echo "battery: battery percentage"
