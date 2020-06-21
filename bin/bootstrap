@@ -15,6 +15,10 @@ bootstrap-go() {
     bootstrap-pullboots && bootstrap-move && bootstrap-dot && bootstrap-install && bootstrap-done
 }
 
+bootstrap::is-mac() {
+   [ "$(uname -s)" == "Darwin" ]
+}
+
 bootstrap-pullboots() {
   if [ ! -d ~/.plugin ] && [ ! -d ~/local/sh-plugin ]; then
       echo installing plugin...
@@ -40,14 +44,14 @@ bootstrap-move() {
 bootstrap-dot() {
     build symc link-dir "${DOT}"/conf ~/. || return 1
     build cron install ~/.cron
-    build system is-mac && build mac dud mail
-    build system is-mac && bash "${DOT}"/conf/osx >/dev/null;
+    bootstrap::is-mac && build mac dud mail
+    bootstrap::is-mac && bash "${DOT}"/conf/osx >/dev/null;
     . ~/.bashrc --short
     return 0
 }
 
 bootstrap-install() {
-   build system is-mac && open ${DOT}/conf/taylormint.terminal
+   bootstrap::is-mac && open ${DOT}/conf/taylormint.terminal
    build dep install -y
 }
 
