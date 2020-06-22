@@ -1,5 +1,0 @@
-#!/usr/bin/env sh
-
-. venv/bin/activate
-pip freeze > requirements.txt
-git add requirements.txt
