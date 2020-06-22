@@ -19,41 +19,6 @@ buildpathadd() { [[ ":${BUILD_PATH}:" != *":$1:"* ]] && export BUILD_PATH="${BUI
 buildpathadd $(cd "$(build::location)"/.. || exit; pwd -P)
 buildpathadd ~/.local-dot/commands
 
-_completion()
-{
-    _script_commands=$(build::run | tr '\n' ' ')
-
-    local cur prev
-    COMPREPLY=()
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    prev="${COMP_WORDS[COMP_CWORD-1]}"
-    if [[ ${COMP_CWORD} -ge 3 ]]; then
-        _filedir
-    elif [ "${prev}" == "" ] || [ "${prev}" == "build" ]; then
-        COMPREPLY=( $(compgen -W "${_script_commands}" -- "${cur}") )
-    else
-        _script_commands=$(build::run "${prev}" --help | sed 's/[ :].*//' | tr '\n' ' ')
-        if [[ "${_script_commands}" == usage* ]]; then
-            _script_commands=$(build::run "${prev}" --help 2>&1 | grep '{' | sed 's/.*{//g; s/}.*//; s/,/ /g')
-        fi
-        COMPREPLY=( $(compgen -W "${_script_commands}" -- "${cur}") )
-    fi
-
-
-  return 0
-}
-
-if [ "${arg}" == "--completion" ]; then
-    if [ "$0" = "${BASH_SOURCE}" ]; then
-        echo "warning, not being sourced"
-    fi
-    if command -v complete >/dev/null 2>&1; then
-        complete -o nospace -F _completion build
-    fi
-
-    [ "$0" = "${BASH_SOURCE}" ] && exit || return
-fi
-
 build::run() {
 
 IFS=: read -r -d '' -a path_array < <(printf '%s:\0' "${BUILD_PATH}")
@@ -93,5 +58,41 @@ else
     done
 fi
 }
+
+
+_completion()
+{
+    _script_commands=$(build::run | tr '\n' ' ')
+
+    local cur prev
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    if [[ ${COMP_CWORD} -ge 3 ]]; then
+        _filedir
+    elif [ "${prev}" == "" ] || [ "${prev}" == "build" ]; then
+        COMPREPLY=( $(compgen -W "${_script_commands}" -- "${cur}") )
+    else
+        _script_commands=$(build::run "${prev}" --help | sed 's/[ :].*//' | tr '\n' ' ')
+        if [[ "${_script_commands}" == usage* ]]; then
+            _script_commands=$(build::run "${prev}" --help 2>&1 | grep '{' | sed 's/.*{//g; s/}.*//; s/,/ /g')
+        fi
+        COMPREPLY=( $(compgen -W "${_script_commands}" -- "${cur}") )
+    fi
+
+
+  return 0
+}
+
+if [ "${arg}" == "--completion" ]; then
+    if [ "$0" = "${BASH_SOURCE}" ]; then
+        echo "warning, not being sourced"
+    fi
+    if command -v complete >/dev/null 2>&1; then
+        complete -o nospace -F _completion build
+    fi
+
+    [ "$0" = "${BASH_SOURCE}" ] && exit || return
+fi
 
 build::run "$@"
