@@ -1,7 +1,5 @@
 author: Taylor Money
 type: default.tex
-csl: test
 linkcolor: black
 geometry:margin: 1in
 linestretch: 2
-sendmail: build mac mail -g
