@@ -188,8 +188,6 @@ map <leader>gb :execute "!git blame -L".line('.').",+3 ".expand("%")<return>
 " map <leader>c :make check -s<Return>:call ShowErrors()<Return>
 
 
-map <C-t> :lex system('build list --list ' . expand("%") . ' table')<return>:lopen<return>
-map ,t :lex system('build list --list *.md:**/*.md table')<return>:lopen<return>
 autocmd FileType qf nmap <buffer> <cr> <cr>:lcl<cr>
 
 map <leader>k :cprevious<Return>

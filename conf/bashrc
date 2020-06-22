@@ -59,7 +59,6 @@ alias refresh=". ~/.bash_profile"
 
 alias note="change -l notes"
 alias d="change -l notes"
-todo() { (cd "${NOTEDIR}" || exit; build list --list '*.md' "$@"); }
 alias vess="vim -R -";
 
 ssh-add ~/.ssh/*_rsa > /dev/null 2>&1
