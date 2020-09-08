@@ -59,6 +59,7 @@ alias refresh=". ~/.bash_profile"
 
 alias note="change -l notes"
 alias d="change -l notes"
+write() { change notes; layout vim-goyo; }
 alias vess="vim -R -";
 
 ssh-add ~/.ssh/*_rsa > /dev/null 2>&1

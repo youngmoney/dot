@@ -20,6 +20,8 @@ locations:
 layouts:
     - name: vim-ctrlp
       command: vim +CtrlP
+    - name: vim-goyo
+      command: vim +Goyo
 commands:
     - name: simple-state
       command: git helper state
