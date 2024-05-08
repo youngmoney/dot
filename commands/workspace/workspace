@@ -296,7 +296,7 @@ def layout(name, position, settings):
         command = f'eval "$({command})"'
         percent = split_child.percent
         print(
-            f"new=$(\\tmux split-window -l {percent} -d {directions} -t {pane} -P -F '#{{pane_id}} | head -1')"
+            f"new=$(\\tmux split-window -l {percent} -d {directions} -t {pane} -P -F '#{{pane_id}}' | head -1)"
         )
         print(f"\\tmux send-keys -t \"$new\" '{command}' Enter")
     if child.location_name:

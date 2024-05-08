@@ -10,7 +10,7 @@ template-python-fill() {
         author="'"$(git config user.name)"'",
         author_email="'"$(git config user.email)"'",
         description="",
-        long_description=open("README.md").read(),
+        long_description=open('README.md').read(),
         long_description_content_type="text/markdown",
         url="https://github.com/'"$(git config github.user)"'/'"${project}"'",
         packages=setuptools.find_packages(),

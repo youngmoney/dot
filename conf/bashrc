@@ -154,7 +154,7 @@ tl() { eval "$(build test test -l $@)"; }
 HISTCONTROL=ignoreboth;
 # tmux
 # export TERM="xterm-256color";
-command -v exec_tmux > /dev/null 2>&1 || exec_tmux() { exec tmux -2 "$@"; }
+command -v exec_tmux > /dev/null 2>&1 || exec_tmux() { exec tmux -2 "$@"; };
 if command -v tmux>/dev/null && \
    [ -f ${LOCALDOT}/status/home.me ] && \
    [[ ! ${TERM} =~ screen ]] && \
@@ -162,7 +162,7 @@ if command -v tmux>/dev/null && \
    [ "${USER}" != "root" ]; then
        tmux -S "${TMUX_SOCKET}" has-session 2>/dev/null \
        && exec_tmux -S "${TMUX_SOCKET}" attach \
-       || exec_tmux -S "${TMUX_SOCKET}" new -S Global
+       || exec_tmux -S "${TMUX_SOCKET}" new -s Global
 fi
 
 for f in ${LOCALDOT}/conf/*.bash; do [ -f "${f}" ] && [ "${f}" != "${SHORT_BASH_IMPORT}" ] && . "${f}"; done
