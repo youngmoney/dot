@@ -1,5 +1,5 @@
 # Bootstrap
 
 ```
-sudo apt-get install -qq git && git clone https://github.com/youngmoney/dot && . dot/scripts/bootstrap go
+sudo apt-get install -qq git && git clone git@github.com:youngmoney/dot.git && . dot/scripts/bootstrap go
 ```
