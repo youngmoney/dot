@@ -23,7 +23,6 @@ Bundle 'epeli/slimux'
 Bundle 'christoomey/vim-tmux-navigator'
 
 "Completion
-Bundle 'SirVer/ultisnips'
 Bundle 'honza/vim-snippets'
 Bundle 'nvie/vim-flake8'
 "Bundle 'Valloric/YouCompleteMe'
@@ -39,7 +38,6 @@ Bundle 'tomtom/tcomment_vim'
 "Text
 " Bundle 'vim-pandoc/vim-pandoc-syntax'
 Bundle 'dhruvasagar/vim-table-mode'
-Bundle 'junegunn/goyo.vim'
 
 let pluginrc=$LOCALDOT . '/conf/plugin.vim'
 if filereadable(pluginrc)
@@ -69,10 +67,10 @@ map <leader><leader>u :source ~/.vimrc <Return> :BundleClean<Return>:BundleInsta
 autocmd Filetype crontab set backupcopy=yes
 
 "YCM
-let g:ycm_path_to_python_interpreter = '/usr/bin/python3'
-let g:clang_exec = '/usr/local/bin/clang'
-let g:clang_library_path = '/usr/local/lib/libclang.dylib'
-let g:clang_library_path = '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libclang.dylib'
+" let g:ycm_path_to_python_interpreter = '/usr/bin/python3'
+" let g:clang_exec = '/usr/local/bin/clang'
+" let g:clang_library_path = '/usr/local/lib/libclang.dylib'
+" let g:clang_library_path = '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libclang.dylib'
 let g:ycm_collect_identifiers_from_tags_files = 1
 let g:ycm_error_symbol = '!'
 let g:ycm_warning_symbol = '?'
@@ -294,7 +292,7 @@ endfunction
 "Fix
 function! BuildFix()
     if line('$') < 9000
-        silent !build lint fix % > /dev/null 2>&1
+        silent !build lint fix % > /dev/null 2>&1 &
         redraw
     endif
 endfunction
@@ -337,29 +335,6 @@ nmap <leader>; :QuickSearch
 "   au FileType,BufEnter * call HighlightTooLongLines()
 " augroup END
 
-
-function! s:goyo_enter()
-  if executable('tmux') && strlen($TMUX)
-    silent !tmux set status off
-    silent !tmux list-panes -F '\#F' | grep -q Z || tmux resize-pane -Z
-  endif
-  set noshowmode
-  set noshowcmd
-  set scrolloff=999
-endfunction
-
-function! s:goyo_leave()
-  if executable('tmux') && strlen($TMUX)
-    silent !tmux set status on
-    silent !tmux list-panes -F '\#F' | grep -q Z && tmux resize-pane -Z
-  endif
-  set showmode
-  set showcmd
-  set scrolloff=5
-endfunction
-
-autocmd! User GoyoEnter nested call <SID>goyo_enter()
-autocmd! User GoyoLeave nested call <SID>goyo_leave()
 
 "Load Local Settings
 let localconf=$LOCALDOT . '/conf'

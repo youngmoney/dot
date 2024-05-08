@@ -96,33 +96,8 @@ defaults write com.apple.dock autohide-delay -float 0
 # Make Dock icons of hidden applications translucent
 defaults write com.apple.dock showhidden -bool false
 
-# Enable Safari’s debug menu
-#defaults write com.apple.Safari IncludeInternalDebugMenu -bool true
-# Enable the Develop menu and the Web Inspector in Safari
-defaults write com.apple.Safari IncludeDevelopMenu -bool true
-defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
-defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true
-
 # Use plain text mode for new TextEdit documents
 defaults write com.apple.TextEdit RichText -int 0
-
-# Safari
-defaults write com.apple.Safari HomePage ''
-defaults write com.apple.Safari AutoFillCreditCardData 0
-defaults write com.apple.Safari AutoFillFromAddressBook 0
-defaults write com.apple.Safari AutoFillMiscellaneousForms 0
-defaults write com.apple.Safari AutoFillPasswords 0
-defaults write com.apple.Safari AlwaysRestoreSessionAtLaunch 1
-defaults write com.apple.Safari AutoOpenSafeDownloads 0
-defaults write com.apple.Safari HistoryAgeInDaysLimit 14
-defaults write com.apple.Safari NewTabBehavior 0
-defaults write com.apple.Safari NewWindowBehavior 0
-defaults write com.apple.Safari SendDoNotTrackHTTPHeader 1
-defaults write com.apple.Safari CanPromptForPushNotifications 0
-# defaults write com.apple.Safari UserStyleSheetLocationURLString  '~/local/dot/conf/shutup.css'
-defaults write com.apple.Safari UserStyleSheetEnabled 1
-defaults write com.apple.Safari BlockStoragePolicy 3
-defaults write com.apple.Safari SafariGeolocationPermissionPolicy 0
 
 add_app() {
     local app="$@"
@@ -162,8 +137,7 @@ osx::clean-home() {
     done
 }
 
-[ -d ~/public ] && sudo build symc safe-rm ~/public
-[ -d ~/sites ] && sudo build symc safe-rm ~/sites
-[ -e ~/downloads ] && sudo build symc safe-rm ~/downloads
-sudo ln -s ~/desktop ~/downloads
-osx::clean-home
+[ -d ~/public ] && sudo symc safe-rm ~/public
+[ -d ~/sites ] && sudo symc safe-rm ~/sites
+[ -e ~/Downloads ] && sudo symc safe-rm ~/Downloads && sudo ln -s ~/Desktop ~/Downloads
+#osx::clean-home

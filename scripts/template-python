@@ -1,26 +1,26 @@
 template-python-fill() {
     echo 'import setuptools
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+    with open("README.md", "r") as fh:
+        long_description = fh.read()
 
-setuptools.setup(
-    name="'"${project}"'",
-    version="0.0.1",
-    author="'"$(git config user.name)"'",
-    author_email="'"$(git config user.email)"'",
-    description="",
-    long_description=open("README.md").read(),
-    long_description_content_type="text/markdown",
-    url="https://github.com/'"$(git config github.user)"'/'"${project}"'",
-    packages=setuptools.find_packages(),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ],
-    python_requires=">=3.6",
-)' > setup.py
+    setuptools.setup(
+        name="'"${project}"'",
+        version="0.0.1",
+        author="'"$(git config user.name)"'",
+        author_email="'"$(git config user.email)"'",
+        description="",
+        long_description=open("README.md").read(),
+        long_description_content_type="text/markdown",
+        url="https://github.com/'"$(git config github.user)"'/'"${project}"'",
+        packages=setuptools.find_packages(),
+        classifiers=[
+            "Programming Language :: Python :: 3",
+            "License :: OSI Approved :: MIT License",
+            "Operating System :: OS Independent",
+        ],
+        python_requires=">=3.6",
+    )' > setup.py
 
     mkdir "${project}"
     mkdir tests

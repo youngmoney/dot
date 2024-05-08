@@ -1,20 +1,15 @@
 package bash-completion
-package git
 package pandoc
 package shellcheck
 package tmux
-package vim
 
 apt texlive
 cask mactex-no-gui
-
-cask blender
-cask gimp
-cask inkscape
+cask signal
+cask proton-mail
 
 python3 black
 python3 github.com/youngmoney/py-datatype
-python3 github.com/youngmoney/session
 
 bash local/scripts
 bash local/build
