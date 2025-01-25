@@ -82,11 +82,11 @@ class GitHub:
     @staticmethod
     def setup_config():
         print("Github Tool Setup")
-        username = prompt("Github username:")
+        username = input("Github username: ")
         if not username:
             print("Please provide a github username")
             return
-        token = prompt("Github API token:")
+        token = input("Github API token: ")
         if not token:
             print("Please provide an API token")
             return

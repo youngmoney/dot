@@ -632,10 +632,10 @@ def parseArgs():
 
 if __name__ == "__main__":
     try:
-        (username, token) = GitHub.get_authentication_from_config()
-        if username and token:
-            gh = GitHub(username, token)
-            args = parseArgs()
+        args = parseArgs()
+        result = GitHub.get_authentication_from_config()
+        if result and len(result) == 2:
+            gh = GitHub(result[0], result[1])
             if args.debug:
                 gh.debug = True
             if not args.func(args, gh):
