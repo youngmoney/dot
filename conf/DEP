@@ -2,12 +2,18 @@ package bash-completion
 package pandoc
 package shellcheck
 package tmux
+brew ffmpeg
+brew ledger
+package go
 
 apt texlive
 cask mactex-no-gui
+cask discord
+cask gnucash
 
 python3 black
 python3 github.com/youngmoney/py-datatype
+python3 gpg
 
 bash local/scripts
 bash local/build
