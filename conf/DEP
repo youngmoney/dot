@@ -5,8 +5,6 @@ package tmux
 
 apt texlive
 cask mactex-no-gui
-cask signal
-cask proton-mail
 
 python3 black
 python3 github.com/youngmoney/py-datatype
@@ -18,6 +16,8 @@ bash youngmoney/ios-icon-generator
 bash youngmoney/sh-copy-paste-reminder
 bash youngmoney/symc
 bash youngmoney/syncron
+bash youngmoney/remind-md
+bash youngmoney/git-autocommit
 
 include ~/local/dot/commands/**/DEP
 include ~/.local-dot/conf/DEP
