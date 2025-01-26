@@ -1,1 +1,2 @@
-* * * * * source ~/.bashrc --short; git-autocommit commit ~/Documents > /dev/null
+*/5 * * * * source ~/.bashrc --short; git-autocommit commit ~/Documents > /dev/null
+30 2 * * * source ~/.bashrc --short; apple2notes

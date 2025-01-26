@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+if [ "$(uname)" == "Darwin" ]; then
+    reminder2json --output-format=remindmd | remind-md write > apple.reminder.all.md
+    reminder2json --output-format=remindmd --include-lists=Favorites --include-deleted | remind-md write > apple.reminder.favorites.md
+fi
