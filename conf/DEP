@@ -24,6 +24,7 @@ bash youngmoney/symc
 bash youngmoney/syncron
 bash youngmoney/remind-md
 bash youngmoney/git-autocommit
+bash youngmoney/git-hub
 
 include ~/local/dot/commands/**/DEP
 include ~/.local-dot/conf/DEP
