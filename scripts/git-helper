@@ -116,45 +116,6 @@ ls-branch-relations() {
     done;
 }
 
-autocommit() {
-    current_dir="$(pwd)"
-    cd "${current_dir}" || exit
-    find . -name ".git" -print0 | while IFS= read -r -d $'\0' line; do
-        cd "${current_dir}" || exit
-        if [ -d "${line}" ]; then
-            cd "${line}" || exit
-            cd ..
-            every="$(git config autocommit.every)"
-            remote="$(git config autocommit.remote)"
-            branch="$(git config autocommit.branch)"
-            if [ "${branch}" == "" ]; then branch="master"; fi
-            toadd="$(git config autocommit.add)"
-            if [ "${add}" == "" ]; then add='*'; fi
-            pushforce="$(git config autocommit.force)"
-            if [ "${pushforce}" != "" ]; then pushargs="-f"; fi
-            add=${toadd}
-
-            commited=""
-            if [ -n "${every}" ] || [ -n "${toadd}" ]; then
-                git add --all "${add}"
-                git commit -a -m "$(date)" -q
-                commited="commited"
-            fi
-
-            if [ -n "${remote}" ]; then
-                if [ "${commited}" == "" ]; then
-                    git add --all "${add}"
-                    git commit -a -m "$(date)" -q
-                    commited="commited"
-                fi
-                git push ${pushargs} "${remote}" "${branch}" -q
-            fi
-
-        fi
-    done;
-    cd "${current_dir}" || exit
-}
-
 a=$1
 shift
 if [ "${a}" == "branch-name" ]; then
@@ -167,8 +128,6 @@ elif [ "${a}" == "pretty-log" ]; then
     pretty-log $@
 elif [ "${a}" == "ls-relations" ]; then
     ls-branch-relations $@
-elif [ "${a}" == "autocommit" ]; then
-    autocommit $@
 elif [ "${a}" == "search" ]; then
     search $@
 elif [ "${a}" == "find" ]; then
@@ -186,19 +145,6 @@ else
     echo "state: 'name (relationship) status'"
     echo "pretty-log: show git log in a nice colorful format"
     echo "ls-relations: shows branch-relationships for all gits"
-    echo "autocommit: autocommits all git repos"
-    echo "            set:"
-    echo "                autocommit.every (time frame, ignored)"
-    echo "                autocommit.remote (to push)"
-    echo "            optional:"
-    echo "                autocommit.branch (to push to)"
-    echo "                autocommit.force (push -f)"
-    echo "                autocommit.add (specify --add)"
-            # branch="`git config autocommit.branch`"
-            # if [ "$branch" == "" ]; then branch="master"; fi
-            # add="`git config autocommit.add`"
-            # if [ "$add" == "" ]; then add='*'; fi
-            # pushforce="`git config autocommit.force`"
     echo "search: search repo for string (history)"
     echo "ls-all: list all files that ever existed"
     echo "cat: cat the last occurance of a file"
