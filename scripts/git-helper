@@ -116,6 +116,10 @@ ls-branch-relations() {
     done;
 }
 
+helper::ls-state() {
+  for d in *; do [ -d "$d" ] || continue; echo $d "$(cd $d; state)"; done | column -t
+}
+
 a=$1
 shift
 if [ "${a}" == "branch-name" ]; then
@@ -124,6 +128,8 @@ elif [ "${a}" == "branch-relationship" ]; then
     branch-relationship $@
 elif [ "${a}" == "state" ]; then
     state $@
+elif [ "${a}" == "ls-state" ]; then
+    ls-state $@
 elif [ "${a}" == "pretty-log" ]; then
     pretty-log $@
 elif [ "${a}" == "ls-relations" ]; then
@@ -143,6 +149,7 @@ else
     echo "branch-relationship: branch upstream relationship (ahead)"
     echo "branch-status: branch file status (staged etc)"
     echo "state: 'name (relationship) status'"
+    echo "ls-state: list all sub-directories and their state"
     echo "pretty-log: show git log in a nice colorful format"
     echo "ls-relations: shows branch-relationships for all gits"
     echo "search: search repo for string (history)"
