@@ -129,7 +129,7 @@ elif [ "${a}" == "branch-relationship" ]; then
 elif [ "${a}" == "state" ]; then
     state $@
 elif [ "${a}" == "ls-state" ]; then
-    ls-state $@
+    helper::ls-state $@
 elif [ "${a}" == "pretty-log" ]; then
     pretty-log $@
 elif [ "${a}" == "ls-relations" ]; then
