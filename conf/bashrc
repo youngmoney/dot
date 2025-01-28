@@ -8,11 +8,7 @@ pathadd /usr/texbin
 pathadd /usr/bin
 [ -e /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
 
-if [ -d ~/local/sh-plugin ]; then
-    . ~/local/sh-plugin/plugin init
-else
-    . ~/.plugin/plugin init
-fi
+. ~/.plugin/plugin init
 
 export EDITOR=$(which vim); export VISUAL=${EDITOR}
 export LOCALDOT=~/.local-dot
