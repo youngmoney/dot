@@ -116,8 +116,17 @@ ls-branch-relations() {
     done;
 }
 
+remotes() {
+    remotes="$(git remote | paste -sd ',' -)"
+    if [ "$remotes" == "" ]; then
+        echo $1
+    else
+        echo $remotes
+    fi
+}
+
 helper::ls-state() {
-  for d in *; do [ -d "$d" ] || continue; echo $d "$(cd $d; state)"; done | column -t
+for d in *; do [ -d "$d" ] || continue; echo $d "$(cd $d; remotes -)" "$(cd $d; state)" ; done | column -t
 }
 
 a=$1
