@@ -1,6 +1,44 @@
 #!/usr/bin/env bash
 
+if [ "$1" == "install" ]; then
+    mkdir -p ~/Library/LaunchAgents
+    cat << EOF > ~/Library/LaunchAgents/local.apple2notes.plist
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>local.apple2notes.plist</string>
+    <key>KeepAlive</key>
+    <false/>
+    <key>RunAtLoad</key>
+    <false/>
+    <key>Program</key>
+    <string>/Users/$USER/local/dot/scripts/apple2notes</string>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>02</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+    <key>StandardErrorPath</key>
+    <string>/tmp/apple2notes.err</string>
+    <key>StandardOutPath</key>
+    <string>/tmp/apple2notes.out</string>
+    <key>Debug</key>
+    <true/>
+</dict>
+</plist>
+EOF
+    launchctl unload -w ~/Library/LaunchAgents/local.apple2notes.plist >/dev/null 2>/dev/null
+    launchctl load -w ~/Library/LaunchAgents/local.apple2notes.plist
+    exit 0
+fi
+
+
 if [ "$(uname)" == "Darwin" ]; then
-    reminder2json --output-format=remindmd | remind-md write > apple.reminder.all.md
-    reminder2json --output-format=remindmd --include-lists=Favorites --include-deleted | remind-md write > apple.reminder.favorites.md
+    . ~/.bashrc --short
+    reminder2json --output-format=remindmd | remind-md write > $NOTEDIR/apple.reminder.all.md
+    reminder2json --output-format=remindmd --include-lists=Favorites --include-deleted | remind-md write > $NOTEDIR/apple.reminder.favorites.md
 fi
