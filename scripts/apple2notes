@@ -38,7 +38,6 @@ fi
 
 
 if [ "$(uname)" == "Darwin" ]; then
-    . ~/.bashrc --short
     reminder2json --output-format=remindmd | remind-md write > $NOTEDIR/apple.reminder.all.md
     reminder2json --output-format=remindmd --include-lists=Favorites --include-deleted | remind-md write > $NOTEDIR/apple.reminder.favorites.md
 fi
