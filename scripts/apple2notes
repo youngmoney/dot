@@ -40,4 +40,11 @@ fi
 if [ "$(uname)" == "Darwin" ]; then
     reminder2json --output-format=remindmd | remind-md write > $NOTEDIR/apple.reminder.all.md
     reminder2json --output-format=remindmd --include-lists=Favorites --include-deleted | remind-md write > $NOTEDIR/apple.reminder.favorites.md
+    for f in ~/Library/Mobile\ Documents/iCloud~app~organicmaps/Documents/*; do
+        name="$(cat "$f" | grep '^  <name>' | sed 's/.*>\(.*\)<.*/\1/')"
+        name="$(echo "$name" | tr ' ' '_' | tr '[:upper:]' '[:lower:]')"
+        name="$(echo "$name" | sed 's/[^0-9a-z_\.]*//g' | sed 's/__/_/g')"
+        out="$(echo ~/Documents/outdoor/map.organic."$name.${f##*.}")"
+        cp "$f" "$out"
+    done
 fi
