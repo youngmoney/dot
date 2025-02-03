@@ -26,6 +26,7 @@ bash youngmoney/remind-md
 bash youngmoney/git-autocommit
 bash youngmoney/git-hub
 bash youngmoney/reminder2json
+bash youngmoney/note2md
 
 include ~/local/dot/commands/**/DEP
 include ~/.local-dot/conf/DEP

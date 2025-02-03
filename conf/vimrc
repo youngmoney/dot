@@ -34,6 +34,7 @@ Bundle 'vim-scripts/yaifa.vim'
 Bundle 'Raimondi/delimitMate'
 Bundle 'tpope/vim-surround'
 Bundle 'tomtom/tcomment_vim'
+Bundle 'vim-scripts/applescript.vim'
 
 "Text
 " Bundle 'vim-pandoc/vim-pandoc-syntax'
