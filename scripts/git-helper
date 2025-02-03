@@ -126,7 +126,16 @@ remotes() {
 }
 
 helper::ls-state() {
-for d in *; do [ -d "$d" ] || continue; echo $d "$(cd $d; remotes -)" "$(cd $d; state)" ; done | column -t
+for d in *; do [ -d "$d" ] || continue;
+    echo -n "$d"
+    echo -ne '\t'
+    echo -n "$(cd $d; remotes -)"
+    echo -ne '\t'
+    echo -n "$(cd $d; state)"
+    echo -ne '\t'
+    echo -n "$(cd $d; git config --get autocommit.every || echo -)"
+    echo
+done | column -t -c'\t'
 }
 
 a=$1
