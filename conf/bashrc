@@ -11,7 +11,7 @@ pathadd /usr/bin
 function plugin_arch() {
     local P_OS=$(uname | awk '{print tolower($0)}')
     local P_ARCH=$(arch)
-    if [[ $(uname -a | grep amd64 | wc -l ) > 1 ]]; then
+    if [[ $(uname -a | grep amd64 | wc -l ) > 0 ]]; then
        P_ARCH=amd64
     fi
     echo "-${P_OS}-${P_ARCH}"
