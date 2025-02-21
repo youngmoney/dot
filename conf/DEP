@@ -3,17 +3,14 @@ package pandoc
 package shellcheck
 package tmux
 brew ffmpeg
-brew ledger
-package go
+brew go
+brew black
 
 apt texlive
 cask mactex-no-gui
+
 cask discord
 cask gnucash
-
-python3 black
-python3 github.com/youngmoney/py-datatype
-python3 gpg
 
 bash local/scripts
 bash local/build
@@ -27,6 +24,7 @@ bash youngmoney/git-autocommit
 bash youngmoney/git-hub
 bash youngmoney/reminder2json
 bash youngmoney/note2md
+bash youngmoney/copilot2doubleentry
 
 include ~/local/dot/commands/**/DEP
 include ~/.local-dot/conf/DEP
