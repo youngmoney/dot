@@ -26,6 +26,7 @@ bash youngmoney/reminder2json
 bash youngmoney/note2md
 bash youngmoney/copilot2doubleentry
 bash youngmoney/formatter
+bash youngmoney/tester
 
 include ~/local/dot/commands/**/DEP
 include ~/.local-dot/conf/DEP
