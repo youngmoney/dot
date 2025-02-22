@@ -25,6 +25,7 @@ bash youngmoney/git-hub
 bash youngmoney/reminder2json
 bash youngmoney/note2md
 bash youngmoney/copilot2doubleentry
+bash youngmoney/formatter
 
 include ~/local/dot/commands/**/DEP
 include ~/.local-dot/conf/DEP

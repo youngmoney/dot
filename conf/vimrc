@@ -291,7 +291,7 @@ endfunction
 "Fix
 function! BuildFix()
     if line('$') < 9000
-        silent !build lint fix % > /dev/null 2>&1 &
+        silent !formatter fix % > /dev/null 2>&1 &
         redraw
     endif
 endfunction
