@@ -23,8 +23,6 @@ Bundle 'epeli/slimux'
 Bundle 'christoomey/vim-tmux-navigator'
 
 "Completion
-Bundle 'honza/vim-snippets'
-Bundle 'nvie/vim-flake8'
 "Bundle 'Valloric/YouCompleteMe'
 Bundle 'mhinz/vim-signify'
 
