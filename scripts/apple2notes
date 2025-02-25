@@ -47,7 +47,7 @@ function backup::organicmaps() {
 }
 
 function backup::reminders() {
-    reminder2json --output-format=remindmd | remind-md write > /tmp/reminder.all.md
+    reminder2json --output-format=remindmd --exclude-lists='Repeating|Reminders|Grocery' | remind-md write > /tmp/reminder.all.md
     mv /tmp/reminder.all.md ~/Documents/exports.apple/apple.reminder.all.md
     reminder2json --output-format=remindmd --include-lists=Favorites --include-deleted | remind-md write > /tmp/reminder.favorites.md
     mv /tmp/reminder.favorites.md ~/Documents/exports.apple/apple.reminder.favorites.md
