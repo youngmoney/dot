@@ -160,8 +160,7 @@ _command_completion() { _workspace_completion command; }
 complete -F _command_completion workspace_command
 
 # tl() { eval "$(build test test -l $@)"; }
-alias tl="tester -l test"
-alias tla="tester -l -a test"
+alias tl="tester test -l"
 
 HISTCONTROL=ignoreboth;
 # tmux
