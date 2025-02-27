@@ -115,7 +115,7 @@ command_line_extras() {
 COMMAND_LINE_EXTRAS=""
 clextraadd() { [[ ":${COMMAND_LINE_EXTRAS}:" != *":$1:"* ]] && export COMMAND_LINE_EXTRAS="${COMMAND_LINE_EXTRAS:+"${COMMAND_LINE_EXTRAS}:"}$1"; }
 export PS1="\[\033[0;90m\]\${command_runtime}
-\[\033[36m\]\u\[\033[m\]${COMPNAME}:\[\033[33;1m\]\$(get_current_path)\[\033[m\]\$()\[\e[1;35m\] \$(workspace_command simple-state)\[\e[0;39m\] \[\e[0;33m\]\$(command_line_extras)\[\e[0;39m\]
+\[\033[36m\]\u\[\033[m\]${COMPNAME}:\[\033[33;1m\]\$(get_current_path)\[\033[m\]\$()\[\e[1;35m\] \$(commander command simple-state)\[\e[0;39m\] \[\e[0;33m\]\$(command_line_extras)\[\e[0;39m\]
 \[\033[0;90m\]\$(get_jobs)$\[\033[0;0m\] "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
 . build --completion
@@ -147,7 +147,6 @@ layout() { eval "$(build workspace layout $@)"; }
 change() { eval "$(build workspace change -r $@)"; }
 create() { eval "$(build workspace create -r $@)"; }
 new() { eval "$(build workspace change -r -c -l $@)"; }
-alias workspace_command="commander command"
 _workspace_completion() {
   COMPREPLY=($(compgen -W "$(build workspace "$1")" -- "${COMP_WORDS[${#COMP_WORDS[@]}-1]}"))
 }
@@ -161,7 +160,6 @@ complete -F _create_completion create
 _command_completion() {
   COMPREPLY=($(compgen -W "$(commander command)" -- "${COMP_WORDS[${#COMP_WORDS[@]}-1]}"))
 }
-complete -F _command_completion workspace_command
 complete -F _command_completion commander command
 
 # tl() { eval "$(build test test -l $@)"; }
