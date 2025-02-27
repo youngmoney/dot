@@ -33,7 +33,9 @@ export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_ANALYTICS=1
 export BASH_SILENCE_DEPRECATION_WARNING=1
 export GOPATH=~/.go
-export FORMATTER_CONFIG=~/.formatter.yaml
+export FORMATTER_CONFIG=~/.space.yaml
+export TESTER_CONFIG=~/.space.yaml
+export COMMANDER_CONFIG=~/.space.yaml
 
 SHORT_BASH_IMPORT="${LOCALDOT}/conf/short.bash"
 [ -f "${SHORT_BASH_IMPORT}" ] && . "${SHORT_BASH_IMPORT}"
@@ -145,7 +147,7 @@ layout() { eval "$(build workspace layout $@)"; }
 change() { eval "$(build workspace change -r $@)"; }
 create() { eval "$(build workspace create -r $@)"; }
 new() { eval "$(build workspace change -r -c -l $@)"; }
-workspace_command() { eval "$(build workspace command $@)"; }
+alias workspace_command="commander command"
 _workspace_completion() {
   COMPREPLY=($(compgen -W "$(build workspace "$1")" -- "${COMP_WORDS[${#COMP_WORDS[@]}-1]}"))
 }
@@ -156,8 +158,11 @@ complete -F _change_completion change
 complete -F _change_completion new
 _create_completion() { _workspace_completion create; }
 complete -F _create_completion create
-_command_completion() { _workspace_completion command; }
+_command_completion() {
+  COMPREPLY=($(compgen -W "$(commander command)" -- "${COMP_WORDS[${#COMP_WORDS[@]}-1]}"))
+}
 complete -F _command_completion workspace_command
+complete -F _command_completion commander command
 
 # tl() { eval "$(build test test -l $@)"; }
 alias tl="tester test -l"

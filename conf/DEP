@@ -27,6 +27,7 @@ bash youngmoney/note2md
 bash youngmoney/copilot2doubleentry
 bash youngmoney/formatter
 bash youngmoney/tester
+bash youngmoney/commander
 
 include ~/local/dot/commands/**/DEP
 include ~/.local-dot/conf/DEP

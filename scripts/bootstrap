@@ -53,6 +53,7 @@ bootstrap-move() {
 
 bootstrap-dot() {
     symc link-dir "${DOT}"/conf ~/. || return 1
+    [ "$1" == "--short" ] && return 0
     syncron install ~/.cron
     bootstrap::is-mac && bash "${DOT}"/conf/osx >/dev/null;
     . ~/.bashrc --short
@@ -111,7 +112,7 @@ elif [ "${a}" == "git" ]; then
 else
     echo "go: bootstrap everything"
     echo "pullboots: download dependencies"
-    echo "dot: symlink dotfiles"
+    echo "dot: symlink dotfiles [--short]"
     echo "install: install packages and more"
     echo "git: setup git config"
 fi
