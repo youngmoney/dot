@@ -38,6 +38,7 @@ export SPACER_CONFIG=~/.space.yaml
 export FORMATTER_CONFIG=~/.space.yaml
 export TESTER_CONFIG=~/.space.yaml
 export COMMANDER_CONFIG=~/.space.yaml
+export NOTEBOOK_MD_CONFIG=~/.space.yaml
 
 SHORT_BASH_IMPORT="${LOCALDOT}/conf/short.bash"
 [ -f "${SHORT_BASH_IMPORT}" ] && . "${SHORT_BASH_IMPORT}"
