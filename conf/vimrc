@@ -211,13 +211,13 @@ function! RunNotebook(mode) range
     write
     echo "Executing..."
     if a:mode == 0
-        cexpr system("build notebook execute " . bufname("%"))
+        execute "%!notebook-md execute"
     endif
     if a:mode == 1
-        cexpr system("build notebook execute --line " . a:firstline . "-" . a:lastline . " ".  bufname("%"))
+        execute "%!notebook-md execute --line " . a:firstline . "-" . a:lastline
     endif
     if a:mode == 2
-        cexpr system("build notebook execute --line " . line('.') . "- ".  bufname("%"))
+        execute "%!notebook-md execute --line " . line('.') . "-"
     endif
     silent !tput bel
     redraw!
