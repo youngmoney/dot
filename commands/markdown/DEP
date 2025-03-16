@@ -1,4 +1,0 @@
-package pandoc
-optional brew mactex
-optional apt texlive
-python3 PyYAML
