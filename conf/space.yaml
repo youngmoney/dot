@@ -21,18 +21,6 @@ spacer:
   layouts:
       - name: vim-ctrlp
         command: vim +CtrlP
-        children:
-        - direction: right
-          percent: 30
-          command: echo hello
-  commands:
-      - name: simple-state
-        command: git helper state
-        path_command: git -C {current_path} rev-parse
-      - name: ctrlp-modified-files
-        command: git status --porcelain -z --untracked-files=all | tr '\0' '\n' | cut -c 4-
-        path_command: git -C {current_path} rev-parse
-
 formatter:
   linters:
     - name: go
