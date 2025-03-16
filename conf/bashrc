@@ -60,8 +60,8 @@ alias gc="git commit";
 alias gl='git helper pretty-log'
 alias gr="git rebase"
 
-alias el='change -l local'
-alias ed='change -l dot'
+alias el='change --layout local'
+alias ed='change --layout dot'
 
 alias s="search content";
 alias f="search file"
@@ -73,8 +73,8 @@ alias ls="ls -1F"
 
 alias refresh=". ~/.bash_profile"
 
-alias note="change -l notes"
-alias d="change -l notes"
+alias note="change --layout notes"
+alias d="change --layout notes"
 alias vess="vim -R -";
 
 ssh-add ~/.ssh/*_rsa > /dev/null 2>&1
@@ -99,7 +99,7 @@ check_end() {
     unset command_start
 }
 if [ ! -f ${LOCALDOT}/status/home.me ]; then COMPNAME="\e[31m@$(hostname | cut -c 1-10)\e[0m"; fi
-current_path() { pwd | sed 's:^'"${HOME}"':~:'; }; get_current_path() { build workspace path; }
+current_path() { pwd | sed 's:^'"${HOME}"':~:'; }; get_current_path() { spacer path; }
 get_jobs() { [ -n "$(jobs | wc -l | grep -v '^ *0$')" ] && echo '&'; }
 command_line_extras() {
     IFS=: read -r -d '' -a extras < <(printf '%s:\0' "${COMMAND_LINE_EXTRAS}")
@@ -146,20 +146,16 @@ ssh-setup() {
     ";
 }
 
-layout() { eval "$(build workspace layout $@)"; }
-change() { eval "$(build workspace change -r $@)"; }
-create() { eval "$(build workspace create -r $@)"; }
-new() { eval "$(build workspace change -r -c -l $@)"; }
-_workspace_completion() {
-  COMPREPLY=($(compgen -W "$(build workspace "$1")" -- "${COMP_WORDS[${#COMP_WORDS[@]}-1]}"))
-}
-_layout_completion() { _workspace_completion layout; }
-complete -F _layout_completion layout
-_change_completion() { _workspace_completion change; }
-complete -F _change_completion change
-complete -F _change_completion new
-_create_completion() { _workspace_completion create; }
-complete -F _create_completion create
+. spacer-bash
+alias layout=spacer-layout
+alias change=spacer-change
+alias create=spacer-create
+alias new="spacer-change --create --layout"
+complete -F spacer::completion layout
+complete -F spacer::completion change
+complete -F spacer::completion create
+complete -F spacer::completion new
+
 _command_completion() {
   COMPREPLY=($(compgen -W "$(commander command)" -- "${COMP_WORDS[${#COMP_WORDS[@]}-1]}"))
 }
