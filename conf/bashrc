@@ -53,7 +53,7 @@ if [ ! -d . ]; then
     fi
 fi
 
-alias gh="build github";
+alias gh="git-hub";
 alias gs="git status";
 alias gd="git diff --color-words=."
 alias gc="git commit";
@@ -65,8 +65,6 @@ alias ed='change --layout dot'
 
 alias s="search content";
 alias f="search file"
-
-alias ssh-share="build ssh share"
 
 alias dc="cd";
 alias ls="ls -1F"
@@ -121,7 +119,6 @@ export PS1="\[\033[0;90m\]\${command_runtime}
 \[\033[36m\]\u\[\033[m\]${COMPNAME}:\[\033[33;1m\]\$(get_current_path)\[\033[m\]\$()\[\e[1;35m\] \$(commander command simple-state)\[\e[0;39m\] \[\e[0;33m\]\$(command_line_extras)\[\e[0;39m\]
 \[\033[0;90m\]\$(get_jobs)$\[\033[0;0m\] "
 export CLICOLOR=1: export LSCOLORS=ExFxBxDxCxegedabagacad
-. build --completion
 
 trap 'check_start' DEBUG
 unset PROMPT_COMMAND
@@ -161,7 +158,6 @@ _command_completion() {
 }
 complete -F _command_completion commander command
 
-# tl() { eval "$(build test test -l $@)"; }
 alias tl="tester test -l"
 
 HISTCONTROL=ignoreboth;
