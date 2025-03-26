@@ -30,6 +30,3 @@ bash youngmoney/formatter
 bash youngmoney/tester
 bash youngmoney/commander
 bash youngmoney/notebook-md
-
-include ~/local/dot/commands/**/DEP
-include ~/.local-dot/conf/DEP
