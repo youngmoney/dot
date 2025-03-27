@@ -13,7 +13,6 @@ cask discord
 cask gnucash
 
 bash local/scripts
-bash local/build
 bash youngmoney/dep
 bash youngmoney/ios-icon-generator
 bash youngmoney/sh-copy-paste-reminder
@@ -30,3 +29,4 @@ bash youngmoney/formatter
 bash youngmoney/tester
 bash youngmoney/commander
 bash youngmoney/notebook-md
+bash youngmoney/web2markdown

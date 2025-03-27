@@ -56,10 +56,23 @@ function backup::reminders() {
 function backup::notes() {
   tmp="/tmp/notes-$(date +%Y-%m-%d-%H-%M-%S)"
   mkdir -p "$tmp"
-  cd "$tmp"
+  cd "$tmp" || exit 1
   note2md || exit 1
   rm -rf ~/Documents/exports.apple/apple.note.*
   mv converted/apple.note.* ~/Documents/exports.apple/
+}
+
+function backup::favorites() {
+    while read -r line; do
+        TITLE=$(echo "$line" | awk -F'SEP' '{print $1}' | sed 's/Instapaper Liked: //')
+        TITLE="$(echo "$TITLE" | tr ' ' '_' | tr '[:upper:]' '[:lower:]')"
+        TITLE="$(echo "$TITLE" | sed 's/[^0-9a-z_\.]*//g' | sed 's/__/_/g')"
+        URL=$(echo "$line" | awk -F'SEP' '{print $2}')
+        OUTPUT=~/Documents/exports.favorites/instapaper."$TITLE".md
+        if [ ! -f "$OUTPUT" ]; then
+            web2markdown --user-agent curl-browser "$URL" > /tmp/article && cp /tmp/article "$OUTPUT" || echo "$URL"
+        fi
+    done < <(reminder2json --output-format=remindmd --include-lists=Favorites --include-deleted  | jq --raw-output '.reminders.iCloud.Favorites.[] | [.title, .notes] | join("SEP")' | tr -d '"' | grep 'Instapaper Liked')
 }
 
 
@@ -73,6 +86,9 @@ if [ "$(uname)" == "Darwin" ]; then
         fi
         if [ "$a" == "notes" ]; then
             backup::notes
+        fi
+        if [ "$a" == "favorites" ]; then
+            backup::favorites
         fi
     done
 fi
