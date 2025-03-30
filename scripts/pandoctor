@@ -26,12 +26,12 @@ pandoctor::run() {
     CONFIG=$(pandoctor::config) || (echo "no pandoctor.yaml found" >&2; exit 9)
     [ -f "$1" ] || (echo "not found: $1" >&2; exit 1)
     INPUT="$1"
+    shift
     OUTPUT_BASE=${INPUT%.*}
     EXT=$(pandoctor::get "$CONFIG" ext to)
     OUTPUT="$OUTPUT_BASE.$EXT"
     [ "$EXT" == "" ] && OUTPUT="-"
-    pandoc --defaults "$CONFIG" --output "$OUTPUT" "$INPUT"
-
+    pandoc --defaults "$CONFIG" --output "$OUTPUT" "$INPUT" "$@"
 }
 
 pandoctor::run "$@"
