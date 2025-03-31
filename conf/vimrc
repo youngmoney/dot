@@ -86,7 +86,7 @@ let g:ulti_expand_or_jump_res = 0
 let g:ctrlp_extensions = ['tag']
 let g:ctrlp_open_new_file = 'r'
 let g:ctrlp_custom_ignore = 'documents/notes/.*\.html'
-let g:ctrlp_modified_command = 'eval "$(build workspace command ctrlp-modified-files)"'
+let g:ctrlp_modified_command = 'commander command ctrlp-modified-files'
 map <C-n> :CtrlPModified<CR>
 
 "Slime
@@ -227,18 +227,18 @@ endfunction
 
 function! RunMarkdown(mode)
     if a:mode == 0
-        cexpr system("build markdown " . bufname("%"))
+        cexpr system("pandoctor " . bufname("%"))
     endif
     if a:mode == 1
-        cexpr system("build markdown -o " . bufname("%"))
+        cexpr system("pandoctor " . bufname("%"))
     endif
 endfunction
 
 function! SessionStop()
-    cexpr system("build session client stop " . expand('%:p'))
+    cexpr system("session client stop " . expand('%:p'))
 endfunction
 function! SessionKill()
-    cexpr system("build session client kill " . expand('%:p'))
+    cexpr system("session client kill " . expand('%:p'))
 endfunction
 command! SessionStop call SessionStop()
 command! SessionKill call SessionKill()

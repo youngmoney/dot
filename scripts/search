@@ -6,15 +6,9 @@ search_contents() { grep -inIEr --color=ALWAYS "$@" . ; }
 search_grep() { grep -lr "$@" . | sort | sed "s:\./::g"; }
 
 search() {
-    s="$1"
-    shift
-    RESULTS=""`"$s" $@`""
-    TOP_RESULT=`echo "$RESULTS" | head -1`
+    RESULTS=$("$@")
     echo "$RESULTS"
-    echo "$RESULTS" > ~/.build_search_results
-    echo "$TOP_RESULT" > ~/.build_search_top_result
 }
-
 
 arg=$1
 shift

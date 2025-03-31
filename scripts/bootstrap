@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-bootstrap::location() {                                                                       
+bootstrap::location() {
     local location="$(cd $(dirname $([ -L "${BASH_SOURCE}" ] && readlink "${BASH_SOURCE}" || echo "${BASH_SOURCE}")) && pwd)"
     if [ -L "${location}" ]; then
-        readlink "${location}"                                                            
+        readlink "${location}"
     else
         echo "${location}"
-    fi        
+    fi
 }
 
 DOT="$(cd "$(bootstrap::location)"/.. || exit; pwd -P)"
@@ -25,15 +25,11 @@ bootstrap::is-mac() {
 }
 
 bootstrap-pullboots() {
-  if [ ! -d ~/.plugin ] && [ ! -d ~/local/sh-plugin ]; then
+  if [ ! -d ~/.plugin ]; then
       echo installing plugin...
       git clone -q https://github.com/youngmoney/sh-plugin ~/.plugin > /dev/null || return 1
   fi
-  if [ -d ~/local/sh-plugin ]; then
-      . ~/local/sh-plugin/plugin init
-  else
-      . ~/.plugin/plugin init
-  fi
+  . ~/.plugin/plugin init
   plugin install youngmoney/symc
   plugin install youngmoney/dep
   plugin install youngmoney/syncron
@@ -46,7 +42,6 @@ bootstrap-move() {
         symc safe-cp "${DOT}" "${DOT_DEST}" || return 1
         DOT="${DOT_DEST}"
     fi
-    plugin link "${DOT_DEST}/commands/build" build >/dev/null
     plugin link "${DOT_DEST}/scripts" scripts > /dev/null
     return 0
 }
