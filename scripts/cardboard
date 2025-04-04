@@ -43,7 +43,7 @@ function cardboard::install() {
 function cardboard::uninstall() {
     WANT=$(cardboard::want "$1" | sort -t'|' -bk1,1)
     HAVE=$(cardboard::have "$1" | sort -t'|' -bk1,1)
-    UNNEEDED=$(join -t'|' -j 1 -v 2 <(echo "$WANT") <(echo "$HAVE"))
+    UNNEEDED=$(join -t'|' -j 1 -v 2 <(echo "$WANT") <(echo "$HAVE") | grep -v '|echo')
     COMMANDS=$(echo "$UNNEEDED" | awk -F'|' '{ print $2}')
     [ "$COMMANDS" == "" ] && return 0
     echo "$COMMANDS"
@@ -102,7 +102,7 @@ function cardboard::want() {
             echo -n "apt:"
             echo -n "$p" | sed -n 's:^.*[ ]\([^ ]*\)$:\1:p'
             echo -n '|'
-            echo "$p"
+            echo "sudo $p"
         else
             echo "unknown: $p" >&2
         fi
@@ -116,7 +116,7 @@ function cardboard::have() {
         brew leaves | sed 's/^\(.*\)$/brew:\1|brew uninstall "\1"/'
         brew list --cask | sed 's/^\(.*\)$/brew:\1|brew uninstall --cask "\1"/'
     else
-        dpkg --get-selections | sed 's/^\(.*\)$/apt:\1|echo sudo apt-get uninstall "\1"/'
+        dpkg --get-selections | grep install | awk '{print $1}' | sed 's/^\(.*\)$/apt:\1|echo sudo apt-get uninstall "\1"/'
     fi
 }
 
