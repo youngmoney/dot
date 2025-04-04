@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+
+set -o pipefail
+
+
+function cardboard::is-mac() {
+  [ $(uname) == "Darwin" ]
+}
+
+function cardboard::confirm() {
+    read -p "$@ " -r
+    [[ $REPLY =~ ^[Yy] ]]
+}
+
+function cardboard::install() {
+    WANT=$(cardboard::want "$1" | sort -t'|' -bk1,1)
+    HAVE=$(cardboard::have "$1" | sort -t'|' -bk1,1)
+    MISSING=$(join -t'|' -j 1 -v 1 <(echo "$WANT") <(echo "$HAVE"))
+    COMMANDS=$(echo "$MISSING" | awk -F'|' '{ print $2}')
+    [ "$COMMANDS" == "" ] && return 0
+    echo "$COMMANDS"
+    echo
+    cardboard::confirm "install?" || return 42
+
+    FAILURES=$(mktemp)
+
+    while read p; do
+        echo
+        echo "installing: $p"
+        eval "$p" || echo "failed to install: $p" > "$FAILURES"
+        echo
+    done < <(echo "$COMMANDS")
+
+    if [ -s "$FAILURES" ]; then
+        echo "Failures:"
+        cat "$FAILURES" >&2
+        return 13
+    fi
+
+    return 23
+}
+
+function cardboard::uninstall() {
+    WANT=$(cardboard::want "$1" | sort -t'|' -bk1,1)
+    HAVE=$(cardboard::have "$1" | sort -t'|' -bk1,1)
+    UNNEEDED=$(join -t'|' -j 1 -v 2 <(echo "$WANT") <(echo "$HAVE"))
+    COMMANDS=$(echo "$UNNEEDED" | awk -F'|' '{ print $2}')
+    [ "$COMMANDS" == "" ] && return 0
+    echo "$COMMANDS"
+    echo
+    cardboard::confirm "remove?" || return 42
+
+    FAILURES=$(mktemp)
+
+    while read p; do
+        echo
+        echo "removing: $p"
+        eval "$p" || echo "failed to remove: $p" > "$FAILURES"
+        echo
+    done < <(echo "$COMMANDS")
+
+    if [ -s "$FAILURES" ]; then
+        echo "Failures:"
+        cat "$FAILURES" >&2
+        return 13
+    fi
+
+    return 23
+}
+
+function cardboard::clean() {
+  while true; do
+      cardboard::uninstall "$1" && return 0
+      O=$?
+      [ "$O" -eq 23 ] || return $O
+  done
+}
+
+function cardboard::want() {
+    while read p; do
+        if [[ $p == '#'* ]] || [[ "$p" == "" ]]; then
+            continue
+        elif [[ $p == plugin* ]]; then
+            echo -n "plugin:"
+            echo -n "$p" | sed -n 's:^.*[ /]\([^ /]*\)$:\1:p'
+            echo -n '|'
+            echo "$p"
+        elif [[ $p == 'brew --cask'* ]]; then
+            cardboard::is-mac || continue
+            echo -n "brew-cask:"
+            echo -n "$p" | sed -n 's:^.*[ ]\([^ ]*\)$:\1:p'
+            echo -n '|'
+            echo "$p"
+        elif [[ $p == brew* ]]; then
+            cardboard::is-mac || continue
+            echo -n "brew:"
+            echo -n "$p" | sed -n 's:^.*[ ]\([^ ]*\)$:\1:p'
+            echo -n '|'
+            echo "$p"
+        elif [[ $p == apt-get* ]]; then
+            cardboard::is-mac && continue
+            echo -n "apt:"
+            echo -n "$p" | sed -n 's:^.*[ ]\([^ ]*\)$:\1:p'
+            echo -n '|'
+            echo "$p"
+        else
+            echo "unknown: $p" >&2
+        fi
+
+    done < <(cat "${1:--}")
+}
+
+function cardboard::have() {
+    plugin list | sed 's/^\(.*\)$/plugin:\1|plugin uninstall "\1"/'
+    if cardboard::is-mac; then
+        brew leaves | sed 's/^\(.*\)$/brew:\1|brew uninstall "\1"/'
+        brew list --cask | sed 's/^\(.*\)$/brew:\1|brew uninstall --cask "\1"/'
+    else
+        dpkg --get-selections | sed 's/^\(.*\)$/apt:\1|echo sudo apt-get uninstall "\1"/'
+    fi
+}
+
+a="$1"
+shift
+if [ "$a" == "install" ]; then
+    cardboard::install "$@"
+elif [ "$a" == "clean" ]; then
+    cardboard::clean "$@"
+else
+    echo "install: install missing packages"
+    echo "clean: remove packages that are not required"
+fi

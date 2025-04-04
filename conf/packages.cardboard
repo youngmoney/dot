@@ -1,0 +1,37 @@
+#!/usr/bin/env cardboard install
+
+brew install bash-completion
+apt-get install bash-completion
+brew install tmux
+apt-get install tmux
+brew install ffmpeg
+brew install go
+brew install black
+brew install shellcheck
+brew install jq
+
+brew install pandoc
+apt-get install pandoc
+apt-get install texlive
+brew install --cask mactex-no-gui
+
+brew install --cask discord
+brew install --cask gnucash
+
+plugin link ~local/scripts scripts
+plugin install youngmoney/ios-icon-generator
+plugin install youngmoney/sh-copy-paste-reminder
+plugin install youngmoney/symc
+plugin install youngmoney/syncron
+plugin install youngmoney/remind-md
+plugin install youngmoney/git-autocommit
+plugin install youngmoney/git-hub
+plugin install youngmoney/reminder2json
+plugin install youngmoney/note2md
+plugin install youngmoney/copilot2doubleentry
+plugin install youngmoney/formatter
+plugin install youngmoney/commander
+plugin install youngmoney/tester
+plugin install youngmoney/spacer
+plugin install youngmoney/notebook-md
+plugin install youngmoney/web2markdown
