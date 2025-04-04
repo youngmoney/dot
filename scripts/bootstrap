@@ -31,7 +31,6 @@ bootstrap-pullboots() {
   fi
   . ~/.plugin/plugin init
   plugin install youngmoney/symc
-  plugin install youngmoney/dep
   plugin install youngmoney/syncron
   return 0
 }
@@ -58,7 +57,7 @@ bootstrap-dot() {
 bootstrap-install() {
    # bootstrap::is-mac && open ${DOT}/conf/taylormint.terminal
    bootstrap::is-mac && [ ! -e /opt/homebrew ] && /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   dep install -y
+   ~/.packages.cardboard
 }
 
 bootstrap-done() {
