@@ -9,6 +9,7 @@ brew install go
 brew install black
 brew install shellcheck
 brew install jq
+brew install gdal
 
 brew install pandoc
 apt-get install pandoc

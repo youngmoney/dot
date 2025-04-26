@@ -75,6 +75,11 @@ function backup::favorites() {
     done < <(reminder2json --output-format=remindmd --include-lists=Favorites --include-deleted  | jq --raw-output '.reminders.iCloud.Favorites.[] | [.title, .notes] | join("SEP")' | tr -d '"' | grep 'Instapaper Liked')
 }
 
+function backup::google-maps() {
+    jq '.features = [.features.[] | .properties["name"] = .properties.location.name | .properties["description"] = .properties.location.address + "\n" + .properties.google_maps_url + " on " + .properties.date | .properties.styleUrl = "#placemark-yellow" | .properties.style = "SYMBOL(id:https://omaps.app/placemarks/placemark-yellow.png)"]' ~/Documents/exports/google.maps.saved.json > /tmp/googlemapssaved
+    ogr2ogr -q -f KML ~/Library/Mobile\ Documents/iCloud\~app\~organicmaps/Documents/Google\ Saved.kml -oo FLATTEN_NESTED_ATTRIBUTES=YES /tmp/googlemapssaved
+}
+
 
 if [ "$(uname)" == "Darwin" ]; then
     for a in $@; do
@@ -89,6 +94,9 @@ if [ "$(uname)" == "Darwin" ]; then
         fi
         if [ "$a" == "favorites" ]; then
             backup::favorites
+        fi
+        if [ "$a" == "googlemaps" ]; then
+            backup::google-maps
         fi
     done
 fi
