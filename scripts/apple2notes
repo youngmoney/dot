@@ -44,6 +44,13 @@ function backup::organicmaps() {
         out="$(echo ~/Documents/outdoor/map.organic."$name.${f##*.}")"
         cp "$f" "$out"
     done
+    for f in ~/Library/Mobile\ Documents/iCloud~app~comaps/Documents/*; do
+        name="$(cat "$f" | grep '^  <name>' | sed 's/.*>\(.*\)<.*/\1/')"
+        name="$(echo "$name" | tr ' ' '_' | tr '[:upper:]' '[:lower:]')"
+        name="$(echo "$name" | sed 's/[^0-9a-z_\.]*//g' | sed 's/__/_/g')"
+        out="$(echo ~/Documents/outdoor/map.co."$name.${f##*.}")"
+        cp "$f" "$out"
+    done
 }
 
 function backup::reminders() {
@@ -58,8 +65,7 @@ function backup::notes() {
   mkdir -p "$tmp"
   cd "$tmp" || exit 1
   note2md || exit 1
-  rm -rf ~/Documents/exports.apple/apple.note.*
-  mv converted/apple.note.* ~/Documents/exports.apple/
+  rsync -av --recursive --include='apple.note*' --exclude='*' --delete converted/ ~/Documents/exports.apple
 }
 
 function backup::favorites() {
@@ -70,6 +76,8 @@ function backup::favorites() {
         URL=$(echo "$line" | awk -F'SEP' '{print $2}')
         OUTPUT=~/Documents/exports.favorites/instapaper."$TITLE".md
         if [ ! -f "$OUTPUT" ]; then
+            date >> /tmp/articles
+            echo "$OUTPUT" "$URL" >> /tmp/articles
             web2markdown --user-agent curl-browser "$URL" > /tmp/article && cp /tmp/article "$OUTPUT" || echo "$URL"
         fi
     done < <(reminder2json --output-format=remindmd --include-lists=Favorites --include-deleted  | jq --raw-output '.reminders.iCloud.Favorites.[] | [.title, .notes] | join("SEP")' | tr -d '"' | grep 'Instapaper Liked')
@@ -78,6 +86,7 @@ function backup::favorites() {
 function backup::google-maps() {
     jq '.features = [.features.[] | .properties["name"] = .properties.location.name | .properties["description"] = .properties.location.address + "\n" + .properties.google_maps_url + " on " + .properties.date | .properties.styleUrl = "#placemark-yellow" | .properties.style = "SYMBOL(id:https://omaps.app/placemarks/placemark-yellow.png)"]' ~/Documents/exports/google.maps.saved.json > /tmp/googlemapssaved
     ogr2ogr -q -f KML ~/Library/Mobile\ Documents/iCloud\~app\~organicmaps/Documents/Google\ Saved.kml -oo FLATTEN_NESTED_ATTRIBUTES=YES /tmp/googlemapssaved
+    ogr2ogr -q -f KML ~/Library/Mobile\ Documents/iCloud\~app\~comaps/Documents/Google\ Saved.kml -oo FLATTEN_NESTED_ATTRIBUTES=YES /tmp/googlemapssaved
 }
 
 

@@ -1,3 +1,6 @@
-*/5 * * * * source ~/.bashrc --short >/dev/null 2>&1; git-autocommit commit ~/Documents > /dev/null
-3,12,27,39,48,56 * * * * source ~/.bashrc --short >/dev/null 2>&1; apple2notes reminders organicmaps
-22 2 * * * source ~/.bashrc --short >/dev/null 2>&1; apple2notes notes favorites googlemaps
+*/5 * * * * source ~/.bashrc --short >/dev/null 2>&1; git-autocommit commit ~/Documents 2>&1 > /dev/null | grep -v 'Resource deadlock avoided'
+3,12,27,39,48,56 * * * * source ~/.bashrc --short >/dev/null 2>&1; apple2notes reminders
+13 * * * * source ~/.bashrc --short >/dev/null 2>&1; apple2notes organicmaps
+38 20 * * * source ~/.bashrc --short >/dev/null 2>&1; apple2notes googlemaps
+24 21 * * * source ~/.bashrc --short >/dev/null 2>&1; apple2notes notes
+23 21 * * * source ~/.bashrc --short >/dev/null 2>&1; apple2notes favorites
