@@ -39,6 +39,7 @@ fi
 function backup::organicmaps() {
     for f in ~/Library/Mobile\ Documents/iCloud~app~organicmaps/Documents/*; do
         name="$(cat "$f" | grep '^  <name>' | sed 's/.*>\(.*\)<.*/\1/')"
+        [ "$name" == "" ] && name=$(basename "$f" .kml)
         name="$(echo "$name" | tr ' ' '_' | tr '[:upper:]' '[:lower:]')"
         name="$(echo "$name" | sed 's/[^0-9a-z_\.]*//g' | sed 's/__/_/g')"
         out="$(echo ~/Documents/outdoor/map.organic."$name.${f##*.}")"
@@ -46,6 +47,7 @@ function backup::organicmaps() {
     done
     for f in ~/Library/Mobile\ Documents/iCloud~app~comaps/Documents/*; do
         name="$(cat "$f" | grep '^  <name>' | sed 's/.*>\(.*\)<.*/\1/')"
+        [ "$name" == "" ] && name=$(basename "$f" .kml)
         name="$(echo "$name" | tr ' ' '_' | tr '[:upper:]' '[:lower:]')"
         name="$(echo "$name" | sed 's/[^0-9a-z_\.]*//g' | sed 's/__/_/g')"
         out="$(echo ~/Documents/outdoor/map.co."$name.${f##*.}")"
