@@ -65,7 +65,7 @@ function backup::notes() {
   mkdir -p "$tmp"
   cd "$tmp" || exit 1
   note2md || exit 1
-  rsync -av --recursive --include='apple.note*' --exclude='*' --delete converted/ ~/Documents/exports.apple
+  rsync -av --dry-run --ignore-times --checksum --recursive --include='apple.note*' --include="apple.note*/*" --exclude='*' --delete converted/ ~/Documents/exports.apple > rsync.log
 }
 
 function backup::favorites() {
